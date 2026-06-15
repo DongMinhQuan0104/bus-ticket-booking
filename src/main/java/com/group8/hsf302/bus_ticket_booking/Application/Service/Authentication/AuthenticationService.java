@@ -8,7 +8,7 @@ public interface AuthenticationService {
 
     public AccountViewModel register(RegisterForm registerForm);
 
-    public boolean login(LoginForm loginForm);
+    public AccountViewModel login(LoginForm loginForm);
 
     public boolean forgotPassword();
 

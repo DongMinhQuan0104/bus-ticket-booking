@@ -4,10 +4,8 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.LoginForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.RegisterForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.AccountMapper;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.EmailAlreadyExistsException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.LoginFailException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.NotFoundException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.PasswordConfirmNotMatchException;
+import com.group8.hsf302.bus_ticket_booking.Application.Service.Authentication.AuthenticationService;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Account;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.AccountRepo;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Security.PasswordHasher;
@@ -29,10 +27,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public AccountViewModel register(RegisterForm form) {
         if(accountRepo.findByEmail(form.getEmail()).isPresent()) {
-            throw new EmailAlreadyExistsException("Email Already Exists");
+            throw new EmailAlreadyExistsException();
         }
         if(!form.getPassword().equals(form.getConfirmPassword())) {
-            throw new PasswordConfirmNotMatchException("Confirm Password Mismatch");
+            throw new PasswordConfirmNotMatchException();
         }
         Account account = accountMapper.toEntity(form);
         String securedPassword = passwordHasher.hash(account.getPassword());
@@ -42,12 +40,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public boolean login(LoginForm form) {
-        Account account = accountRepo.findByEmail(form.getEmail()).orElseThrow(() -> new NotFoundException("Can't find account by email "+ form.getEmail()));
+    public AccountViewModel login(LoginForm form) {
+        Account account = accountRepo.findByEmail(form.getEmail()).orElseThrow(InvalidCredentialsException::new);
         if(!passwordHasher.verify(form.getPassword(), account.getPassword())) {
-            throw new LoginFailException("Wrong password");
+            throw new InvalidCredentialsException();
         }
-        return true;
+        return accountMapper.toViewModel(account);
     }
 
     @Override
