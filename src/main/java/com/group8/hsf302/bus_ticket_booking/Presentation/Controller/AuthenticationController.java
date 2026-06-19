@@ -18,8 +18,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/auth")
 public class AuthenticationController {
-    private final AuthenticationService authservice;
 
+    private final AuthenticationService authservice;
 
     public AuthenticationController(AuthenticationService authservice) {
         this.authservice = authservice;
@@ -38,7 +38,8 @@ public class AuthenticationController {
     }
 
     @GetMapping("/logout")
-    public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
+    public String logout(HttpSession session,
+                         RedirectAttributes redirectAttributes) {
         session.invalidate();
         redirectAttributes.addFlashAttribute("successMessage", "Logout successful");
         return "redirect:/index";
