@@ -11,6 +11,7 @@ public interface AccountMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", constant = "CUSTOMER")
+    @Mapping(target = "status", constant = "AVAILABLE")
     Account toEntity(RegisterForm form);
 
     AccountViewModel toViewModel(Account entity);
