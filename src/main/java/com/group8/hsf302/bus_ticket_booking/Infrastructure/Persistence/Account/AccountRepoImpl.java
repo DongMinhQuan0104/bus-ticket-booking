@@ -18,6 +18,16 @@ public class AccountRepoImpl implements AccountRepo {
     }
 
     @Override
+    public void delete(Account account) {
+        accountJpaRepo.delete(account);
+    }
+
+    @Override
+    public Optional<Account> findById(UUID id) {
+        return accountJpaRepo.findById(id);
+    }
+
+    @Override
     public Optional<Account> findByEmail(String email) {
         return accountJpaRepo.findByEmail(email);
     }

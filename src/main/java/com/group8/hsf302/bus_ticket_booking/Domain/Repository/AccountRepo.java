@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface AccountRepo {
+    void delete(Account account);
+    Optional<Account> findById(UUID id);
     Optional<Account> findByEmail(String email);
     void save (Account account);
     Optional<Account> findByIdAndStatus(UUID accountId, Status status);
