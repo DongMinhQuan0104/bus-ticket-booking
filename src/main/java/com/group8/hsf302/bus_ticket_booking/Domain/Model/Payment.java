@@ -1,6 +1,5 @@
 package com.group8.hsf302.bus_ticket_booking.Domain.Model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.PaymentMethod;
 import jakarta.persistence.*;
 
