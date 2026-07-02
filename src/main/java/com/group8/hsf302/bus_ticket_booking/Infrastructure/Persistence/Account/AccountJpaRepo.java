@@ -12,5 +12,9 @@ import java.util.UUID;
 public interface AccountJpaRepo extends JpaRepository<Account, UUID> {
     Optional<Account> findByEmail(String email);
 
+    Optional<Account> findByPhoneNumber(String phoneNumber);
+
+    Optional<Account> findByEmailOrPhoneNumber(String email, String phoneNumber);
+
     Optional<Account> findByIdAndStatus(UUID accountId, Status status);
 }

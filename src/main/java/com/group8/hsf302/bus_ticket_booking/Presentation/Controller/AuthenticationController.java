@@ -62,11 +62,31 @@ public class AuthenticationController {
                                   BindingResult bindingResult,
                                   HttpSession session,
                                   Model model) {
-        if(bindingResult.hasErrors()) {
+
+        System.out.println("===== REGISTER FORM DATA =====");
+        System.out.println("Full name: " + form.getFullName());
+        System.out.println("Email: " + form.getEmail());
+        System.out.println("Phone: " + form.getPhoneNumber());
+        System.out.println("Password: " + form.getPassword());
+        System.out.println("Confirm password: " + form.getConfirmPassword());
+
+        if (bindingResult.hasErrors()) {
+            System.out.println("===== REGISTER VALIDATION ERRORS =====");
+            bindingResult.getAllErrors().forEach(error -> {
+                System.out.println("ERROR: " + error.getDefaultMessage());
+            });
+
+            model.addAttribute("loginForm", new LoginForm());
+            model.addAttribute("registerForm", form);
             return "index";
         }
+
         AccountViewModel accountRegister = authservice.register(form);
         session.setAttribute("LOGGED_IN_USER", accountRegister);
+
+        System.out.println("===== REGISTER SUCCESS =====");
+        System.out.println("Created account successfully");
+
         return "redirect:/index";
     }
 

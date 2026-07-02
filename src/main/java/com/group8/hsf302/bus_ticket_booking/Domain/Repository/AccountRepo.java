@@ -11,4 +11,9 @@ public interface AccountRepo {
     void save (Account account);
     Optional<Account> findByIdAndStatus(UUID accountId, Status status);
     Optional<Account> findActiveById(UUID accountId);
+
+    Optional<Account> findByPhoneNumber(String phoneNumber);
+
+    Optional<Account> findByEmailOrPhoneNumber(String email, String phoneNumber);
+
 }

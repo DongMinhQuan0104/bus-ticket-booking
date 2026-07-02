@@ -7,45 +7,63 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "account")
 public class Account {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @NotBlank(message = "full name can not blank")
+    @Column(name = "full_name")
     private String fullName;
-
-    @Enumerated(EnumType.STRING)
-    private Role role;
 
     @NotBlank(message = "email can not blank")
     @Email(message = "email not in the right format")
+    @Column(name = "email", unique = true)
     private String email;
 
-    @NotBlank(message = "password can not blank")
-    private String password;
-
-    @Pattern(regexp = "^0\\\\d{9}$", message = "phoneNumber not in the right format")
+    @NotBlank(message = "phone number can not blank")
+    @Pattern(regexp = "^0\\d{9}$", message = "phoneNumber not in the right format")
+    @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
+    @Column(name = "gender", length = 20)
+    private String gender;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @NotBlank(message = "password can not blank")
+    @Column(name = "password")
+    private String password;
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private Status status;
 
     public Account() {
     }
 
-    public Account(Status status, String phoneNumber, String password, String email, Role role, String fullName) {
+    public Account(Status status, String phoneNumber, String password, String email,
+                   Role role, String fullName, String gender, LocalDate dateOfBirth) {
         this.status = status;
         this.phoneNumber = phoneNumber;
         this.password = password;
         this.email = email;
         this.role = role;
         this.fullName = fullName;
+        this.gender = gender;
+        this.dateOfBirth = dateOfBirth;
     }
 
     public UUID getId() {
@@ -70,6 +88,14 @@ public class Account {
 
     public String getPhoneNumber() {
         return phoneNumber;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
     }
 
     public Status getStatus() {
@@ -100,6 +126,14 @@ public class Account {
         this.phoneNumber = phoneNumber;
     }
 
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
     public void setStatus(Status status) {
         this.status = status;
     }
@@ -123,8 +157,9 @@ public class Account {
                 ", fullName='" + fullName + '\'' +
                 ", role=" + role +
                 ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +
+                ", gender='" + gender + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
                 ", status=" + status +
                 '}';
     }

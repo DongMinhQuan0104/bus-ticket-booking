@@ -1,80 +1,35 @@
-package com.group8.hsf302.bus_ticket_booking.Domain.Model;
+package com.group8.hsf302.bus_ticket_booking.Application.Dto.Response;
 
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.UUID;
 
-@Entity
-@Table(name = "trip")
-public class Trip {
+public class TripViewModel {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @NotBlank(message = "destination from can not blank")
-    @Column(name = "destination_from")
     private String destinationFrom;
-
-    @NotBlank(message = "destination to can not blank")
-    @Column(name = "destination_to")
     private String destinationTo;
-
-    @Column(name = "departure_time")
     private LocalDateTime departureTime;
-
-    @Column(name = "arrival_time")
     private LocalDateTime arrivalTime;
-
-    @NotBlank(message = "bus code can not blank")
-    @Column(name = "bus_code")
     private String busCode;
-
-    @NotBlank(message = "license plate can not blank")
-    @Column(name = "bus_license_plate")
     private String busLicensePlate;
-
-    @NotBlank(message = "vehicle type can not blank")
-    @Column(name = "vehicle_type")
     private String vehicleType;
-
-    @NotBlank(message = "driver name can not blank")
-    @Column(name = "driver_name")
     private String driverName;
-
-    @DecimalMin(value = "0.0", message = "price can not negative")
-    @Column(name = "price")
     private Double price;
-
-    @Min(value = 0, message = "total seats can not negative")
-    @Column(name = "total_seats")
     private Integer totalSeats;
-
-    @Min(value = 0, message = "available seats can not negative")
-    @Column(name = "available_seats")
     private Integer availableSeats;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
     private TripStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "route_id")
-    private Route route;
-
-    public Trip() {
+    public TripViewModel() {
     }
 
-    public Trip(String destinationFrom, String destinationTo, LocalDateTime departureTime,
-                LocalDateTime arrivalTime, String busCode, String busLicensePlate,
-                String vehicleType, String driverName, Double price, Integer totalSeats,
-                Integer availableSeats, TripStatus status, Route route) {
+    public TripViewModel(UUID id, String destinationFrom, String destinationTo,
+                         LocalDateTime departureTime, LocalDateTime arrivalTime,
+                         String busCode, String busLicensePlate, String vehicleType,
+                         String driverName, Double price, Integer totalSeats,
+                         Integer availableSeats, TripStatus status) {
+        this.id = id;
         this.destinationFrom = destinationFrom;
         this.destinationTo = destinationTo;
         this.departureTime = departureTime;
@@ -87,7 +42,6 @@ public class Trip {
         this.totalSeats = totalSeats;
         this.availableSeats = availableSeats;
         this.status = status;
-        this.route = route;
     }
 
     public UUID getId() {
@@ -142,10 +96,6 @@ public class Trip {
         return status;
     }
 
-    public Route getRoute() {
-        return route;
-    }
-
     public void setId(UUID id) {
         this.id = id;
     }
@@ -196,40 +146,5 @@ public class Trip {
 
     public void setStatus(TripStatus status) {
         this.status = status;
-    }
-
-    public void setRoute(Route route) {
-        this.route = route;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Trip trip = (Trip) o;
-        return Objects.equals(id, trip.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "Trip{" +
-                "id=" + id +
-                ", destinationFrom='" + destinationFrom + '\'' +
-                ", destinationTo='" + destinationTo + '\'' +
-                ", departureTime=" + departureTime +
-                ", arrivalTime=" + arrivalTime +
-                ", busCode='" + busCode + '\'' +
-                ", busLicensePlate='" + busLicensePlate + '\'' +
-                ", vehicleType='" + vehicleType + '\'' +
-                ", driverName='" + driverName + '\'' +
-                ", price=" + price +
-                ", totalSeats=" + totalSeats +
-                ", availableSeats=" + availableSeats +
-                ", status=" + status +
-                '}';
     }
 }

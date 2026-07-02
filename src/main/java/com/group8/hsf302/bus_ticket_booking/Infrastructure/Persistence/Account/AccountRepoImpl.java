@@ -23,17 +23,27 @@ public class AccountRepoImpl implements AccountRepo {
     }
 
     @Override
+    public Optional<Account> findByPhoneNumber(String phoneNumber) {
+        return accountJpaRepo.findByPhoneNumber(phoneNumber);
+    }
+
+    @Override
+    public Optional<Account> findByEmailOrPhoneNumber(String email, String phoneNumber) {
+        return accountJpaRepo.findByEmailOrPhoneNumber(email, phoneNumber);
+    }
+
+    @Override
     public void save(Account account) {
         accountJpaRepo.save(account);
     }
 
     @Override
     public Optional<Account> findByIdAndStatus(UUID accountId, Status status) {
-        return accountJpaRepo.findByIdAndStatus(accountId,status);
+        return accountJpaRepo.findByIdAndStatus(accountId, status);
     }
 
     @Override
     public Optional<Account> findActiveById(UUID accountId) {
-        return accountJpaRepo.findByIdAndStatus(accountId,Status.AVAILABLE);
+        return accountJpaRepo.findByIdAndStatus(accountId, Status.AVAILABLE);
     }
 }
