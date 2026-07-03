@@ -28,13 +28,13 @@ public class AuthenticationController {
     @GetMapping("/login")
     public String showLoginForm(Model model) {
         model.addAttribute("loginForm", new LoginForm());
-        return "index";
+        return "login";
     }
 
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
         model.addAttribute("registerForm", new RegisterForm());
-        return "index";
+        return "register";
     }
 
     @GetMapping("/logout")
@@ -51,7 +51,7 @@ public class AuthenticationController {
                                HttpSession session,
                                Model model) {
         if(bindingResult.hasErrors()) {
-            return "index";
+            return "login";
         }
         AccountViewModel accountLogin = authservice.login(form);
         session.setAttribute("LOGGED_IN_USER", accountLogin);
@@ -64,7 +64,7 @@ public class AuthenticationController {
                                   HttpSession session,
                                   Model model) {
         if(bindingResult.hasErrors()) {
-            return "index";
+            return "register";
         }
         AccountViewModel accountRegister = authservice.register(form);
         session.setAttribute("LOGGED_IN_USER", accountRegister);
