@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Bus Ticket Booking</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+
+<header class="navbar">
+    <a class="brand" th:href="@{/index}">BusTicketBooking</a>
+</header>
+
+<main class="auth-wrapper">
+    <div class="auth-card" th:object="${registerForm}">
+        <h1 class="auth-title">Create an account</h1>
+        <p class="auth-subtitle">Register to start booking your bus tickets</p>
+
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}">Success message</div>
+
+        <form th:action="@{/auth/register}" method="post" novalidate>
+
+            <div class="form-group">
+                <label for="register-email">Email</label>
+                <input type="text" id="register-email" th:field="*{email}"
+                       th:classappend="${#fields.hasErrors('email')} ? ' is-invalid'"
+                       class="form-control" placeholder="you@example.com" autocomplete="email"/>
+            </div>
+
+            <div class="form-group">
+                <label for="register-password">Password</label>
+                <input type="password" id="register-password" th:field="*{password}"
+                       th:classappend="${#fields.hasErrors('password')} ? ' is-invalid'"
+                       class="form-control" placeholder="Create a password" autocomplete="new-password"/>
+            </div>
+
+            <div class="form-group">
+                <label for="register-confirm-password">Confirm password</label>
+                <input type="password" id="register-confirm-password" th:field="*{confirmPassword}"
+                       class="form-control" placeholder="Re-enter your password" autocomplete="new-password"/>
+            </div>
+
+            <button type="submit" class="btn btn-primary auth-submit">Register</button>
+        </form>
+
+        <p class="auth-switch">Already have an account? <a th:href="@{/auth/login}">Login here</a></p>
+
+        <div id="errorModal" class="error-modal-overlay" th:if="${errorMessage != null or #fields.hasErrors('*')}">
+            <div class="error-modal">
+                <div class="error-modal-header">
+                    <span class="error-modal-icon">&#33;</span>
+                    <h3 class="error-modal-title">Đăng ký không thành công</h3>
+                </div>
+                <ul class="error-modal-list">
+                    <li th:if="${errorMessage}" th:text="${errorMessage}">Error message</li>
+                    <li th:each="err : ${#fields.errors('*')}" th:text="${err}">Field error</li>
+                </ul>
+                <button type="button" class="btn btn-primary error-modal-close" onclick="document.getElementById('errorModal').remove()">Đóng</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

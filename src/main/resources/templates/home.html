@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BusTicketBooking - Home</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+</head>
+<body>
+
+<header class="navbar">
+    <a class="brand" th:href="@{/index}">BusTicketBooking</a>
+    <div class="nav-links">
+        <span th:if="${currentUser != null}" th:text="${'Hi, ' + (currentUser.fullName() ?: currentUser.email())}">Hi, User</span>
+        <a th:if="${currentUser != null}" class="btn btn-outline" th:href="@{/auth/logout}">Logout</a>
+        <a th:if="${currentUser == null}" class="btn btn-outline" th:href="@{/auth/login}">Login</a>
+        <a th:if="${currentUser == null}" class="btn btn-primary" th:href="@{/auth/register}">Register</a>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <h1 th:if="${currentUser != null}" th:text="${'Welcome back, ' + (currentUser.fullName() ?: currentUser.email()) + '!'}">Welcome back!</h1>
+        <h1 th:if="${currentUser == null}">Book your bus tickets with ease</h1>
+        <p>Find and book bus tickets to your destination quickly and securely.</p>
+        <div class="actions" th:if="${currentUser == null}">
+            <a class="btn btn-primary" th:href="@{/auth/register}">Get started</a>
+            <a class="btn btn-outline" th:href="@{/auth/login}">I already have an account</a>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="feature-card">
+            <h3>Search routes</h3>
+            <p>Browse available bus routes and schedules across the country.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Book instantly</h3>
+            <p>Reserve your seat in just a few clicks, anytime, anywhere.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Secure payment</h3>
+            <p>Pay safely with our secure payment gateway integration.</p>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>
