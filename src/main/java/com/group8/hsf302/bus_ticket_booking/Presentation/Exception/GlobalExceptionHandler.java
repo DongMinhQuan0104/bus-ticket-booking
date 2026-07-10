@@ -9,40 +9,29 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
-    public String handleEmailExist(EmailAlreadyExistsException e, HttpServletRequest request, Model model) {
-        model.addAttribute("errorMessage", e.getMessage());
-        model.addAttribute("registerForm", rebuildRegisterForm(request));
-        return "register";
+    public String handleEmailExist(EmailAlreadyExistsException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/auth/register");
     }
 
     @ExceptionHandler(PasswordConfirmNotMatchException.class)
-    public String handlePasswordNotMatch(PasswordConfirmNotMatchException e, HttpServletRequest request, Model model) {
-        model.addAttribute("errorMessage", e.getMessage());
-        model.addAttribute("registerForm", rebuildRegisterForm(request));
-        return "register";
+    public String handlePasswordNotMatch(PasswordConfirmNotMatchException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/auth/register");
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
-    public String handleInvalidCredentials(InvalidCredentialsException e, HttpServletRequest request, Model model) {
-        model.addAttribute("errorMessage", e.getMessage());
-        model.addAttribute("loginForm", rebuildLoginForm(request));
-        return "login";
-    }
-
-    private LoginForm rebuildLoginForm(HttpServletRequest request) {
-        LoginForm form = new LoginForm();
-        form.setEmail(request.getParameter("email"));
-        return form;
-    }
-
-    private RegisterForm rebuildRegisterForm(HttpServletRequest request) {
-        RegisterForm form = new RegisterForm();
-        form.setEmail(request.getParameter("email"));
-        return form;
+    public String handleInvalidCredentials(InvalidCredentialsException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/auth/login");
     }
 }

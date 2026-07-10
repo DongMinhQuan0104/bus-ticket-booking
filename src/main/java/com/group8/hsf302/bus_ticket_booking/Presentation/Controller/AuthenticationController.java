@@ -19,21 +19,26 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/auth")
 public class AuthenticationController {
 
-    private final AuthenticationService authservice;
+    private final AuthenticationService authService;
 
-    public AuthenticationController(AuthenticationService authservice) {
-        this.authservice = authservice;
+    public AuthenticationController(AuthenticationService authService) {
+        this.authService = authService;
     }
+
 
     @GetMapping("/login")
     public String showLoginForm(Model model) {
-        model.addAttribute("loginForm", new LoginForm());
+        if(!model.containsAttribute("loginForm")) {
+            model.addAttribute("loginForm", new LoginForm());
+        }
         return "login";
     }
 
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
-        model.addAttribute("registerForm", new RegisterForm());
+        if(!model.containsAttribute("registerForm")) {
+            model.addAttribute("registerForm", new RegisterForm());
+        }
         return "register";
     }
 
@@ -42,33 +47,31 @@ public class AuthenticationController {
                          RedirectAttributes redirectAttributes) {
         session.invalidate();
         redirectAttributes.addFlashAttribute("successMessage", "Logout successful");
-        return "redirect:/index";
+        return "redirect:/home";
     }
 
     @PostMapping("/login")
     public String processLogin(@Valid @ModelAttribute("loginForm") LoginForm form,
                                BindingResult bindingResult,
-                               HttpSession session,
-                               Model model) {
+                               HttpSession session) {
         if(bindingResult.hasErrors()) {
             return "login";
         }
-        AccountViewModel accountLogin = authservice.login(form);
+        AccountViewModel accountLogin = authService.login(form);
         session.setAttribute("LOGGED_IN_USER", accountLogin);
-        return "redirect:/index";
+        return "redirect:/home";
     }
 
     @PostMapping("/register")
     public String processRegister(@Valid @ModelAttribute("registerForm") RegisterForm form,
                                   BindingResult bindingResult,
-                                  HttpSession session,
-                                  Model model) {
+                                  HttpSession session) {
         if(bindingResult.hasErrors()) {
             return "register";
         }
-        AccountViewModel accountRegister = authservice.register(form);
+        AccountViewModel accountRegister = authService.register(form);
         session.setAttribute("LOGGED_IN_USER", accountRegister);
-        return "redirect:/index";
+        return "redirect:/home";
     }
 
 

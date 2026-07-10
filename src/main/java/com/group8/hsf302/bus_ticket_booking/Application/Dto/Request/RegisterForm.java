@@ -12,6 +12,7 @@ public class RegisterForm {
     @NotBlank(message = "password can not blank")
     private String password;
 
+    @NotBlank(message = "Confirmed password can not blank")
     private String confirmPassword;
 
     public RegisterForm() {

@@ -17,20 +17,20 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotBlank(message = "full name can not blank")
+//    @NotBlank(message = "full name can not blank")
     private String fullName;
 
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @NotBlank(message = "email can not blank")
-    @Email(message = "email not in the right format")
+//    @NotBlank(message = "email can not blank")
+//    @Email(message = "email not in the right format")
     private String email;
 
-    @NotBlank(message = "password can not blank")
+//    @NotBlank(message = "password can not blank")
     private String password;
 
-    @Pattern(regexp = "^0\\\\d{9}$", message = "phoneNumber not in the right format")
+//    @Pattern(regexp = "^0\\\\d{9}$", message = "phoneNumber not in the right format")
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)

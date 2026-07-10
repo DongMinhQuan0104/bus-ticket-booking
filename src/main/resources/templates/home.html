@@ -10,7 +10,7 @@
 <body>
 
 <header class="navbar">
-    <a class="brand" th:href="@{/index}">BusTicketBooking</a>
+    <a class="brand" th:href="@{/home}">BusTicketBooking</a>
     <div class="nav-links">
         <span th:if="${currentUser != null}" th:text="${'Hi, ' + (currentUser.fullName() ?: currentUser.email())}">Hi, User</span>
         <a th:if="${currentUser != null}" class="btn btn-outline" th:href="@{/auth/logout}">Logout</a>
