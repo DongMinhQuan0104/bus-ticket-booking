@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class HomeController {
 
-    @GetMapping("/index")
+    @GetMapping("/home")
     public String showHome(HttpSession session, Model model) {
         AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
         model.addAttribute("currentUser", currentUser);
