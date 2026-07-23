@@ -204,7 +204,7 @@
                         <span class="text-xs text-on-surface-variant flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">directions_bus</span>
                             <span th:text="${trip.busType() != null and trip.busType().name() == 'SLEEPER'} ? 'Giường nằm' : 'Ghế ngồi'">Loại xe</span>
-                            <span th:if="${trip.busCapacity() != null}"> · <span th:text="${trip.busCapacity().name() == 'SEAT_16'} ? '16 chỗ' : ${trip.busCapacity().name()}">16 chỗ</span></span>
+                            <span th:if="${trip.busCapacity() != null}"> · <span th:text="${trip.busCapacity().getSeats()} + ' chỗ'">16 chỗ</span></span>
                         </span>
                         <span th:if="${trip.soldOut()}" class="bg-error text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase">Hết vé</span>
                     </div>

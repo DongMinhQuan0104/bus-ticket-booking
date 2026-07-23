@@ -7,7 +7,6 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountView
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.TripViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.AccountMapper;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.TripMapper;
-import com.group8.hsf302.bus_ticket_booking.Domain.Enum.BusCapacity;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccountNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.OldPasswordNotMatchException;
@@ -124,10 +123,6 @@ public class CustomerServiceImpl implements CustomerService{
         if (trip.getBus() == null || trip.getBus().getCapacity() == null) {
             return 0;
         }
-        BusCapacity capacity = trip.getBus().getCapacity();
-        if (capacity == BusCapacity.SEAT_16) {
-            return 16;
-        }
-        return 0;
+        return trip.getBus().getCapacity().getSeats();
     }
 }
