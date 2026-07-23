@@ -12,11 +12,14 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/trips")
@@ -59,5 +62,28 @@ public class CustomerTripController {
         }
 
         return "trip-search";
+    }
+
+    // E2 - Trang chon ghe & dat ve
+    @GetMapping("/{tripId}/booking")
+    public String bookingPage(@PathVariable UUID tripId, HttpSession session, Model model) {
+        AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
+        model.addAttribute("currentUser", currentUser);
+
+        TripViewModel trip = customerService.getTripForBooking(tripId);
+        List<String> occupiedSeatCodes = customerService.getOccupiedSeatCodes(tripId);
+
+        // Sinh danh sach ma ghe theo suc chua thuc te cua xe (16 hoac 32 cho)
+        int seats = trip.busCapacity() != null ? trip.busCapacity().getSeats() : 0;
+        List<String> seatCodes = new ArrayList<>();
+        for (int i = 1; i <= seats; i++) {
+            seatCodes.add(String.format("A%02d", i));
+        }
+
+        model.addAttribute("trip", trip);
+        model.addAttribute("seatCodes", seatCodes);
+        model.addAttribute("occupiedSeatCodes", occupiedSeatCodes);
+        model.addAttribute("maxSeatsPerBooking", 4);
+        return "trip-booking";
     }
 }
