@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class TripRepoImpl implements TripRepo {
@@ -23,5 +25,10 @@ public class TripRepoImpl implements TripRepo {
         return tripJpaRepo
                 .findByStatusAndDestinationFromIgnoreCaseAndDestinationToIgnoreCaseAndDepartureTimeBetweenOrderByDepartureTimeAsc(
                         Status.AVAILABLE, destinationFrom, destinationTo, startOfDay, endOfDay);
+    }
+
+    @Override
+    public Optional<Trip> findById(UUID id) {
+        return tripJpaRepo.findById(id);
     }
 }
