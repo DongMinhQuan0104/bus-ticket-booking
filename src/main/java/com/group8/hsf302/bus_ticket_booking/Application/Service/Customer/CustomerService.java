@@ -5,6 +5,7 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateBookin
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.SearchTripForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.UpdateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.BookingViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.TripViewModel;
 
 import java.util.List;
@@ -25,4 +26,7 @@ public interface CustomerService {
 
     // E3 - Tao booking & thanh toan
     UUID createBooking(CreateBookingForm form, UUID accountId);
+
+    // E4 - Ve cua toi
+    List<BookingViewModel> getMyBookings(UUID accountId);
 }

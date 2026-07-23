@@ -5,6 +5,7 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateBookin
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.SearchTripForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.UpdateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.BookingViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.TripViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.AccountMapper;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.TripMapper;
@@ -227,5 +228,52 @@ public class CustomerServiceImpl implements CustomerService{
         paymentRepo.save(payment);
 
         return booking.getId();
+    }
+
+    // E4 - Danh sach ve cua khach hang
+    @Override
+    @Transactional(readOnly = true)
+    public List<BookingViewModel> getMyBookings(UUID accountId) {
+        List<Booking> bookings = bookingRepo.findByAccountId(accountId);
+        List<BookingViewModel> result = new ArrayList<>();
+        for (Booking booking : bookings) {
+            result.add(toBookingViewModel(booking));
+        }
+        return result;
+    }
+
+    private BookingViewModel toBookingViewModel(Booking booking) {
+        List<SeatAvailability> seats = seatAvailabilityRepo.findByBookingId(booking.getId());
+        List<BookingDetail> details = bookingDetailRepo.findByBookingId(booking.getId());
+        Trip trip = seats.isEmpty() ? null : seats.get(0).getTrip();
+
+        List<String> seatCodes = new ArrayList<>();
+        for (SeatAvailability seat : seats) {
+            seatCodes.add(seat.getSeatCode());
+        }
+        List<String> passengerNames = new ArrayList<>();
+        for (BookingDetail detail : details) {
+            passengerNames.add(detail.getPassengerName());
+        }
+
+        boolean completed = trip != null && trip.getDepartureTime() != null
+                && trip.getDepartureTime().isBefore(LocalDateTime.now());
+
+        return new BookingViewModel(
+                booking.getId(),
+                booking.getDateBooked(),
+                booking.getTotalPrice(),
+                booking.getBookingType(),
+                booking.getNote(),
+                trip != null ? trip.getId() : null,
+                trip != null ? trip.getDestinationFrom() : null,
+                trip != null ? trip.getDestinationTo() : null,
+                trip != null ? trip.getDepartureTime() : null,
+                (trip != null && trip.getBus() != null) ? trip.getBus().getBusName() : null,
+                trip != null ? trip.getDriverName() : null,
+                seatCodes,
+                passengerNames,
+                completed
+        );
     }
 }
