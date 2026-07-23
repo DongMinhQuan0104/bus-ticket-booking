@@ -2,6 +2,7 @@ package com.group8.hsf302.bus_ticket_booking.Domain.Model;
 
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,9 @@ public class Trip {
     @NotBlank(message = "driver name can not blank")
     private String driverName;
 
+    @Min(value = 0, message = "price can not be negative")
+    private Double price;
+
     @Enumerated(EnumType.STRING)
     private Status status;
 
@@ -49,6 +53,14 @@ public class Trip {
         this.status = status;
         this.route = route;
         this.bus = bus;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
     }
 
     public UUID getId() {

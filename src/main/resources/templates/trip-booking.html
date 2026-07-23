@@ -194,13 +194,18 @@
 
             <!-- Summary -->
             <div class="bg-white border border-outline-variant p-md rounded-xl">
-                <h2 class="text-lg font-bold mb-4">Ghế đã chọn</h2>
-                <div class="flex justify-between items-start mb-4">
+                <h2 class="text-lg font-bold mb-4">Chi tiết thanh toán</h2>
+                <div class="flex justify-between items-start mb-2">
                     <div class="flex flex-col">
-                        <span class="font-medium">Danh sách ghế</span>
+                        <span class="font-medium">Giá vé</span>
                         <span class="text-sm text-on-surface-variant" id="selected-seats-label">Chưa chọn ghế</span>
                     </div>
-                    <span class="font-data-price text-brand-orange text-2xl" id="seat-count">0</span>
+                    <span class="font-data-price text-on-surface"
+                          th:text="${trip.price() != null ? #numbers.formatInteger(trip.price(),0,'POINT') + 'đ' : '—'}">250.000đ</span>
+                </div>
+                <div class="border-t border-dashed border-outline-variant pt-3 mt-3 flex justify-between items-center mb-gutter">
+                    <span class="font-bold">TỔNG CỘNG</span>
+                    <span class="font-data-price text-brand-orange text-2xl" id="total-price">0đ</span>
                 </div>
                 <div class="bg-surface-container-low p-4 rounded-lg mb-gutter">
                     <p class="text-[12px] text-on-surface-variant leading-relaxed">
@@ -227,7 +232,12 @@
 <script th:inline="javascript">
     /*<![CDATA[*/
     const MAX_SEATS = [[${maxSeatsPerBooking}]];
+    const SEAT_PRICE = [[${trip.price() != null ? trip.price() : 0}]];
     /*]]>*/
+
+    function formatVnd(n) {
+        return new Intl.NumberFormat('vi-VN').format(n) + 'đ';
+    }
 
     let selectedSeats = [];
 
@@ -254,14 +264,14 @@
 
     function updateSummary() {
         const label = document.getElementById('selected-seats-label');
-        const count = document.getElementById('seat-count');
+        const total = document.getElementById('total-price');
         document.getElementById('seats-input').value = selectedSeats.join(',');
         if (selectedSeats.length > 0) {
-            label.innerText = selectedSeats.join(', ');
-            count.innerText = selectedSeats.length;
+            label.innerText = 'Ghế ' + selectedSeats.join(', ') + ' (x' + selectedSeats.length + ')';
+            total.innerText = formatVnd(selectedSeats.length * SEAT_PRICE);
         } else {
             label.innerText = 'Chưa chọn ghế';
-            count.innerText = '0';
+            total.innerText = '0đ';
         }
         refreshContinueState();
     }

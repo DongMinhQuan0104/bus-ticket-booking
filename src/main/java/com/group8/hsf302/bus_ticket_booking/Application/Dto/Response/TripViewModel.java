@@ -12,6 +12,7 @@ public record TripViewModel(
         String destinationTo,
         LocalDateTime departureTime,
         String driverName,
+        Double price,
         String busName,
         BusType busType,
         BusCapacity busCapacity,
