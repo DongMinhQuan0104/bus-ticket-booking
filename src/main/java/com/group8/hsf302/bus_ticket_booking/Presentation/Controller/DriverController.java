@@ -48,7 +48,7 @@ public class DriverController {
         return "driver/trips";
     }
 
-    @GetMapping("/trips/{id}/manifest")
+    @GetMapping({"/trips/{id}/manifest", "/trips/{id}/passengers"})
     public String showPassengerManifest(@PathVariable("id") UUID tripId, HttpSession session, Model model) {
         AccountViewModel currentUser = verifyDriverAuth(session);
         DriverTripViewModel trip = driverService.getTripById(tripId);
@@ -56,7 +56,7 @@ public class DriverController {
         model.addAttribute("trip", trip);
         model.addAttribute("manifest", manifest);
         model.addAttribute("currentUser", currentUser);
-        return "driver/manifest";
+        return "driver/passengers";
     }
 
     @PostMapping("/trips/{id}/status")
