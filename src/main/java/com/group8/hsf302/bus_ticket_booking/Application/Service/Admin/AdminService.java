@@ -39,7 +39,7 @@ public interface AdminService {
     public StationViewModel createStation(AdminCreateStationForm form);
     public PagedResponse<StationViewModel> getAllStations(int page, int size);
     public PagedResponse<StationViewModel> getStationByName(String name, int page, int size);
-    public PagedResponse<StationViewModel> getStationById(UUID id, int page, int size);
+    public StationViewModel getStationById(UUID id);
     public boolean updateStation(AdminUpdateStationForm form, UUID id);
     public boolean deletedStation(UUID id);
 

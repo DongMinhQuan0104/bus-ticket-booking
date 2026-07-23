@@ -3,19 +3,10 @@ package com.group8.hsf302.bus_ticket_booking.Application.Service.Admin;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.*;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.*;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.Paging.PagedResponse;
-import com.group8.hsf302.bus_ticket_booking.Application.Mapper.AccountMapper;
-import com.group8.hsf302.bus_ticket_booking.Application.Mapper.BusMapper;
-import com.group8.hsf302.bus_ticket_booking.Application.Mapper.RouteMapper;
-import com.group8.hsf302.bus_ticket_booking.Application.Mapper.RouteStationMapper;
+import com.group8.hsf302.bus_ticket_booking.Application.Mapper.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.*;
-import com.group8.hsf302.bus_ticket_booking.Domain.Model.Account;
-import com.group8.hsf302.bus_ticket_booking.Domain.Model.Bus;
-import com.group8.hsf302.bus_ticket_booking.Domain.Model.Route;
-import com.group8.hsf302.bus_ticket_booking.Domain.Model.RouteStation;
-import com.group8.hsf302.bus_ticket_booking.Domain.Repository.AccountRepo;
-import com.group8.hsf302.bus_ticket_booking.Domain.Repository.BusRepo;
-import com.group8.hsf302.bus_ticket_booking.Domain.Repository.RouteRepo;
-import com.group8.hsf302.bus_ticket_booking.Domain.Repository.RouteStationRepo;
+import com.group8.hsf302.bus_ticket_booking.Domain.Model.*;
+import com.group8.hsf302.bus_ticket_booking.Domain.Repository.*;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Security.PasswordHasher;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -33,19 +24,23 @@ public class AdminServiceImpl implements AdminService{
     private final AccountRepo accountRepo;
     private final BusRepo busRepo;
     private final RouteRepo routeRepo;
+    private final StationRepo stationRepo;
     private final PasswordHasher passwordHasher;
     private final AccountMapper accountMapper;
     private final BusMapper busMapper;
     private final RouteMapper routeMapper;
+    private final StationMapper stationMapper;
 
-    public AdminServiceImpl(AccountRepo accountRepo, BusRepo busRepo, RouteRepo routeRepo, PasswordHasher passwordHasher, AccountMapper accountMapper, BusMapper busMapper, RouteMapper routeMapper) {
+    public AdminServiceImpl(AccountRepo accountRepo, BusRepo busRepo, RouteRepo routeRepo, StationRepo stationRepo, PasswordHasher passwordHasher, AccountMapper accountMapper, BusMapper busMapper, RouteMapper routeMapper, StationMapper stationMapper) {
         this.accountRepo = accountRepo;
         this.busRepo = busRepo;
         this.routeRepo = routeRepo;
+        this.stationRepo = stationRepo;
         this.passwordHasher = passwordHasher;
         this.accountMapper = accountMapper;
         this.busMapper = busMapper;
         this.routeMapper = routeMapper;
+        this.stationMapper = stationMapper;
     }
 
     @Override
@@ -196,14 +191,18 @@ public class AdminServiceImpl implements AdminService{
     @Override
     public RouteViewModel createRoute(AdminCreateRouteForm form) {
         if(existsRouteByName(form.getName())){
-            throw new RouteNotFound();
+            throw new RouteAlreadyExistsException();
         }
         Route route = routeMapper.toEntity(form);
+        if (form.getStations() != null) {
+            processRouteStations(form.getStations(), route);
+        }
         routeRepo.save(route);
         return routeMapper.toViewModel(route);
     }
 
     @Override
+    @Transactional
     public PagedResponse<RouteViewModel> getAllRoutes(int page, int size) {
 
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
@@ -222,6 +221,7 @@ public class AdminServiceImpl implements AdminService{
     }
 
     @Override
+    @Transactional
     public PagedResponse<RouteViewModel> getRouteByName(String name, int page, int size) {
 
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
@@ -250,6 +250,10 @@ public class AdminServiceImpl implements AdminService{
     public boolean updateRoute(AdminUpdateRouteForm form, UUID id) {
         Route route = findRouteById(id);
         Route updateRoute = routeMapper.updateEntityFromForm(form,route);
+        if (form.getStations() != null) {
+            route.getRouteStations().clear();
+            processRouteStations(form.getStations(), route);
+        }
         routeRepo.save(updateRoute);
         return true;
     }
@@ -278,32 +282,70 @@ public class AdminServiceImpl implements AdminService{
 
     @Override
     public StationViewModel createStation(AdminCreateStationForm form) {
-        return null;
+        if(existStationByName(form.getName())){
+            throw new StationNotFoundException();
+        }
+        Station station = stationMapper.toEntity(form);
+        stationRepo.save(station);
+        return stationMapper.toViewModel(station);
     }
 
     @Override
+    @Transactional
     public PagedResponse<StationViewModel> getAllStations(int page, int size) {
-        return null;
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Station> stationPage = stationRepo.findAll(pageRequest);
+        List<StationViewModel> stationViewModels = stationPage.stream()
+                .map(stationMapper::toViewModel)
+                .toList();
+        return new PagedResponse<>(
+                stationViewModels,
+                stationPage.getNumber(),
+                stationPage.getSize(),
+                stationPage.getTotalElements(),
+                stationPage.getTotalPages(),
+                stationPage.isLast()
+        );
     }
 
     @Override
     public PagedResponse<StationViewModel> getStationByName(String name, int page, int size) {
-        return null;
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Station> stationPage = stationRepo.findByNameContaining(name,pageRequest);
+        List<StationViewModel> stationViewModels = stationPage.stream()
+                .map(stationMapper::toViewModel)
+                .toList();
+        return new PagedResponse<>(
+                stationViewModels,
+                stationPage.getNumber(),
+                stationPage.getSize(),
+                stationPage.getTotalElements(),
+                stationPage.getTotalPages(),
+                stationPage.isLast()
+        );
     }
 
     @Override
-    public PagedResponse<StationViewModel> getStationById(UUID id, int page, int size) {
-        return null;
+    public StationViewModel getStationById(UUID id) {
+        Station station = findStationById(id);
+        return stationMapper.toViewModel(station);
     }
 
     @Override
     public boolean updateStation(AdminUpdateStationForm form, UUID id) {
-        return false;
+        Station station = findStationById(id);
+        Station updateStation = stationMapper.updateEntityFromForm(form,station);
+        stationRepo.save(updateStation);
+        return true;
     }
 
     @Override
     public boolean deletedStation(UUID id) {
-        return false;
+        Station station = findStationById(id);
+        stationRepo.delete(station);
+        return true;
     }
 
     @Override
@@ -336,6 +378,8 @@ public class AdminServiceImpl implements AdminService{
         return false;
     }
 
+
+
     private Account findAccountById(UUID accountId) {
         return accountRepo.findById(accountId).orElseThrow(AccountNotFoundException::new);
     }
@@ -353,6 +397,24 @@ public class AdminServiceImpl implements AdminService{
     }
 
     private Route findRouteById(UUID id){
-        return routeRepo.findById(id).orElseThrow(RouteNotFound::new);
+        return routeRepo.findById(id).orElseThrow(RouteAlreadyExistsException::new);
+    }
+
+    private boolean existStationByName(String name){
+        return stationRepo.findByName(name).isPresent();
+    }
+
+    private Station findStationById(UUID id){
+        return stationRepo.findById(id).orElseThrow(StationNotFoundException::new);
+    }
+
+    private void processRouteStations(List<AdminRouteStationForm> stationForms, Route parentRoute) {
+        for (AdminRouteStationForm stationForm : stationForms) {
+            RouteStation routeStation = routeMapper.toRouteStationEntity(stationForm);
+            Station station = findStationById(stationForm.getStationId());
+            routeStation.setStation(station);
+            routeStation.setRoute(parentRoute);
+            parentRoute.getRouteStations().add(routeStation);
+        }
     }
 }
