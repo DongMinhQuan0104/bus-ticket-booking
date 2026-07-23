@@ -17,4 +17,10 @@ public interface SeatAvailabilityJpaRepo extends JpaRepository<SeatAvailability,
     @Query("select s.seatCode from SeatAvailability s " +
            "where s.trip.id = :tripId and s.bookingDetail is not null")
     List<String> findOccupiedSeatCodes(@Param("tripId") UUID tripId);
+
+    @Query("select s.seatCode from SeatAvailability s " +
+           "where s.trip.id = :tripId and s.seatCode in :seatCodes and s.bookingDetail is not null")
+    List<String> findTakenSeatCodes(@Param("tripId") UUID tripId, @Param("seatCodes") List<String> seatCodes);
+
+    List<SeatAvailability> findByBookingDetailBookingId(UUID bookingId);
 }
