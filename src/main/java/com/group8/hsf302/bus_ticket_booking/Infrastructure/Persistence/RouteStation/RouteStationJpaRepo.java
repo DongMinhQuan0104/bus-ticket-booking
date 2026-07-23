@@ -4,6 +4,7 @@ import com.group8.hsf302.bus_ticket_booking.Domain.Model.RouteStation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -11,8 +12,11 @@ import java.util.UUID;
 public interface RouteStationJpaRepo
         extends JpaRepository<RouteStation, UUID> {
 
-    Optional<RouteStation>
-    findByRoute_IdAndStationOrder(
+    List<RouteStation> findByRouteIdOrderByStationOrderAsc(
+            UUID routeId
+    );
+
+    Optional<RouteStation> findByRoute_IdAndStationOrder(
             UUID routeId,
             Integer stationOrder
     );

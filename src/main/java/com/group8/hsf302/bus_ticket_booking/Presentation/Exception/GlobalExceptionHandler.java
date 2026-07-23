@@ -86,4 +86,37 @@ public class GlobalExceptionHandler {
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : ".....");
     }
+
+    @ExceptionHandler(StaffBusinessException.class)
+    public String handleStaffBusinessException(
+            StaffBusinessException exception,
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes
+    ) {
+        redirectAttributes.addFlashAttribute(
+                "errorMessage",
+                exception.getMessage()
+        );
+
+        String message = exception.getMessage();
+
+        if (message != null && (
+                message.contains("đăng nhập")
+                        || message.contains("quyền STAFF")
+                        || message.contains("Staff hiện không khả dụng")
+                        || message.contains("mã tài khoản Staff")
+        )) {
+            return "redirect:/auth/login";
+        }
+
+        String referer = request.getHeader("Referer");
+
+        if (referer != null && referer.contains("/staff")) {
+            return "redirect:" + referer;
+        }
+
+        return "redirect:/staff/dashboard";
+    }
+
+
 }
