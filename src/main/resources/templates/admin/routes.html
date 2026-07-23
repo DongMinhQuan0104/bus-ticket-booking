@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Quản lý tuyến')}"></head>
+<body class="bg-surface-bright text-on-surface font-body-main text-body-main antialiased">
+<nav th:replace="~{admin/layout :: sidebar('routes')}"></nav>
+<header th:replace="~{admin/layout :: topbar}"></header>
+
+<main class="ml-64 pt-16 min-h-screen">
+    <div class="max-w-[1200px] mx-auto px-12 py-12">
+        <div th:replace="~{admin/layout :: flash}"></div>
+
+        <div class="mb-8">
+            <h1 class="font-headline-md text-headline-md text-on-surface mb-2">Quản lý tuyến</h1>
+            <p class="font-body-main text-body-main text-on-surface-variant">Các tuyến đường và điểm dừng trong hệ thống.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div th:if="${routes.content.isEmpty()}" class="col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant p-8 text-center text-on-surface-variant">
+                Chưa có tuyến nào.
+            </div>
+            <div th:each="route : ${routes.content}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="material-symbols-outlined text-primary">route</span>
+                    <h2 class="font-title-sm text-title-sm text-on-surface" th:text="${route.name()}">Tên tuyến</h2>
+                </div>
+                <ol class="relative border-l-2 border-outline-variant ml-2 flex flex-col gap-4">
+                    <li th:each="st : ${route.stations()}" class="ml-4">
+                        <span class="absolute -left-[9px] w-4 h-4 rounded-full bg-primary-container border-2 border-surface-container-lowest"></span>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-label-caps text-label-caps text-on-surface-variant uppercase" th:text="'Điểm ' + ${st.stationOrder()}">Điểm 1</span>
+                                <div class="font-body-main text-on-surface" th:text="${st.stationName()}">Tên trạm</div>
+                            </div>
+                            <span class="font-data-mono text-body-sm text-on-surface-variant"
+                                  th:text="${st.priceFromStar() != null} ? ${#numbers.formatDecimal(st.priceFromStar(),0,'COMMA',0,'POINT')} + ' đ' : ''"></span>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </div>
+        <p class="mt-6 text-body-sm text-on-surface-variant italic">* Tạo/sửa tuyến sẽ mở khi phần BE quản lý Trạm (StationViewModel) được hoàn thiện.</p>
+    </div>
+</main>
+</body>
+</html>
