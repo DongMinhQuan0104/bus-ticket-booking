@@ -2,10 +2,12 @@ package com.group8.hsf302.bus_ticket_booking.Application.Dto.Response;
 
 import java.util.UUID;
 
-public class PassengerManifestResponse {
+public class PassengerManifestViewModel {
 
     private UUID bookingDetailId;
     private String passengerName;
+    private String email;
+    private String phoneNumber;
     private Double ticketPrice;
     private Double luggageWeightKg;
     private Double luggageFee;
@@ -13,12 +15,14 @@ public class PassengerManifestResponse {
     private UUID bookingId;
     private Boolean isCheckedIn;
 
-    public PassengerManifestResponse() {
+    public PassengerManifestViewModel() {
     }
 
-    public PassengerManifestResponse(UUID bookingDetailId, String passengerName, Double ticketPrice, Double luggageWeightKg, Double luggageFee, Boolean isReturnTicket, UUID bookingId, Boolean isCheckedIn) {
+    public PassengerManifestViewModel(UUID bookingDetailId, String passengerName, String email, String phoneNumber, Double ticketPrice, Double luggageWeightKg, Double luggageFee, Boolean isReturnTicket, UUID bookingId, Boolean isCheckedIn) {
         this.bookingDetailId = bookingDetailId;
         this.passengerName = passengerName;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
         this.ticketPrice = ticketPrice;
         this.luggageWeightKg = luggageWeightKg;
         this.luggageFee = luggageFee;
@@ -41,6 +45,22 @@ public class PassengerManifestResponse {
 
     public void setPassengerName(String passengerName) {
         this.passengerName = passengerName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public Double getTicketPrice() {
