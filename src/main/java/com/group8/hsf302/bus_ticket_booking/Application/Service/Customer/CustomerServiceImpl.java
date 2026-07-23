@@ -12,6 +12,8 @@ import com.group8.hsf302.bus_ticket_booking.Application.Mapper.TripMapper;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.BookingType;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccountNotFoundException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.BookingNotFoundException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.CannotCancelBookingException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.OldPasswordNotMatchException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.PasswordConfirmNotMatchException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.SameStationException;
@@ -240,6 +242,49 @@ public class CustomerServiceImpl implements CustomerService{
             result.add(toBookingViewModel(booking));
         }
         return result;
+    }
+
+    // E4 - Chi tiet 1 ve (kiem tra quyen so huu)
+    @Override
+    @Transactional(readOnly = true)
+    public BookingViewModel getMyBooking(UUID bookingId, UUID accountId) {
+        Booking booking = findOwnedBooking(bookingId, accountId);
+        return toBookingViewModel(booking);
+    }
+
+    // E5 - Huy ve: giai phong ghe va xoa du lieu dat ve (schema chua co trang thai -> xoa cung)
+    @Override
+    @Transactional
+    public void cancelBooking(UUID bookingId, UUID accountId) {
+        Booking booking = findOwnedBooking(bookingId, accountId);
+
+        List<SeatAvailability> seats = seatAvailabilityRepo.findByBookingId(bookingId);
+        Trip trip = seats.isEmpty() ? null : seats.get(0).getTrip();
+        boolean departed = trip != null && trip.getDepartureTime() != null
+                && trip.getDepartureTime().isBefore(LocalDateTime.now());
+        if (departed) {
+            throw new CannotCancelBookingException();
+        }
+
+        // Xoa theo thu tu tranh vi pham khoa ngoai: ghe -> payment -> chi tiet -> booking
+        for (SeatAvailability seat : seats) {
+            seatAvailabilityRepo.delete(seat);
+        }
+        for (Payment payment : paymentRepo.findByBookingId(bookingId)) {
+            paymentRepo.delete(payment);
+        }
+        for (BookingDetail detail : bookingDetailRepo.findByBookingId(bookingId)) {
+            bookingDetailRepo.delete(detail);
+        }
+        bookingRepo.delete(booking);
+    }
+
+    private Booking findOwnedBooking(UUID bookingId, UUID accountId) {
+        Booking booking = bookingRepo.findById(bookingId).orElseThrow(BookingNotFoundException::new);
+        if (booking.getAccount() == null || !booking.getAccount().getId().equals(accountId)) {
+            throw new BookingNotFoundException();
+        }
+        return booking;
     }
 
     private BookingViewModel toBookingViewModel(Booking booking) {

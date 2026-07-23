@@ -29,4 +29,8 @@ public interface CustomerService {
 
     // E4 - Ve cua toi
     List<BookingViewModel> getMyBookings(UUID accountId);
+    BookingViewModel getMyBooking(UUID bookingId, UUID accountId);
+
+    // E5 - Huy ve / hoan tien
+    void cancelBooking(UUID bookingId, UUID accountId);
 }

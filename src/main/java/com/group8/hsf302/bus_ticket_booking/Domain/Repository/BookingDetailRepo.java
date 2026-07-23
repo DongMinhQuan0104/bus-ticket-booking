@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface BookingDetailRepo {
     BookingDetail save(BookingDetail bookingDetail);
     List<BookingDetail> findByBookingId(UUID bookingId);
+    void delete(BookingDetail bookingDetail);
 }

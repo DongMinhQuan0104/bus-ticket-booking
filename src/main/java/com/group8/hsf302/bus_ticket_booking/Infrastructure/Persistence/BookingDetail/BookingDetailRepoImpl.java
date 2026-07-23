@@ -25,4 +25,9 @@ public class BookingDetailRepoImpl implements BookingDetailRepo {
     public List<BookingDetail> findByBookingId(UUID bookingId) {
         return bookingDetailJpaRepo.findByBookingId(bookingId);
     }
+
+    @Override
+    public void delete(BookingDetail bookingDetail) {
+        bookingDetailJpaRepo.delete(bookingDetail);
+    }
 }
