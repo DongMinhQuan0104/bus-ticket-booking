@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -83,8 +84,18 @@ public class CustomerTripController {
      * de template chi viec ve so do ghe; viec chon ghe/nhap hanh khach xu ly o phia client roi POST sang E3.
      */
     @GetMapping("/{tripId}/booking")
-    public String bookingPage(@PathVariable UUID tripId, HttpSession session, Model model) {
+    public String bookingPage(@PathVariable UUID tripId, HttpSession session, Model model,
+                              RedirectAttributes redirectAttributes) {
         AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
+
+        // Khach VANG LAI duoc xem/tim chuyen tu do, nhung den buoc chon ghe - dat ve thi phai dang nhap.
+        // Ghi nho URL dang muon vao de dang nhap xong quay lai dung cho.
+        if (currentUser == null) {
+            session.setAttribute("REDIRECT_AFTER_LOGIN", "/trips/" + tripId + "/booking");
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập để chọn ghế và đặt vé.");
+            return "redirect:/auth/login";
+        }
+
         model.addAttribute("currentUser", currentUser);
 
         TripViewModel trip = customerService.getTripForBooking(tripId);

@@ -69,6 +69,14 @@ public class BookingController {
 
         TripViewModel trip = customerService.getTripForBooking(tripId);
 
+        // GIU GHE TAM: tu luc vao trang thanh toan, ghe duoc giu rieng cho khach nay.
+        // Neu ghe vua bi nguoi khac chiem -> SeatAlreadyBookedException (GlobalExceptionHandler xu ly).
+        // Neu qua han ma chua xac nhan -> scheduler tu giai phong.
+        java.time.LocalDateTime holdExpiresAt = customerService.holdSeats(tripId, seatCodes, currentUser.id());
+        model.addAttribute("holdExpiresAt", holdExpiresAt);
+        model.addAttribute("holdSecondsLeft",
+                java.time.Duration.between(java.time.LocalDateTime.now(), holdExpiresAt).getSeconds());
+
         // Ghep ma ghe voi ten hanh khach (thieu ten -> dung ten tai khoan)
         List<PassengerRow> passengers = new ArrayList<>();
         for (int i = 0; i < seatCodes.size(); i++) {

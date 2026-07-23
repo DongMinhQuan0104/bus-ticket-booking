@@ -7,8 +7,10 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.SearchTripFo
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.UpdateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.BookingViewModel;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.RefundViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.TripViewModel;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,8 +53,21 @@ public interface CustomerService {
     List<String> getOccupiedSeatCodes(UUID tripId);
 
     /**
+     * E2/E3 - GIU GHE TAM khi khach buoc vao trang thanh toan.
+     * Ghe duoc giu trong SEAT_HOLD_MINUTES phut; nguoi khac khong chon duoc trong thoi gian nay.
+     * Neu qua han ma chua thanh toan, scheduler se tu giai phong.
+     * Nem SeatAlreadyBookedException neu ghe vua bi nguoi khac chiem.
+     *
+     * @return thoi diem het han giu ghe (de FE dem nguoc)
+     */
+    LocalDateTime holdSeats(UUID tripId, List<String> seatCodes, UUID accountId);
+
+    /** Giai phong cac ghe giu tam da qua han. Scheduler goi dinh ky. Tra ve so ghe da don. */
+    int releaseExpiredSeatHolds();
+
+    /**
      * E3 - Tao booking: kiem tra ghe con trong, tao Booking + BookingDetail (moi ghe) +
-     * SeatAvailability (giu ghe) + Payment. Tra ve id cua booking vua tao.
+     * chuyen ghe DANG GIU TAM sang DA DAT + Payment. Tra ve id cua booking vua tao.
      */
     UUID createBooking(CreateBookingForm form, UUID accountId);
 
@@ -66,10 +81,19 @@ public interface CustomerService {
     BookingViewModel getMyBooking(UUID bookingId, UUID accountId);
 
     /**
-     * E5 - Huy ve: giai phong ghe va xoa du lieu dat ve.
-     * Nem CannotCancelBookingException neu chuyen da khoi hanh.
+     * E5 - Xem TRUOC so tien duoc hoan neu huy ve bay gio (khong thay doi du lieu).
+     * Dung de hien o man hinh xac nhan huy.
      */
-    void cancelBooking(UUID bookingId, UUID accountId);
+    RefundViewModel previewRefund(UUID bookingId, UUID accountId);
+
+    /**
+     * E5 - Huy ve: tinh tien hoan theo chinh sach, ghi nhan giao dich hoan tien,
+     * giai phong ghe va xoa du lieu dat ve.
+     * Nem CannotCancelBookingException neu chuyen da khoi hanh.
+     *
+     * @return thong tin khoan hoan de hien cho khach
+     */
+    RefundViewModel cancelBooking(UUID bookingId, UUID accountId);
 
     /**
      * E6 - Danh gia chuyen di (chi sau khi chuyen hoan thanh, moi ve chi 1 lan).

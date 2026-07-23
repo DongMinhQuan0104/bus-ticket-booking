@@ -3,6 +3,7 @@ package com.group8.hsf302.bus_ticket_booking.Presentation.Controller;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateReviewForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.BookingViewModel;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.RefundViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Service.Customer.CustomerService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -53,8 +54,8 @@ public class MyTicketController {
     }
 
     /**
-     * E5 - Trang xac nhan huy ve. Tinh san chinh sach hoan tien theo thoi gian con lai den gio di:
-     * >=24h hoan 90%, 12-24h hoan 50%, <12h khong hoan; roi hien so tien duoc hoan cho khach xem.
+     * E5 - Trang xac nhan huy ve. Hien truoc so tien duoc hoan theo chinh sach cua tang service:
+     * >=24h hoan 100%, 12-24h hoan 50%, <12h khong hoan.
      */
     @GetMapping("/my-tickets/{id}/cancel")
     public String cancelForm(@PathVariable UUID id, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
@@ -67,13 +68,15 @@ public class MyTicketController {
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("booking", booking);
 
-        double total = booking.totalPrice() != null ? booking.totalPrice() : 0.0;
+        // Chinh sach hoan tien do TANG SERVICE quyet dinh (BE la nguon chan ly),
+        // FE chi hien thi lai - tranh viec FE tinh mot kieu, BE tinh mot kieu.
+        RefundViewModel refund = customerService.previewRefund(id, currentUser.id());
         long hoursLeft = booking.departureTime() != null
                 ? Duration.between(LocalDateTime.now(), booking.departureTime()).toHours() : 0;
-        int refundPercent = hoursLeft >= 24 ? 90 : (hoursLeft >= 12 ? 50 : 0);
         model.addAttribute("hoursLeft", hoursLeft);
-        model.addAttribute("refundPercent", refundPercent);
-        model.addAttribute("refundAmount", total * refundPercent / 100.0);
+        model.addAttribute("refund", refund);
+        model.addAttribute("refundPercent", refund.refundPercent());
+        model.addAttribute("refundAmount", refund.refundAmount());
         return "customer/booking-cancel";
     }
 
@@ -85,8 +88,12 @@ public class MyTicketController {
             redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập");
             return "redirect:/auth/login";
         }
-        customerService.cancelBooking(id, currentUser.id());
-        redirectAttributes.addFlashAttribute("successMessage", "Đã hủy vé thành công. Ghế đã được giải phóng.");
+        RefundViewModel refund = customerService.cancelBooking(id, currentUser.id());
+        String money = String.format("%,.0f", refund.refundAmount());
+        redirectAttributes.addFlashAttribute("successMessage",
+                refund.refundAmount() > 0
+                        ? "Đã hủy vé. Ghế đã được giải phóng. Số tiền hoàn: " + money + " đ (" + refund.refundPercent() + "%)."
+                        : "Đã hủy vé. Ghế đã được giải phóng. " + refund.policyNote());
         return "redirect:/my-tickets";
     }
 

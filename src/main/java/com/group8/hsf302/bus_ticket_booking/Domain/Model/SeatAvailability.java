@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -32,6 +33,16 @@ public class SeatAvailability {
     @JoinColumn(name = "trip_id")
     private Trip trip;
 
+    // ===== GIU GHE TAM (seat hold) =====
+    // 3 trang thai cua 1 ban ghi ghe:
+    //   1) bookingDetail != null                    -> ghe DA DAT (da xac nhan)
+    //   2) bookingDetail == null, heldUntil > now   -> ghe DANG GIU TAM (cho thanh toan)
+    //   3) bookingDetail == null, heldUntil <= now  -> ghe HET HAN GIU -> scheduler se xoa
+    // heldByAccountId: ai dang giu (de nguoi khac khong chon duoc, nhung chinh chu van dat tiep duoc).
+    private LocalDateTime heldUntil;
+
+    private UUID heldByAccountId;
+
     public SeatAvailability() {
     }
 
@@ -41,6 +52,34 @@ public class SeatAvailability {
         this.endStationOrder = endStationOrder;
         this.bookingDetail = bookingDetail;
         this.trip = trip;
+    }
+
+    public LocalDateTime getHeldUntil() {
+        return heldUntil;
+    }
+
+    public void setHeldUntil(LocalDateTime heldUntil) {
+        this.heldUntil = heldUntil;
+    }
+
+    public UUID getHeldByAccountId() {
+        return heldByAccountId;
+    }
+
+    public void setHeldByAccountId(UUID heldByAccountId) {
+        this.heldByAccountId = heldByAccountId;
+    }
+
+    /** Ghe dang duoc giu tam va CHUA het han (chua xac nhan dat). */
+    public boolean isActiveHold() {
+        return bookingDetail == null && heldUntil != null && heldUntil.isAfter(LocalDateTime.now());
+    }
+
+    /** Chuyen tu "giu tam" sang "da dat" khi khach xac nhan thanh toan. */
+    public void confirmHold(BookingDetail detail) {
+        this.bookingDetail = detail;
+        this.heldUntil = null;
+        this.heldByAccountId = null;
     }
 
     public UUID getId() {

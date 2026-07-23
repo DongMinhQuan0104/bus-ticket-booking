@@ -4,6 +4,7 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.LoginForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.RegisterForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Service.Authentication.AuthenticationService;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Role;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -59,7 +60,26 @@ public class AuthenticationController {
         }
         AccountViewModel accountLogin = authService.login(form);
         session.setAttribute("LOGGED_IN_USER", accountLogin);
-        return "redirect:/home";
+        return redirectByRole(accountLogin, session);
+    }
+
+    /**
+     * Sau khi dang nhap: dua nguoi dung ve dung khu vuc cua vai tro.
+     * ADMIN -> trang quan tri, DRIVER -> cong tai xe.
+     * CUSTOMER -> quay lai trang dang dinh vao truoc do (vd dang chon ghe thi bi chan),
+     * neu khong co thi ve trang chu.
+     */
+    private String redirectByRole(AccountViewModel account, HttpSession session) {
+        String target = (String) session.getAttribute("REDIRECT_AFTER_LOGIN");
+        session.removeAttribute("REDIRECT_AFTER_LOGIN");
+
+        if (account.role() == Role.ADMIN) {
+            return "redirect:/admin/dashboard";
+        }
+        if (account.role() == Role.DRIVER) {
+            return "redirect:/driver/trips";
+        }
+        return "redirect:" + (target != null ? target : "/home");
     }
 
     @PostMapping("/register")
@@ -71,7 +91,7 @@ public class AuthenticationController {
         }
         AccountViewModel accountRegister = authService.register(form);
         session.setAttribute("LOGGED_IN_USER", accountRegister);
-        return "redirect:/home";
+        return redirectByRole(accountRegister, session);
     }
 
 

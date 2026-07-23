@@ -30,6 +30,7 @@ import com.group8.hsf302.bus_ticket_booking.Domain.Repository.BookingRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.PaymentRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.ReviewRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.SeatAvailabilityRepo;
+import com.group8.hsf302.bus_ticket_booking.Domain.Repository.TransactionRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.TripRepo;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Security.PasswordHasher;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,6 +69,7 @@ class CustomerServiceImplTest {
     @Mock private BookingDetailRepo bookingDetailRepo;
     @Mock private PaymentRepo paymentRepo;
     @Mock private ReviewRepo reviewRepo;
+    @Mock private TransactionRepo transactionRepo;
 
     @InjectMocks private CustomerServiceImpl service;
 
@@ -122,7 +124,7 @@ class CustomerServiceImplTest {
         Trip trip = tripWith(LocalDateTime.now().plusDays(1));
         when(tripRepo.searchAvailable(eq("Ha Noi"), eq("Hai Phong"), any(), any()))
                 .thenReturn(List.of(trip));
-        when(seatAvailabilityRepo.countBookedSeats(tripId)).thenReturn(2L);
+        when(seatAvailabilityRepo.countUnavailableSeats(eq(tripId), any())).thenReturn(2L);
         when(tripMapper.toViewModel(eq(trip), eq(16), eq(14))).thenReturn(null);
 
         service.searchTrips(form);
@@ -150,7 +152,7 @@ class CustomerServiceImplTest {
 
         when(accountRepo.findActiveById(accountId)).thenReturn(Optional.of(account));
         when(tripRepo.findById(tripId)).thenReturn(Optional.of(tripWith(LocalDateTime.now().plusDays(1))));
-        when(seatAvailabilityRepo.findTakenSeatCodes(eq(tripId), anyList())).thenReturn(List.of("A01"));
+        when(seatAvailabilityRepo.findTakenSeatCodesByOthers(eq(tripId), anyList(), any(), any())).thenReturn(List.of("A01"));
 
         assertThrows(SeatAlreadyBookedException.class, () -> service.createBooking(form, accountId));
         verify(bookingRepo, never()).save(any());
@@ -166,7 +168,8 @@ class CustomerServiceImplTest {
 
         when(accountRepo.findActiveById(accountId)).thenReturn(Optional.of(account));
         when(tripRepo.findById(tripId)).thenReturn(Optional.of(tripWith(LocalDateTime.now().plusDays(1))));
-        when(seatAvailabilityRepo.findTakenSeatCodes(eq(tripId), anyList())).thenReturn(List.of());
+        when(seatAvailabilityRepo.findTakenSeatCodesByOthers(eq(tripId), anyList(), any(), any())).thenReturn(List.of());
+        when(seatAvailabilityRepo.findActiveHolds(eq(tripId), any(), any())).thenReturn(List.of());
 
         service.createBooking(form, accountId);
 
@@ -174,6 +177,43 @@ class CustomerServiceImplTest {
         verify(bookingDetailRepo, times(2)).save(any());   // 2 ghe -> 2 chi tiet
         verify(seatAvailabilityRepo, times(2)).save(any()); // 2 ghe giu cho
         verify(paymentRepo).save(any());
+    }
+
+    // ===== GIU GHE TAM (seat hold + timeout) =====
+
+    @Test
+    void holdSeats_seatTakenByOther_throws() {
+        when(accountRepo.findActiveById(accountId)).thenReturn(Optional.of(account));
+        when(tripRepo.findById(tripId)).thenReturn(Optional.of(tripWith(LocalDateTime.now().plusDays(1))));
+        when(seatAvailabilityRepo.findTakenSeatCodesByOthers(eq(tripId), anyList(), any(), eq(accountId)))
+                .thenReturn(List.of("A01"));
+
+        assertThrows(SeatAlreadyBookedException.class,
+                () -> service.holdSeats(tripId, List.of("A01", "A02"), accountId));
+        verify(seatAvailabilityRepo, never()).save(any());
+    }
+
+    @Test
+    void holdSeats_createsHoldsWithExpiry() {
+        when(accountRepo.findActiveById(accountId)).thenReturn(Optional.of(account));
+        when(tripRepo.findById(tripId)).thenReturn(Optional.of(tripWith(LocalDateTime.now().plusDays(1))));
+        when(seatAvailabilityRepo.findTakenSeatCodesByOthers(eq(tripId), anyList(), any(), eq(accountId)))
+                .thenReturn(List.of());
+
+        LocalDateTime before = LocalDateTime.now();
+        LocalDateTime expiresAt = service.holdSeats(tripId, List.of("A01", "A02"), accountId);
+
+        // Xoa ghe dang giu cu roi tao 2 ban ghi giu ghe moi
+        verify(seatAvailabilityRepo).deleteHoldsOfAccount(tripId, accountId);
+        verify(seatAvailabilityRepo, times(2)).save(any(SeatAvailability.class));
+        // Han giu ghe = ~ now + SEAT_HOLD_MINUTES
+        assertEquals(true, expiresAt.isAfter(before.plusMinutes(CustomerServiceImpl.SEAT_HOLD_MINUTES - 1)));
+    }
+
+    @Test
+    void releaseExpiredSeatHolds_delegatesToRepo() {
+        when(seatAvailabilityRepo.deleteExpiredHolds(any())).thenReturn(3);
+        assertEquals(3, service.releaseExpiredSeatHolds());
     }
 
     // ===== E5 - Huy ve =====
@@ -203,6 +243,52 @@ class CustomerServiceImplTest {
 
         assertThrows(CannotCancelBookingException.class, () -> service.cancelBooking(bookingId, accountId));
         verify(bookingRepo, never()).delete(any());
+    }
+
+    // ===== E5 - HOAN TIEN theo chinh sach =====
+
+    /** Huy truoc gio khoi hanh >= 24h -> hoan 100% va co ghi nhan giao dich hoan tien. */
+    @Test
+    void cancelBooking_refunds100Percent_whenMoreThan24h() {
+        Booking booking = new Booking();
+        booking.setId(bookingId);
+        booking.setAccount(account);
+        booking.setTotalPrice(500000.0);
+        when(bookingRepo.findById(bookingId)).thenReturn(Optional.of(booking));
+
+        SeatAvailability seat = new SeatAvailability();
+        seat.setTrip(tripWith(LocalDateTime.now().plusDays(3)));
+        when(seatAvailabilityRepo.findByBookingId(bookingId)).thenReturn(List.of(seat));
+        when(paymentRepo.findByBookingId(bookingId)).thenReturn(List.of());
+        when(bookingDetailRepo.findByBookingId(bookingId)).thenReturn(List.of());
+
+        var refund = service.cancelBooking(bookingId, accountId);
+
+        assertEquals(100, refund.refundPercent());
+        assertEquals(500000.0, refund.refundAmount());
+        verify(transactionRepo).save(any());   // co ghi nhan khoan hoan
+    }
+
+    /** Huy sat gio khoi hanh (<12h) -> khong hoan tien, khong ghi giao dich. */
+    @Test
+    void cancelBooking_noRefund_whenLessThan12h() {
+        Booking booking = new Booking();
+        booking.setId(bookingId);
+        booking.setAccount(account);
+        booking.setTotalPrice(500000.0);
+        when(bookingRepo.findById(bookingId)).thenReturn(Optional.of(booking));
+
+        SeatAvailability seat = new SeatAvailability();
+        seat.setTrip(tripWith(LocalDateTime.now().plusHours(3)));
+        when(seatAvailabilityRepo.findByBookingId(bookingId)).thenReturn(List.of(seat));
+        when(paymentRepo.findByBookingId(bookingId)).thenReturn(List.of());
+        when(bookingDetailRepo.findByBookingId(bookingId)).thenReturn(List.of());
+
+        var refund = service.cancelBooking(bookingId, accountId);
+
+        assertEquals(0, refund.refundPercent());
+        assertEquals(0.0, refund.refundAmount());
+        verify(transactionRepo, never()).save(any());
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TransactionStatus;
 import jakarta.persistence.*;
 
 import java.util.Objects;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -24,6 +25,13 @@ public class Transaction {
 
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
+
+    // ===== Bo sung cho nghiep vu HOAN TIEN (E5) =====
+    // amount: so tien giao dich (hoan cho khach). createdAt: thoi diem ghi nhan.
+    // (Truoc day Transaction khong co so tien nen khong ghi nhan duoc khoan hoan.)
+    private Double amount;
+
+    private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id")
@@ -99,5 +107,21 @@ public class Transaction {
                 ", status=" + status +
                 ", payment=" + payment +
                 '}';
+    }
+
+    public Double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

@@ -64,7 +64,8 @@
                 <span class="font-bold">Số tiền được hoàn</span>
                 <span class="font-data-price text-tertiary text-lg" th:text="${#numbers.formatInteger(refundAmount,0,'POINT')} + 'đ'">0đ</span></div>
         </div>
-        <p class="text-xs text-on-surface-variant mt-3">Áp dụng: ≥24h hoàn 90% · 12–24h hoàn 50% · &lt;12h không hoàn.</p>
+        <p class="text-xs text-on-surface-variant mt-3">Áp dụng: ≥24h hoàn 100% · 12–24h hoàn 50% · &lt;12h không hoàn.</p>
+        <p class="text-xs text-on-surface-variant mt-1 italic" th:if="${refund != null}" th:text="${refund.policyNote()}"></p>
     </div>
 
     <!-- Xac nhan -->

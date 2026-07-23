@@ -7,11 +7,13 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.SearchTripFo
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.UpdateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.BookingViewModel;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.RefundViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.TripViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.AccountMapper;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.TripMapper;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.BookingType;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TransactionStatus;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccountNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.BookingNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.CannotCancelBookingException;
@@ -27,6 +29,7 @@ import com.group8.hsf302.bus_ticket_booking.Domain.Model.BookingDetail;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Payment;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Review;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.SeatAvailability;
+import com.group8.hsf302.bus_ticket_booking.Domain.Model.Transaction;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Trip;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.AccountRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.BookingDetailRepo;
@@ -34,6 +37,7 @@ import com.group8.hsf302.bus_ticket_booking.Domain.Repository.BookingRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.PaymentRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.ReviewRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.SeatAvailabilityRepo;
+import com.group8.hsf302.bus_ticket_booking.Domain.Repository.TransactionRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.TripRepo;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Security.PasswordHasher;
 import org.springframework.stereotype.Service;
@@ -73,11 +77,14 @@ public class CustomerServiceImpl implements CustomerService{
     private final BookingDetailRepo bookingDetailRepo;
     private final PaymentRepo paymentRepo;
     private final ReviewRepo reviewRepo;
+    // Ghi nhan khoan hoan tien khi khach huy ve (E5)
+    private final TransactionRepo transactionRepo;
 
     public CustomerServiceImpl(AccountRepo accountRepo, AccountMapper mapper, PasswordHasher passwordHasher,
                                TripRepo tripRepo, SeatAvailabilityRepo seatAvailabilityRepo, TripMapper tripMapper,
                                BookingRepo bookingRepo, BookingDetailRepo bookingDetailRepo, PaymentRepo paymentRepo,
-                               ReviewRepo reviewRepo) {
+                               ReviewRepo reviewRepo, TransactionRepo transactionRepo) {
+        this.transactionRepo = transactionRepo;
         this.accountRepo = accountRepo;
         this.mapper = mapper;
         this.passwordHasher = passwordHasher;
@@ -158,7 +165,7 @@ public class CustomerServiceImpl implements CustomerService{
         List<TripViewModel> result = new ArrayList<>();
         for (Trip trip : trips) {
             int totalSeats = totalSeatsOf(trip);
-            long booked = seatAvailabilityRepo.countBookedSeats(trip.getId());
+            long booked = seatAvailabilityRepo.countUnavailableSeats(trip.getId(), LocalDateTime.now());
             int available = totalSeats - (int) booked;
             if (available < 0) {
                 available = 0;
@@ -175,7 +182,7 @@ public class CustomerServiceImpl implements CustomerService{
                 .filter(Trip::isBookable)
                 .orElseThrow(TripNotFoundException::new);
         int totalSeats = totalSeatsOf(trip);
-        long booked = seatAvailabilityRepo.countBookedSeats(tripId);
+        long booked = seatAvailabilityRepo.countUnavailableSeats(tripId, LocalDateTime.now());
         int available = Math.max(0, totalSeats - (int) booked);
         return tripMapper.toViewModel(trip, totalSeats, available);
     }
@@ -183,7 +190,7 @@ public class CustomerServiceImpl implements CustomerService{
     @Override
     @Transactional(readOnly = true)
     public List<String> getOccupiedSeatCodes(UUID tripId) {
-        return seatAvailabilityRepo.findOccupiedSeatCodes(tripId);
+        return seatAvailabilityRepo.findOccupiedSeatCodes(tripId, LocalDateTime.now());
     }
 
     /** Tong so ghe cua xe theo BusCapacity (SEAT_16 -> 16, SEAT_32 -> 32). Tra 0 neu chua gan xe. */
@@ -205,6 +212,58 @@ public class CustomerServiceImpl implements CustomerService{
      *   <li>Tao Payment cho booking</li>
      * </ol>
      */
+    /** So phut giu ghe tam truoc khi tu dong giai phong neu khach chua thanh toan. */
+    public static final int SEAT_HOLD_MINUTES = 10;
+
+    /**
+     * E2/E3 - Giu ghe tam khi khach vao trang thanh toan.
+     * Buoc 1: kiem tra ghe co bi nguoi khac chiem khong (da dat hoac dang giu).
+     * Buoc 2: xoa cac ghe khach nay dang giu o chuyen do (truong hop quay lai chon ghe khac).
+     * Buoc 3: tao ban ghi giu ghe moi voi han = now + SEAT_HOLD_MINUTES.
+     */
+    @Override
+    @Transactional
+    public LocalDateTime holdSeats(UUID tripId, List<String> seatCodes, UUID accountId) {
+        Account account = findActiveById(accountId);
+        Trip trip = tripRepo.findById(tripId)
+                .filter(Trip::isBookable)
+                .orElseThrow(TripNotFoundException::new);
+
+        if (seatCodes == null || seatCodes.isEmpty()) {
+            throw new SeatAlreadyBookedException("no seat selected");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        List<String> taken = seatAvailabilityRepo.findTakenSeatCodesByOthers(tripId, seatCodes, now, accountId);
+        if (!taken.isEmpty()) {
+            throw new SeatAlreadyBookedException(String.join(", ", taken));
+        }
+
+        // Bo cac ghe khach dang giu truoc do o chuyen nay (chon lai ghe khac)
+        seatAvailabilityRepo.deleteHoldsOfAccount(tripId, accountId);
+
+        LocalDateTime expiresAt = now.plusMinutes(SEAT_HOLD_MINUTES);
+        for (String code : seatCodes) {
+            SeatAvailability hold = new SeatAvailability();
+            hold.setSeatCode(code);
+            hold.setStartStationOrder(0);
+            hold.setEndStationOrder(0);
+            hold.setTrip(trip);
+            hold.setBookingDetail(null);          // chua dat -> chi giu tam
+            hold.setHeldUntil(expiresAt);
+            hold.setHeldByAccountId(account.getId());
+            seatAvailabilityRepo.save(hold);
+        }
+        return expiresAt;
+    }
+
+    /** Scheduler goi: xoa cac ghe giu tam da qua han de tra ghe lai cho nguoi khac. */
+    @Override
+    @Transactional
+    public int releaseExpiredSeatHolds() {
+        return seatAvailabilityRepo.deleteExpiredHolds(LocalDateTime.now());
+    }
+
     @Override
     @Transactional
     public UUID createBooking(CreateBookingForm form, UUID accountId) {
@@ -220,10 +279,21 @@ public class CustomerServiceImpl implements CustomerService{
             throw new SeatAlreadyBookedException("no seat selected");
         }
 
-        // (2) BE khong tin FE: kiem tra lai ghe co con trong khong (chong race condition)
-        List<String> taken = seatAvailabilityRepo.findTakenSeatCodes(trip.getId(), seatCodes);
+        // (2) BE khong tin FE: kiem tra lai ghe co bi NGUOI KHAC chiem khong
+        // (da dat, hoac dang duoc nguoi khac giu tam va chua het han).
+        LocalDateTime now = LocalDateTime.now();
+        List<String> taken = seatAvailabilityRepo.findTakenSeatCodesByOthers(
+                trip.getId(), seatCodes, now, accountId);
         if (!taken.isEmpty()) {
             throw new SeatAlreadyBookedException(String.join(", ", taken));
+        }
+
+        // (2b) Ghe khach dang giu tam -> tra cuu de "chuyen" thanh ghe da dat (thay vi tao moi).
+        // Neu het thoi gian giu (scheduler da don) thi khong con ban ghi nao -> bao het han.
+        List<SeatAvailability> myHolds = seatAvailabilityRepo.findActiveHolds(trip.getId(), accountId, now);
+        java.util.Map<String, SeatAvailability> holdBySeat = new java.util.HashMap<>();
+        for (SeatAvailability h : myHolds) {
+            holdBySeat.put(h.getSeatCode(), h);
         }
 
         // (3) Tinh tien: gia ve lay tu chuyen (Trip.price)
@@ -258,12 +328,18 @@ public class CustomerServiceImpl implements CustomerService{
             detail.setBooking(booking);
             bookingDetailRepo.save(detail);
 
-            SeatAvailability seat = new SeatAvailability();
-            seat.setSeatCode(code);
-            seat.setStartStationOrder(0);
-            seat.setEndStationOrder(0);
-            seat.setBookingDetail(detail);
-            seat.setTrip(trip);
+            // Uu tien dung lai ban ghi ghe DANG GIU TAM cua chinh khach -> chuyen sang "da dat".
+            // Neu khong con (het han giu) thi tao moi, nhung van an toan vi buoc (2) da kiem tra
+            // ghe khong bi nguoi khac chiem.
+            SeatAvailability seat = holdBySeat.get(code);
+            if (seat == null) {
+                seat = new SeatAvailability();
+                seat.setSeatCode(code);
+                seat.setStartStationOrder(0);
+                seat.setEndStationOrder(0);
+                seat.setTrip(trip);
+            }
+            seat.confirmHold(detail);   // gan bookingDetail + xoa thong tin giu tam
             seatAvailabilityRepo.save(seat);
         }
 
@@ -297,10 +373,58 @@ public class CustomerServiceImpl implements CustomerService{
         return toBookingViewModel(booking);
     }
 
-    // E5 - Huy ve: giai phong ghe va xoa du lieu dat ve (schema chua co trang thai -> xoa cung)
+    // ===================== E5 - HUY VE & HOAN TIEN =====================
+    // Chinh sach hoan tien theo thoi diem huy so voi gio khoi hanh:
+    //   >= 24h  -> hoan 100%
+    //   12h-24h -> hoan 50%
+    //   < 12h   -> khong hoan (0%)
+    //   da khoi hanh -> khong cho huy
+    private static final long FULL_REFUND_HOURS = 24;
+    private static final long HALF_REFUND_HOURS = 12;
+
+    /** Tinh muc hoan tien cho 1 ve tai thoi diem hien tai (khong thay doi du lieu). */
+    private RefundViewModel calculateRefund(Booking booking, Trip trip) {
+        double totalPaid = booking.getTotalPrice() != null ? booking.getTotalPrice() : 0.0;
+
+        if (trip == null || trip.getDepartureTime() == null) {
+            return new RefundViewModel(totalPaid, 100, totalPaid,
+                    "Chuyến chưa xác định giờ khởi hành nên được hoàn toàn bộ.");
+        }
+
+        long hoursLeft = java.time.Duration.between(LocalDateTime.now(), trip.getDepartureTime()).toHours();
+        int percent;
+        String note;
+        if (hoursLeft >= FULL_REFUND_HOURS) {
+            percent = 100;
+            note = "Hủy trước giờ khởi hành từ 24 giờ trở lên: hoàn 100%.";
+        } else if (hoursLeft >= HALF_REFUND_HOURS) {
+            percent = 50;
+            note = "Hủy trước giờ khởi hành từ 12 đến dưới 24 giờ: hoàn 50%.";
+        } else {
+            percent = 0;
+            note = "Hủy sát giờ khởi hành (dưới 12 giờ): không được hoàn tiền.";
+        }
+        return new RefundViewModel(totalPaid, percent, totalPaid * percent / 100.0, note);
+    }
+
+    /** Lay chuyen cua 1 ve thong qua cac ghe da dat. */
+    private Trip tripOfBooking(UUID bookingId) {
+        List<SeatAvailability> seats = seatAvailabilityRepo.findByBookingId(bookingId);
+        return seats.isEmpty() ? null : seats.get(0).getTrip();
+    }
+
+    // E5 - Xem truoc so tien duoc hoan (man hinh xac nhan huy)
+    @Override
+    @Transactional(readOnly = true)
+    public RefundViewModel previewRefund(UUID bookingId, UUID accountId) {
+        Booking booking = findOwnedBooking(bookingId, accountId);
+        return calculateRefund(booking, tripOfBooking(bookingId));
+    }
+
+    // E5 - Huy ve: giai phong ghe, ghi nhan hoan tien va xoa du lieu dat ve
     @Override
     @Transactional
-    public void cancelBooking(UUID bookingId, UUID accountId) {
+    public RefundViewModel cancelBooking(UUID bookingId, UUID accountId) {
         Booking booking = findOwnedBooking(bookingId, accountId);
 
         List<SeatAvailability> seats = seatAvailabilityRepo.findByBookingId(bookingId);
@@ -311,7 +435,21 @@ public class CustomerServiceImpl implements CustomerService{
             throw new CannotCancelBookingException();
         }
 
-        // Xoa theo thu tu tranh vi pham khoa ngoai: ghe -> payment -> chi tiet -> booking
+        // (1) Tinh tien hoan theo chinh sach TRUOC khi xoa du lieu
+        RefundViewModel refund = calculateRefund(booking, trip);
+
+        // (2) Ghi nhan giao dich hoan tien (chi ghi khi thuc su co tien hoan).
+        //     Khong gan payment vi ban ghi payment se bi xoa ngay sau day.
+        if (refund.refundAmount() > 0) {
+            Transaction refundTx = new Transaction();
+            refundTx.setTo(booking.getAccount());
+            refundTx.setAmount(refund.refundAmount());
+            refundTx.setStatus(TransactionStatus.PAID);
+            refundTx.setCreatedAt(LocalDateTime.now());
+            transactionRepo.save(refundTx);
+        }
+
+        // (3) Xoa theo thu tu tranh vi pham khoa ngoai: ghe -> payment -> chi tiet -> booking
         for (SeatAvailability seat : seats) {
             seatAvailabilityRepo.delete(seat);
         }
@@ -322,6 +460,8 @@ public class CustomerServiceImpl implements CustomerService{
             bookingDetailRepo.delete(detail);
         }
         bookingRepo.delete(booking);
+
+        return refund;
     }
 
     // E6 - Danh gia chuyen di (sau khi hoan thanh, moi ve chi danh gia 1 lan)
