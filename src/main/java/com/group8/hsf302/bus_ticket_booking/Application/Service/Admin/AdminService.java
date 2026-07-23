@@ -21,7 +21,7 @@ public interface AdminService {
     public BusViewModel createBus(AdminCreateBusForm form);
     public PagedResponse<BusViewModel> getAllBuses(int page, int size);
     public PagedResponse<BusViewModel> getBusByName(String name,int page, int size);
-    public PagedResponse<BusViewModel> getBusById(UUID id, int page, int size);
+    public BusViewModel getBusById(UUID id);
     public boolean updateBus(AdminUpdateBusForm form, UUID id);
     public boolean deleteBus(UUID id);
 

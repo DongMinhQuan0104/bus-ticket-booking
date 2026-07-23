@@ -51,8 +51,8 @@ public class AccountRepoImpl implements AccountRepo {
     }
 
     @Override
-    public Page<Account> findAll(PageRequest pageRequest) {
-        return accountJpaRepo.findAll(pageRequest);
+    public Page<Account> findAll(Pageable pageable) {
+        return accountJpaRepo.findAll(pageable);
     }
 
     @Override

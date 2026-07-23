@@ -16,7 +16,7 @@ public interface AccountRepo {
     void save (Account account);
     Optional<Account> findByIdAndStatus(UUID accountId, Status status);
     Optional<Account> findActiveById(UUID accountId);
-    Page<Account> findAll(PageRequest pageRequest);
+    Page<Account> findAll(Pageable pageable);
 
     Page<Account> findByFullNameContaining(String name, Pageable pageable);
 }

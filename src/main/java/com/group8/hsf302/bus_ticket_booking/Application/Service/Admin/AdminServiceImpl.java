@@ -8,6 +8,7 @@ import com.group8.hsf302.bus_ticket_booking.Application.Mapper.BusMapper;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccountNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.BusNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.EmailAlreadyExistsException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.LicensePlateAlreadyExistsException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Account;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Bus;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.AccountRepo;
@@ -48,7 +49,6 @@ public class AdminServiceImpl implements AdminService{
         Account account = accountMapper.toEntity(form);
         String securedPassword = passwordHasher.hash(account.getPassword());
         account.setPassword(securedPassword);
-        account.setRole(form.getRole());
         accountRepo.save(account);
         return accountMapper.toViewModel(account);
     }
@@ -96,13 +96,13 @@ public class AdminServiceImpl implements AdminService{
 
     @Override
     public AccountViewModel getAccountById(UUID id) {
-        Account account = findById(id);
+        Account account = findAccountById(id);
         return accountMapper.toViewModel(account);
     }
 
     @Override
     public boolean updateAccount(AdminUpdateAccountForm form, UUID accountId) {
-        Account account = findById(accountId);
+        Account account = findAccountById(accountId);
         Account updateAccount = accountMapper.updateEntityFromForm(form, account);
         String securedPassword = passwordHasher.hash(updateAccount.getPassword());
         updateAccount.setPassword(securedPassword);
@@ -112,41 +112,78 @@ public class AdminServiceImpl implements AdminService{
 
     @Override
     public boolean deleteAccount(UUID accountId) {
-        Account account = findById(accountId);
+        Account account = findAccountById(accountId);
         accountRepo.delete(account);
         return true;
     }
 
     @Override
     public BusViewModel createBus(AdminCreateBusForm form) {
+        if(existsByLicensePlate(form.getLicensePlate())){
+            throw new LicensePlateAlreadyExistsException();
+        }
         Bus bus = busMapper.toEntity(form);
-
-        return null;
+        busRepo.save(bus);
+        return busMapper.toViewModel(bus);
     }
 
     @Override
     public PagedResponse<BusViewModel> getAllBuses(int page, int size) {
-        return null;
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Bus> busPage = busRepo.findAll(pageRequest);
+        List<BusViewModel> busViewModels = busPage.stream()
+                .map(busMapper::toViewModel)
+                .toList();
+
+        return new PagedResponse<>(
+                busViewModels,
+                busPage.getNumber(),
+                busPage.getSize(),
+                busPage.getTotalElements(),
+                busPage.getTotalPages(),
+                busPage.isLast()
+        );
     }
 
     @Override
     public PagedResponse<BusViewModel> getBusByName(String name, int page, int size) {
-        return null;
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Bus> busPage = busRepo.findByBusNameContaining(name,pageRequest);
+        List<BusViewModel> busViewModels = busPage.stream()
+                .map(busMapper::toViewModel)
+                .toList();
+
+        return new PagedResponse<>(
+                busViewModels,
+                busPage.getNumber(),
+                busPage.getSize(),
+                busPage.getTotalElements(),
+                busPage.getTotalPages(),
+                busPage.isLast()
+        );
     }
 
     @Override
-    public PagedResponse<BusViewModel> getBusById(UUID id, int page, int size) {
-        return null;
+    public BusViewModel getBusById(UUID id) {
+        Bus bus = findBusById(id);
+        return busMapper.toViewModel(bus);
     }
 
     @Override
     public boolean updateBus(AdminUpdateBusForm form, UUID id) {
-        return false;
+        Bus bus = findBusById(id);
+        Bus updateBus = busMapper.updateEntityFromForm(form,bus);
+        busRepo.save(updateBus);
+        return true;
     }
 
     @Override
     public boolean deleteBus(UUID id) {
-        return false;
+        Bus bus = findBusById(id);
+        busRepo.delete(bus);
+        return true;
     }
 
     @Override
@@ -284,11 +321,17 @@ public class AdminServiceImpl implements AdminService{
         return false;
     }
 
-    private Account findById(UUID accountId) {
+    private Account findAccountById(UUID accountId) {
         return accountRepo.findById(accountId).orElseThrow(AccountNotFoundException::new);
     }
 
-    private Bus findByLicensePlate(String licensePlate){
-        return busRepo.findByLicensePlate(licensePlate).orElseThrow(BusNotFoundException::new);
+    private Bus findBusById(UUID id){
+        return busRepo.findById(id).orElseThrow(BusNotFoundException::new);
     }
+
+    private boolean existsByLicensePlate(String licensePlate){
+        return busRepo.findByLicensePlate(licensePlate).isPresent();
+    }
+
+
 }
