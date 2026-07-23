@@ -8,26 +8,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public class RouteStationRepoImpl
-        implements RouteStationRepo {
+public class RouteStationRepoImpl implements RouteStationRepo {
 
-    private final RouteStationJpaRepo jpaRepo;
+    private final RouteStationJpaRepo routeStationJpaRepo;
 
-    public RouteStationRepoImpl(
-            RouteStationJpaRepo jpaRepo
-    ) {
-        this.jpaRepo = jpaRepo;
+    public RouteStationRepoImpl(RouteStationJpaRepo routeStationJpaRepo) {
+        this.routeStationJpaRepo = routeStationJpaRepo;
     }
 
     @Override
-    public Optional<RouteStation>
-    findByRouteIdAndStationOrder(
-            UUID routeId,
-            Integer stationOrder
-    ) {
-        return jpaRepo.findByRoute_IdAndStationOrder(
-                routeId,
-                stationOrder
-        );
+    public Optional<RouteStation> findById(UUID id) {
+        return routeStationJpaRepo.findById(id);
     }
 }

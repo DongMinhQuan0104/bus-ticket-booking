@@ -1,7 +1,7 @@
 package com.group8.hsf302.bus_ticket_booking.Application.Mapper;
 
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateAccountForm;
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateAccountForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.RegisterForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.UpdateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
@@ -18,7 +18,7 @@ public interface AccountMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status",constant = "AVAILABLE")
-    Account toEntity(CreateAccountForm form);
+    Account toEntity(AdminCreateAccountForm form);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
