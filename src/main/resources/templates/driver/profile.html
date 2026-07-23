@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Hồ sơ Tài xế | BusTicketBooking</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#476080",
+                        "primary": "#a33e00",
+                        "on-surface": "#191c1e",
+                        "outline-variant": "#e0c0b3",
+                        "brand-deep-blue": "#0E2A47",
+                        "brand-bus-orange": "#F26A21",
+                        "brand-success": "#2E9E5B"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F5F7FA; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 left-0 z-50 flex justify-between items-center px-6 h-[64px] bg-white shadow-sm border-b border-outline-variant">
+    <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">directions_bus</span>
+        <div class="flex flex-col">
+            <span class="text-xl font-bold text-primary leading-tight">BusTicketBooking</span>
+            <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">CỔNG THÔNG TIN TÀI XẾ</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-4">
+        <div class="hidden md:flex items-center gap-2 px-3 py-1">
+            <div class="flex flex-col items-end mr-2">
+                <span class="text-sm font-bold text-on-surface" th:text="${currentUser != null ? currentUser.fullName() : 'Nguyễn Văn A'}">Nguyễn Văn A</span>
+                <span class="text-[10px] bg-[#F26A21] text-white px-2 py-0.5 rounded-full font-bold">TÀI XẾ</span>
+            </div>
+            <img alt="Avatar" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKxRShi5R7VBeIXVVp0vvJ5dV2NumSDQvjOg0W-0CPHzjHkOOMyu1ox03svGIYCRmS1BcAvNLdi_8Gs_i3yWu2kNMDVZsRS8TUZ3CmINVhkTW0hPx4F8A-3si8W6S77QEAJAGc-zP2mtGyl0aB3mS7Oq1NhaY6w6RlIPvpHAcDboEz92q413099L-O-OAJnLRAdhf3qdUCmPOS88xR332Mp1egd1bYal4aEZquh_PVvP8il4kMWlcbTw">
+        </div>
+        <a th:href="@{/auth/logout}" class="material-symbols-outlined p-2 text-[#F26A21] hover:bg-gray-100 rounded-full transition-colors">logout</a>
+    </div>
+</header>
+
+<!-- SideNavBar (Desktop Only) -->
+<aside class="fixed left-0 top-0 bottom-0 w-[280px] z-40 hidden md:flex flex-col pt-[80px] pb-4 bg-[#0E2A47] shadow-lg">
+    <nav class="flex-1 space-y-1">
+        <a class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/10 rounded-lg transition-all mx-2" href="#">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="text-sm font-medium">Dashboard</span>
+        </a>
+        <a th:href="@{/driver/trips}" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/10 rounded-lg transition-all mx-2">
+            <span class="material-symbols-outlined">calendar_today</span>
+            <span class="text-sm font-medium">Lịch trình</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/10 rounded-lg transition-all mx-2" href="#">
+            <span class="material-symbols-outlined">group</span>
+            <span class="text-sm font-medium">Hành khách</span>
+        </a>
+        <a th:href="@{/driver/profile}" class="flex items-center gap-3 px-4 py-3 bg-[#F26A21] text-white rounded-lg transition-all shadow-md mx-2">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+            <span class="text-sm font-medium">Hồ sơ cá nhân</span>
+        </a>
+    </nav>
+    <div class="mt-auto px-2 border-t border-white/10 pt-4">
+        <a th:href="@{/auth/logout}" class="text-gray-300 hover:bg-white/10 rounded-lg p-3 flex items-center gap-3 cursor-pointer transition-all">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="text-sm font-medium">&nbsp;Đăng xuất</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Main Content Canvas -->
+<main class="md:ml-[280px] min-h-screen p-4 md:p-10 pt-[80px]">
+    <div class="flex justify-center w-full items-center flex-col min-h-[calc(100vh-108px-80px)]">
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-outline-variant w-full max-w-[650px]">
+            <!-- Top Section: Avatar & Name -->
+            <div class="flex flex-col items-center text-center mb-8">
+                <div class="w-[90px] h-[90px] rounded-full border-4 border-brand-bus-orange p-1 mb-4">
+                    <img alt="Driver" class="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpCR5btC16redBs8NF66yYceDNw7-NeLxeG8Eq4npVkcyIxvB6EtW_WKuw19oPygWXGFV3V1WEPaW8lXUXwi7qI3IxF-FBR1e7vJmThsCMdavvJt1AimVI4SoRHAjGdT3PLF0By9Xr3s5g-CW_HzdfS7DkgDkjjWB_2Zqpvbppwxsk89GDfpwYqA6m_GwCju33TrvtNdIPf33Aqy89vOgQ-Vz7hQXNmy2ixHPdzghwYtJVBHJQZRG_6A">
+                </div>
+                <h2 class="text-2xl font-bold text-brand-deep-blue" th:text="${currentUser != null ? currentUser.fullName() : 'Nguyễn Văn A'}">Nguyễn Văn A</h2>
+                <span class="px-4 py-1 bg-brand-bus-orange/10 text-brand-bus-orange rounded-full text-sm font-bold mt-2">Bằng lái Hạng E (Xe khách)</span>
+
+                <!-- 3 Thẻ Uy Tín -->
+                <div class="grid grid-cols-3 gap-3 w-full mt-6">
+                    <div class="bg-gray-100 p-3 rounded-lg flex flex-col items-center gap-1">
+                        <span class="text-xl">🏆</span>
+                        <span class="text-[10px] text-secondary uppercase font-bold">Kinh nghiệm</span>
+                        <span class="text-sm font-bold text-brand-deep-blue">8 Năm</span>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded-lg flex flex-col items-center gap-1">
+                        <span class="text-xl">🛣️</span>
+                        <span class="text-[10px] text-secondary uppercase font-bold">Chuyến an toàn</span>
+                        <span class="text-sm font-bold text-brand-deep-blue">1,250</span>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded-lg flex flex-col items-center gap-1">
+                        <span class="text-xl">⭐</span>
+                        <span class="text-[10px] text-secondary uppercase font-bold">Đánh giá</span>
+                        <span class="text-sm font-bold text-brand-deep-blue">4.9/5.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section: Information Rows -->
+            <div class="space-y-4">
+                <!-- Phone Row -->
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div class="flex items-center gap-4">
+                        <span class="material-symbols-outlined text-primary">call</span>
+                        <span class="text-sm text-secondary">Số điện thoại</span>
+                    </div>
+                    <span class="text-base font-bold text-brand-deep-blue" th:text="${currentUser != null ? currentUser.phoneNumber() : '0901234567'}">0901234567</span>
+                </div>
+
+                <!-- Email Row -->
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div class="flex items-center gap-4">
+                        <span class="material-symbols-outlined text-primary">mail</span>
+                        <span class="text-sm text-secondary">Email liên hệ</span>
+                    </div>
+                    <span class="text-base font-bold text-brand-deep-blue text-right" th:text="${currentUser != null ? currentUser.email() : 'driver.a@busticketbooking.vn'}">driver.a@busticketbooking.vn</span>
+                </div>
+
+                <!-- Driver ID Row -->
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div class="flex items-center gap-4">
+                        <span class="material-symbols-outlined text-primary">badge</span>
+                        <span class="text-sm text-secondary">Mã tài xế</span>
+                    </div>
+                    <span class="text-base font-bold text-brand-deep-blue">TX-2024-0892</span>
+                </div>
+
+                <!-- Status Row -->
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div class="flex items-center gap-4">
+                        <span class="material-symbols-outlined text-brand-success">check_circle</span>
+                        <span class="text-sm text-secondary">Trạng thái hoạt động</span>
+                    </div>
+                    <span class="text-brand-success font-bold text-sm">Đang hoạt động</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

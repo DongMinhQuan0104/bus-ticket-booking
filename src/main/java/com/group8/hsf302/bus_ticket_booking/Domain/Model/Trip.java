@@ -1,6 +1,6 @@
 package com.group8.hsf302.bus_ticket_booking.Domain.Model;
 
-import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
@@ -28,7 +28,7 @@ public class Trip {
     private String driverName;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private TripStatus status = TripStatus.SCHEDULED;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id")
@@ -41,7 +41,7 @@ public class Trip {
     public Trip() {
     }
 
-    public Trip(String destinationFrom, String destinationTo, LocalDateTime departureTime, String driverName, Status status, Route route, Bus bus) {
+    public Trip(String destinationFrom, String destinationTo, LocalDateTime departureTime, String driverName, TripStatus status, Route route, Bus bus) {
         this.destinationFrom = destinationFrom;
         this.destinationTo = destinationTo;
         this.departureTime = departureTime;
@@ -91,11 +91,11 @@ public class Trip {
         this.driverName = driverName;
     }
 
-    public Status getStatus() {
+    public TripStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(TripStatus status) {
         this.status = status;
     }
 
