@@ -61,4 +61,11 @@ public class GlobalExceptionHandler {
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/driver/trips");
     }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public String handleIllegalState(IllegalStateException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/driver/trips");
+    }
 }

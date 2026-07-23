@@ -1,25 +1,25 @@
 package com.group8.hsf302.bus_ticket_booking.Application.Dto.Request;
 
-import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
 import jakarta.validation.constraints.NotNull;
 
 public class UpdateTripStatusForm {
 
     @NotNull(message = "Status cannot be null")
-    private Status status;
+    private TripStatus status;
 
     public UpdateTripStatusForm() {
     }
 
-    public UpdateTripStatusForm(Status status) {
+    public UpdateTripStatusForm(TripStatus status) {
         this.status = status;
     }
 
-    public Status getStatus() {
+    public TripStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(TripStatus status) {
         this.status = status;
     }
 }

@@ -1,6 +1,6 @@
 package com.group8.hsf302.bus_ticket_booking.Application.Dto.Response;
 
-import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -12,7 +12,7 @@ public class DriverTripViewModel {
     private String destinationTo;
     private LocalDateTime departureTime;
     private String driverName;
-    private Status status;
+    private TripStatus status;
     private String routeName;
     private String busName;
     private String busLicensePlate;
@@ -21,7 +21,7 @@ public class DriverTripViewModel {
     public DriverTripViewModel() {
     }
 
-    public DriverTripViewModel(UUID id, String destinationFrom, String destinationTo, LocalDateTime departureTime, String driverName, Status status, String routeName, String busName, String busLicensePlate, int totalPassengers) {
+    public DriverTripViewModel(UUID id, String destinationFrom, String destinationTo, LocalDateTime departureTime, String driverName, TripStatus status, String routeName, String busName, String busLicensePlate, int totalPassengers) {
         this.id = id;
         this.destinationFrom = destinationFrom;
         this.destinationTo = destinationTo;
@@ -74,11 +74,11 @@ public class DriverTripViewModel {
         this.driverName = driverName;
     }
 
-    public Status getStatus() {
+    public TripStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(TripStatus status) {
         this.status = status;
     }
 
