@@ -20,6 +20,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Controller quan ly ve cua khach hang (tang Presentation) - gom E4, E5, E6:
+ * <ul>
+ *   <li>E4: GET /my-tickets - danh sach ve cua toi</li>
+ *   <li>E5: GET/POST /my-tickets/{id}/cancel - huy ve + hoan tien</li>
+ *   <li>E6: GET/POST /my-tickets/{id}/review - danh gia chuyen di</li>
+ * </ul>
+ * Moi endpoint deu yeu cau dang nhap; quyen so huu ve duoc kiem tra o tang service.
+ */
 @Controller
 public class MyTicketController {
 
@@ -29,7 +38,7 @@ public class MyTicketController {
         this.customerService = customerService;
     }
 
-    // E4 - Ve cua toi
+    /** E4 - Danh sach tat ca ve cua khach hang dang dang nhap. */
     @GetMapping("/my-tickets")
     public String myTickets(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
@@ -43,7 +52,10 @@ public class MyTicketController {
         return "my-tickets";
     }
 
-    // E5 - Trang xac nhan huy ve (kem chinh sach hoan tien)
+    /**
+     * E5 - Trang xac nhan huy ve. Tinh san chinh sach hoan tien theo thoi gian con lai den gio di:
+     * >=24h hoan 90%, 12-24h hoan 50%, <12h khong hoan; roi hien so tien duoc hoan cho khach xem.
+     */
     @GetMapping("/my-tickets/{id}/cancel")
     public String cancelForm(@PathVariable UUID id, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
@@ -65,7 +77,7 @@ public class MyTicketController {
         return "booking-cancel";
     }
 
-    // E5 - Thuc hien huy ve
+    /** E5 - Thuc hien huy ve: goi service giai phong ghe va xoa don, roi quay ve danh sach ve. */
     @PostMapping("/my-tickets/{id}/cancel")
     public String doCancel(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
         AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
@@ -78,7 +90,9 @@ public class MyTicketController {
         return "redirect:/my-tickets";
     }
 
-    // E6 - Trang danh gia chuyen di
+    /**
+     * E6 - Trang danh gia chuyen di. Neu ve da danh gia (alreadyReviewed) thi hien thong bao thay vi form.
+     */
     @GetMapping("/my-tickets/{id}/review")
     public String reviewForm(@PathVariable UUID id, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
@@ -96,7 +110,7 @@ public class MyTicketController {
         return "booking-review";
     }
 
-    // E6 - Gui danh gia
+    /** E6 - Gui danh gia: validate so sao (1-5) roi goi service luu Review (chan neu chua di / da danh gia). */
     @PostMapping("/my-tickets/{id}/review")
     public String doReview(@PathVariable UUID id,
                            @Valid @ModelAttribute("reviewForm") CreateReviewForm reviewForm,

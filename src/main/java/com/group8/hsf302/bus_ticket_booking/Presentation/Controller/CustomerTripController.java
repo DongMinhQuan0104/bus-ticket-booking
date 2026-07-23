@@ -21,6 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Controller cho khach hang tuong tac voi chuyen xe (tang Presentation).
+ * <ul>
+ *   <li>E1: GET /trips/search - form tim chuyen + hien ket qua</li>
+ *   <li>E2: GET /trips/{tripId}/booking - trang chon ghe cua 1 chuyen</li>
+ * </ul>
+ */
 @Controller
 @RequestMapping("/trips")
 public class CustomerTripController {
@@ -31,6 +38,12 @@ public class CustomerTripController {
         this.customerService = customerService;
     }
 
+    /**
+     * E1 - Trang tim kiem chuyen xe.
+     * Lan dau vao (khong co tham so submitted) chi hien form, chua validate.
+     * Khi bam Tim: validate form (NotBlank, ngay khong qua khu) roi goi service tim chuyen.
+     * SameStationException duoc bat tai day de gan loi inline vao o "diem den".
+     */
     @GetMapping("/search")
     public String search(@Valid @ModelAttribute("searchForm") SearchTripForm searchForm,
                          BindingResult bindingResult,
@@ -64,7 +77,11 @@ public class CustomerTripController {
         return "trip-search";
     }
 
-    // E2 - Trang chon ghe & dat ve
+    /**
+     * E2 - Trang chon ghe cua 1 chuyen.
+     * Controller sinh san danh sach ma ghe theo suc chua xe (A01..An) va danh dau ghe da co nguoi dat,
+     * de template chi viec ve so do ghe; viec chon ghe/nhap hanh khach xu ly o phia client roi POST sang E3.
+     */
     @GetMapping("/{tripId}/booking")
     public String bookingPage(@PathVariable UUID tripId, HttpSession session, Model model) {
         AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
@@ -73,7 +90,7 @@ public class CustomerTripController {
         TripViewModel trip = customerService.getTripForBooking(tripId);
         List<String> occupiedSeatCodes = customerService.getOccupiedSeatCodes(tripId);
 
-        // Sinh danh sach ma ghe theo suc chua thuc te cua xe (16 hoac 32 cho)
+        // Sinh danh sach ma ghe theo suc chua thuc te cua xe (16 hoac 32 cho): A01, A02, ...
         int seats = trip.busCapacity() != null ? trip.busCapacity().getSeats() : 0;
         List<String> seatCodes = new ArrayList<>();
         for (int i = 1; i <= seats; i++) {

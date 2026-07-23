@@ -22,6 +22,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Controller cho luong dat ve / thanh toan (E3) - tang Presentation.
+ * <ul>
+ *   <li>GET /bookings/checkout: nhan ghe da chon tu E2, hien trang xac nhan + chon phuong thuc thanh toan</li>
+ *   <li>POST /bookings/confirm: goi service tao booking that su roi chuyen sang trang "Ve cua toi" (E4)</li>
+ * </ul>
+ * Ca hai deu yeu cau dang nhap; neu chua dang nhap se chuyen ve trang login.
+ */
 @Controller
 @RequestMapping("/bookings")
 public class BookingController {
@@ -32,7 +40,11 @@ public class BookingController {
         this.customerService = customerService;
     }
 
-    // E3 - Trang xac nhan & thanh toan (nhan ghe da chon tu buoc E2)
+    /**
+     * E3 - Trang xac nhan & thanh toan.
+     * Nhan tham so tu E2 (tripId, danh sach ghe dang CSV, ten hanh khach, lien he),
+     * ghep ghe voi ten hanh khach va tinh tong tien de hien tom tat truoc khi xac nhan.
+     */
     @GetMapping("/checkout")
     public String checkout(@RequestParam UUID tripId,
                            @RequestParam(required = false) String seats,
@@ -80,7 +92,10 @@ public class BookingController {
         return "booking-checkout";
     }
 
-    // E3 - Xac nhan dat ve
+    /**
+     * E3 - Xac nhan dat ve: goi createBooking (tao Booking/BookingDetail/giu ghe/Payment).
+     * Neu ghe vua bi nguoi khac dat, service nem SeatAlreadyBookedException -> GlobalExceptionHandler xu ly.
+     */
     @PostMapping("/confirm")
     public String confirm(@Valid @ModelAttribute("bookingForm") CreateBookingForm form,
                           BindingResult bindingResult,
@@ -103,6 +118,7 @@ public class BookingController {
         return "redirect:/my-tickets";
     }
 
+    /** Tach chuoi ghe dang CSV "A01,A02" (nhan tu E2) thanh danh sach ["A01","A02"], bo phan tu rong. */
     private List<String> parseSeats(String seats) {
         List<String> result = new ArrayList<>();
         if (seats == null || seats.isBlank()) {
@@ -116,6 +132,6 @@ public class BookingController {
         return result;
     }
 
-    // Dong du lieu hien thi hanh khach tren trang checkout
+    // Dong du lieu hien thi hanh khach tren trang checkout (ghep ma ghe voi ten hanh khach)
     public record PassengerRow(String seatCode, String passengerName) {}
 }
