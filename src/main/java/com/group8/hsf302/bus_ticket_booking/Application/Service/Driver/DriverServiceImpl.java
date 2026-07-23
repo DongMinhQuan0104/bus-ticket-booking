@@ -4,6 +4,7 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.DriverTripV
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.PassengerManifestViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.DriverMapper;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AlreadyCheckedInException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.BookingDetailNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.TripNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.BookingDetail;
@@ -67,6 +68,9 @@ public class DriverServiceImpl implements DriverService {
     public PassengerManifestViewModel checkInPassenger(UUID bookingDetailId) {
         BookingDetail bookingDetail = bookingDetailRepo.findById(bookingDetailId)
                 .orElseThrow(BookingDetailNotFoundException::new);
+        if (Boolean.TRUE.equals(bookingDetail.getIsCheckedIn())) {
+            throw new AlreadyCheckedInException();
+        }
         bookingDetail.setIsCheckedIn(true);
         BookingDetail savedDetail = bookingDetailRepo.save(bookingDetail);
         return driverMapper.toViewModel(savedDetail);

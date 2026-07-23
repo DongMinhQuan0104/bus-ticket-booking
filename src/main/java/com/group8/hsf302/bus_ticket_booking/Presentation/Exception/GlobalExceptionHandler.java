@@ -1,6 +1,8 @@
 package com.group8.hsf302.bus_ticket_booking.Presentation.Exception;
 
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccessDeniedException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AlreadyCheckedInException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.BookingDetailNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.EmailAlreadyExistsException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.InvalidCredentialsException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.PasswordConfirmNotMatchException;
@@ -44,5 +46,19 @@ public class GlobalExceptionHandler {
     public String handleTripNotFound(TripNotFoundException e, RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         return "redirect:/driver/trips";
+    }
+
+    @ExceptionHandler(BookingDetailNotFoundException.class)
+    public String handleBookingDetailNotFound(BookingDetailNotFoundException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/driver/trips");
+    }
+
+    @ExceptionHandler(AlreadyCheckedInException.class)
+    public String handleAlreadyCheckedIn(AlreadyCheckedInException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/driver/trips");
     }
 }
