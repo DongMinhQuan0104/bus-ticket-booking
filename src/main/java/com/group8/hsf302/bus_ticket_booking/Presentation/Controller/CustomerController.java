@@ -53,7 +53,7 @@ public class CustomerController {
         if (!model.containsAttribute("changePasswordForm")) {
             model.addAttribute("changePasswordForm", new ChangePasswordForm());
         }
-        return "profile";
+        return "customer/profile";
     }
 
     /** Cap nhat thong tin ca nhan; lam moi lai session sau khi doi. */

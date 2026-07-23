@@ -49,7 +49,7 @@ public class MyTicketController {
         List<BookingViewModel> bookings = customerService.getMyBookings(currentUser.id());
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("bookings", bookings);
-        return "my-tickets";
+        return "customer/my-tickets";
     }
 
     /**
@@ -74,7 +74,7 @@ public class MyTicketController {
         model.addAttribute("hoursLeft", hoursLeft);
         model.addAttribute("refundPercent", refundPercent);
         model.addAttribute("refundAmount", total * refundPercent / 100.0);
-        return "booking-cancel";
+        return "customer/booking-cancel";
     }
 
     /** E5 - Thuc hien huy ve: goi service giai phong ghe va xoa don, roi quay ve danh sach ve. */
@@ -107,7 +107,7 @@ public class MyTicketController {
         if (!model.containsAttribute("reviewForm")) {
             model.addAttribute("reviewForm", new CreateReviewForm());
         }
-        return "booking-review";
+        return "customer/booking-review";
     }
 
     /** E6 - Gui danh gia: validate so sao (1-5) roi goi service luu Review (chan neu chua di / da danh gia). */

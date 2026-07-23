@@ -31,7 +31,7 @@ public class AuthenticationController {
         if(!model.containsAttribute("loginForm")) {
             model.addAttribute("loginForm", new LoginForm());
         }
-        return "login";
+        return "auth/login";
     }
 
     @GetMapping("/register")
@@ -39,7 +39,7 @@ public class AuthenticationController {
         if(!model.containsAttribute("registerForm")) {
             model.addAttribute("registerForm", new RegisterForm());
         }
-        return "register";
+        return "auth/register";
     }
 
     @GetMapping("/logout")
@@ -55,7 +55,7 @@ public class AuthenticationController {
                                BindingResult bindingResult,
                                HttpSession session) {
         if(bindingResult.hasErrors()) {
-            return "login";
+            return "auth/login";
         }
         AccountViewModel accountLogin = authService.login(form);
         session.setAttribute("LOGGED_IN_USER", accountLogin);
@@ -67,7 +67,7 @@ public class AuthenticationController {
                                   BindingResult bindingResult,
                                   HttpSession session) {
         if(bindingResult.hasErrors()) {
-            return "register";
+            return "auth/register";
         }
         AccountViewModel accountRegister = authService.register(form);
         session.setAttribute("LOGGED_IN_USER", accountRegister);

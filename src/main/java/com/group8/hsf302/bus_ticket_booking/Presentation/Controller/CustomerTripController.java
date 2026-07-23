@@ -60,7 +60,7 @@ public class CustomerTripController {
 
         // Lan dau vao trang (chua bam tim): chi hien form, khong validate
         if (!isSubmitted) {
-            return "trip-search";
+            return "customer/trip-search";
         }
 
         model.addAttribute("showResults", false);
@@ -74,7 +74,7 @@ public class CustomerTripController {
             }
         }
 
-        return "trip-search";
+        return "customer/trip-search";
     }
 
     /**
@@ -101,6 +101,6 @@ public class CustomerTripController {
         model.addAttribute("seatCodes", seatCodes);
         model.addAttribute("occupiedSeatCodes", occupiedSeatCodes);
         model.addAttribute("maxSeatsPerBooking", 4);
-        return "trip-booking";
+        return "customer/trip-booking";
     }
 }

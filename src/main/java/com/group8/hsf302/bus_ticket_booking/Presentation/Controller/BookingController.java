@@ -89,7 +89,7 @@ public class BookingController {
         model.addAttribute("unitPrice", unit);
         model.addAttribute("totalPrice", unit * seatCodes.size());
         model.addAttribute("paymentMethods", PaymentMethod.values());
-        return "booking-checkout";
+        return "customer/booking-checkout";
     }
 
     /**
