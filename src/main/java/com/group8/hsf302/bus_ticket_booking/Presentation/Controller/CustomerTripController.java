@@ -3,7 +3,7 @@ package com.group8.hsf302.bus_ticket_booking.Presentation.Controller;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.SearchTripForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.TripViewModel;
-import com.group8.hsf302.bus_ticket_booking.Application.Service.Customer.CustomerSearchTripService;
+import com.group8.hsf302.bus_ticket_booking.Application.Service.Customer.CustomerService;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.SameStationException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -22,10 +22,10 @@ import java.util.List;
 @RequestMapping("/trips")
 public class CustomerTripController {
 
-    private final CustomerSearchTripService searchTripService;
+    private final CustomerService customerService;
 
-    public CustomerTripController(CustomerSearchTripService searchTripService) {
-        this.searchTripService = searchTripService;
+    public CustomerTripController(CustomerService customerService) {
+        this.customerService = customerService;
     }
 
     @GetMapping("/search")
@@ -50,7 +50,7 @@ public class CustomerTripController {
         model.addAttribute("showResults", false);
         if (!bindingResult.hasErrors()) {
             try {
-                List<TripViewModel> trips = searchTripService.search(searchForm);
+                List<TripViewModel> trips = customerService.searchTrips(searchForm);
                 model.addAttribute("trips", trips);
                 model.addAttribute("showResults", true);
             } catch (SameStationException e) {
