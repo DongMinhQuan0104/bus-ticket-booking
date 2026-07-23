@@ -1,1 +1,276 @@
-<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><title>Tổng quan Staff</title><link rel="stylesheet" th:href="@{/css/staff.css}"></head><body><div class="app"><aside class="sidebar"><div class="brand">Staff Ticket Portal</div><nav class="nav"><a class="active" th:href="@{/staff/dashboard}">Tổng quan</a><a th:href="@{/staff/trips}">Bán vé tại quầy</a><a th:href="@{/staff/bookings}">Quản lý đặt vé</a><a th:href="@{/staff/check-in}">Check-in hành khách</a><a th:href="@{/staff/support-requests}">Hỗ trợ khách hàng</a></nav><div class="profile"><strong th:text="${currentUser.fullName()}">Staff</strong><div class="muted">Nhân viên</div><p><a th:href="@{/auth/logout}">Đăng xuất</a></p></div></aside><main class="main"><div class="top"><div><div class="muted">Staff / Tổng quan</div><h1>Tổng quan nhân viên</h1></div></div><section class="card"><h2>Xin chào, <span th:text="${currentUser.fullName()}">Staff</span></h2><p>Chọn một chức năng để bắt đầu làm việc.</p></section><section class="grid"><a class="card" th:href="@{/staff/trips}"><h3>Bán vé tại quầy</h3><p>Tìm chuyến, chọn ghế và tạo booking.</p></a><a class="card" th:href="@{/staff/bookings}"><h3>Quản lý đặt vé</h3><p>Tra cứu và xử lý booking.</p></a><a class="card" th:href="@{/staff/check-in}"><h3>Check-in hành khách</h3><p>Xác nhận hành khách lên xe.</p></a><a class="card" th:href="@{/staff/support-requests}"><h3>Hỗ trợ khách hàng</h3><p>Tạo yêu cầu hỗ trợ hoặc chuyển Admin.</p></a></section></main></div></body></html>
+<!DOCTYPE html>
+
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tổng quan nhân viên</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#9d4300",
+                        "on-surface-variant": "#584237",
+                        "on-error": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#f97316",
+                        "tertiary": "#006e2d",
+                        "primary-fixed-dim": "#ffb690",
+                        "surface-container-highest": "#dce2f3",
+                        "on-tertiary-container": "#003b15",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#151c27",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#e7eefe",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#d9e3f6",
+                        "on-secondary-container": "#596373",
+                        "inverse-primary": "#ffb690",
+                        "surface-bright": "#f9f9ff",
+                        "secondary-container": "#d6e0f3",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#3d4756",
+                        "inverse-surface": "#2a313d",
+                        "tertiary-fixed-dim": "#62df7d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed": "#341100",
+                        "surface-container-low": "#f0f3ff",
+                        "surface": "#f9f9ff",
+                        "on-tertiary-fixed-variant": "#005320",
+                        "on-secondary-fixed": "#121c2a",
+                        "inverse-on-surface": "#ebf1ff",
+                        "background": "#f9f9ff",
+                        "outline": "#8c7164",
+                        "surface-dim": "#d3daea",
+                        "surface-variant": "#dce2f3",
+                        "on-background": "#151c27",
+                        "on-primary-container": "#582200",
+                        "surface-container-high": "#e2e8f8",
+                        "outline-variant": "#e0c0b1",
+                        "on-primary-fixed-variant": "#783200",
+                        "tertiary-fixed": "#7ffc97",
+                        "tertiary-container": "#2cb055",
+                        "primary-fixed": "#ffdbca",
+                        "secondary-fixed-dim": "#bdc7d9",
+                        "on-tertiary-fixed": "#002109",
+                        "secondary": "#555f6f",
+                        "primary": "#9d4300"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "sm": "12px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "gutter": "16px",
+                        "xs": "8px",
+                        "margin-desktop": "32px",
+                        "lg": "24px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "display-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #F5F7FA; }
+        .card-border { border: 1px solid #E5E7EB; border-radius: 12px; }
+    </style>
+</head>
+<body class="text-on-background font-body-lg flex">
+<!-- SideNavBar -->
+<nav class="bg-surface-container-low dark:bg-surface-dim docked h-screen w-[240px] left-0 top-0 flex flex-col border-r border-outline-variant dark:border-outline flat no shadows fixed z-40 transition-colors duration-200 cursor-pointer">
+<div class="p-lg border-b border-outline-variant dark:border-outline flex flex-col items-center gap-sm">
+<img alt="Staff avatar" class="w-16 h-16 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHOUY6R015rCVjdyFJY9WCO9dJrXdtX0bGYYdCIPmSs9uFwOpI0EG5BVIYfCCDJIlw698gqCk6wwXo-fX5-1Ta8OLD8T9qNQHCjI_HpnNdR1XdbZss1raXpOmAJZCIFj4DJjLGQzwNFctdyMaMlSKl2l6wvcBvCI821p0eq10lIg_sfLoFCDAyzIomk_YZVRpYGCu1ks642wmn96LojqB0n9NG4o_5vkBAgMd--w3dr0y1p7oz4bKaI9D8quIh9k-f"/>
+<div class="text-center">
+<h2 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim" th:text="${currentUser.fullName()}">Staff</h2>
+<p class="text-label-sm font-label-sm text-on-surface-variant dark:text-on-secondary-fixed-variant">Nhân viên</p>
+</div>
+</div>
+<div class="flex flex-col py-md flex-1 overflow-y-auto">
+<a class="flex items-center gap-md px-md py-sm bg-primary-container/10 dark:bg-primary-container/20 text-primary dark:text-primary-fixed-dim border-r-4 border-primary font-bold" th:href="@{/staff/dashboard}">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-label-sm font-label-sm">Tổng quan</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-high dark:hover:bg-surface-container hover:text-primary" th:href="@{/staff/trips}">
+<span class="material-symbols-outlined">confirmation_number</span>
+<span class="text-label-sm font-label-sm">Bán vé tại quầy</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-high dark:hover:bg-surface-container hover:text-primary" th:href="@{/staff/bookings}">
+<span class="material-symbols-outlined">assignment</span>
+<span class="text-label-sm font-label-sm">Quản lý đặt vé</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-high dark:hover:bg-surface-container hover:text-primary" th:href="@{/staff/check-in}">
+<span class="material-symbols-outlined">check_circle</span>
+<span class="text-label-sm font-label-sm">Check-in hành khách</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-high dark:hover:bg-surface-container hover:text-primary" th:href="@{/staff/support-requests}">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="text-label-sm font-label-sm">Hỗ trợ khách hàng</span>
+</a>
+</div>
+<div class="p-md mt-auto border-t border-outline-variant dark:border-outline">
+<a class="w-full flex items-center justify-center gap-sm px-md py-sm text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-high dark:hover:bg-surface-container hover:text-primary transition-colors duration-200" th:href="@{/auth/logout}">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-label-sm font-label-sm">Đăng xuất</span>
+</a>
+</div>
+</nav>
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest dark:bg-surface-dim border-b border-outline-variant dark:border-outline flat no shadows fixed top-0 right-0 left-[240px] h-[64px] flex justify-between items-center px-lg z-30 scale-95 active:scale-100 transition-transform hidden md:flex">
+<div class="flex items-center gap-md">
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">Tổng quan nhân viên</h1>
+<span class="text-body-md font-body-md text-on-surface-variant dark:text-on-secondary-fixed-variant">/</span>
+<span class="text-body-md font-body-md text-on-surface-variant dark:text-on-secondary-fixed-variant">Staff / Tổng quan</span>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant dark:text-on-secondary-fixed-variant hover:text-primary transition-colors w-11 h-11 flex items-center justify-center rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<img alt="Staff profile identity" class="w-10 h-10 rounded-full object-cover border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjX9_3S1o-6oCoIeCV7R3r6_nKvVUPa6Qt_Jk-s7Ay7Yxb-KVZME_mYQW17GRpoilVhAQGkHbKtiZbEwJzZCYFIQMn12UrfLinSZwJ6ZVGju5am3ND_Y_7QM1e8gWNDxXXPr7eK2EuUU54kcgTtLSh1fDrjhEvOiv9m7NJ-F9RJHn4RMhmlV9-Y3zLkR3z97rzeTWHwDPzUV_NIdBD-K2GZjk_B5XxcNiywefaFhL_1u2u_ShAsG-2MRnlpA1HVhWB"/>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-[240px] mt-[64px] p-margin-desktop w-full max-w-[1200px] mx-auto flex flex-col gap-xl">
+<!-- 1. Welcome Card -->
+<section class="bg-surface-container-lowest card-border p-lg flex justify-between items-start">
+<div class="flex flex-col gap-sm">
+<h2 class="text-display-lg font-display-lg text-primary" th:text="|Xin chào, ${currentUser.fullName()}|">Xin chào, Staff</h2>
+<p class="text-body-lg font-body-lg text-on-surface-variant">Chọn một chức năng để bắt đầu làm việc.</p>
+</div>
+<div class="bg-primary-container/10 px-md py-sm rounded-full border border-primary/20 flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary text-lg">calendar_today</span>
+<span class="text-label-sm font-label-sm text-primary font-bold" id="staffToday">Hôm nay</span>
+</div>
+</section>
+<!-- 2. Quick Actions Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="bg-surface-container-lowest card-border p-lg flex flex-col gap-md hover:shadow-md transition-shadow">
+<div class="flex items-center gap-md mb-xs">
+<div class="w-12 h-12 rounded-xl bg-primary-container/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-2xl">confirmation_number</span>
+</div>
+<h3 class="text-headline-md font-headline-md">Bán vé tại quầy</h3>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant flex-1">Tìm chuyến, chọn ghế, nhập thông tin khách, xác nhận thanh toán và phát hành vé.</p>
+<a class="bg-[#F97316] hover:bg-[#EA580C] text-white text-label-sm font-label-sm py-sm px-lg rounded-lg w-fit transition-colors min-h-[48px] flex items-center justify-center" th:href="@{/staff/trips}">
+                    Bắt đầu bán vé
+                </a>
+</div>
+<div class="bg-surface-container-lowest card-border p-lg flex flex-col gap-md hover:shadow-md transition-shadow">
+<div class="flex items-center gap-md mb-xs">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-2xl">assignment</span>
+</div>
+<h3 class="text-headline-md font-headline-md">Quản lý đặt vé</h3>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant flex-1">Tra cứu theo mã booking, tên khách hoặc số điện thoại để xem và xử lý booking.</p>
+<a class="border border-[#F97316] text-[#F97316] hover:bg-[#F97316]/5 text-label-sm font-label-sm py-sm px-lg rounded-lg w-fit transition-colors min-h-[48px] flex items-center justify-center" th:href="@{/staff/bookings}">
+                    Tra cứu
+                </a>
+</div>
+<div class="bg-surface-container-lowest card-border p-lg flex flex-col gap-md hover:shadow-md transition-shadow">
+<div class="flex items-center gap-md mb-xs">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-2xl">check_circle</span>
+</div>
+<h3 class="text-headline-md font-headline-md">Check-in hành khách</h3>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant flex-1">Chọn chuyến, nhập mã vé và xác nhận hành khách lên xe.</p>
+<a class="border border-[#F97316] text-[#F97316] hover:bg-[#F97316]/5 text-label-sm font-label-sm py-sm px-lg rounded-lg w-fit transition-colors min-h-[48px] flex items-center justify-center" th:href="@{/staff/check-in}">
+                    Check-in
+                </a>
+</div>
+<div class="bg-surface-container-lowest card-border p-lg flex flex-col gap-md hover:shadow-md transition-shadow">
+<div class="flex items-center gap-md mb-xs">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-2xl">support_agent</span>
+</div>
+<h3 class="text-headline-md font-headline-md">Hỗ trợ khách hàng</h3>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant flex-1">Ghi nhận yêu cầu, khiếu nại hoặc chuyển vấn đề vượt quyền cho Admin.</p>
+<a class="border border-[#F97316] text-[#F97316] hover:bg-[#F97316]/5 text-label-sm font-label-sm py-sm px-lg rounded-lg w-fit transition-colors min-h-[48px] flex items-center justify-center" th:href="@{/staff/support-requests}">
+                    Tạo yêu cầu
+                </a>
+</div>
+</section>
+<!-- 3. Process Guide -->
+<section class="bg-surface-container-lowest card-border p-lg flex flex-col gap-lg">
+<h3 class="text-headline-md font-headline-md border-b border-outline-variant pb-sm">Quy trình bán vé tại quầy</h3>
+<div class="flex items-center justify-between relative pt-sm">
+<!-- Connecting Line -->
+<div class="absolute top-1/2 left-0 w-full h-[2px] bg-outline-variant -z-10 -translate-y-1/2 mt-[-12px]"></div>
+<!-- Step 1 -->
+<div class="flex flex-col items-center gap-sm bg-surface-container-lowest px-sm z-10">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 border-2 border-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">search</span>
+</div>
+<span class="text-label-sm font-label-sm text-center">1. Tìm chuyến</span>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center gap-sm bg-surface-container-lowest px-sm z-10">
+<div class="w-10 h-10 rounded-full bg-surface-container border-2 border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-xl">airline_seat_recline_normal</span>
+</div>
+<span class="text-label-sm font-label-sm text-center text-on-surface-variant">2. Chọn ghế</span>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center gap-sm bg-surface-container-lowest px-sm z-10">
+<div class="w-10 h-10 rounded-full bg-surface-container border-2 border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-xl">person</span>
+</div>
+<span class="text-label-sm font-label-sm text-center text-on-surface-variant">3. Thông tin khách</span>
+</div>
+<!-- Step 4 -->
+<div class="flex flex-col items-center gap-sm bg-surface-container-lowest px-sm z-10">
+<div class="w-10 h-10 rounded-full bg-surface-container border-2 border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-xl">payments</span>
+</div>
+<span class="text-label-sm font-label-sm text-center text-on-surface-variant">4. Thanh toán</span>
+</div>
+<!-- Step 5 -->
+<div class="flex flex-col items-center gap-sm bg-surface-container-lowest px-sm z-10">
+<div class="w-10 h-10 rounded-full bg-surface-container border-2 border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-xl">receipt</span>
+</div>
+<span class="text-label-sm font-label-sm text-center text-on-surface-variant">5. Phát hành vé</span>
+</div>
+</div>
+</section>
+<!-- 4. Note Box -->
+<section class="bg-primary-container/10 border border-primary/20 rounded-xl p-md flex items-start gap-md">
+<span class="material-symbols-outlined text-primary mt-1">info</span>
+<div class="flex flex-col gap-base">
+<h4 class="text-label-sm font-label-sm text-primary font-bold">Lưu ý khi làm việc</h4>
+<p class="text-body-md font-body-md text-on-surface-variant">Kiểm tra chính xác chuyến xe, ghế và thông tin hành khách trước khi xác nhận thanh toán.</p>
+</div>
+</section>
+</main>
+<script>document.addEventListener('DOMContentLoaded',()=>{const e=document.getElementById('staffToday');if(e){const d=new Date();e.textContent='Hôm nay, '+d.toLocaleDateString('vi-VN');}});</script></body></html>

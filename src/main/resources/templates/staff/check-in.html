@@ -1,1 +1,303 @@
-<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><title>Check-in</title><link rel="stylesheet" th:href="@{/css/staff.css}"></head><body><div class="app"><aside class="sidebar"><div class="brand">Staff Ticket Portal</div><nav class="nav"><a th:href="@{/staff/dashboard}">Tổng quan</a><a th:href="@{/staff/trips}">Bán vé tại quầy</a><a th:href="@{/staff/bookings}">Quản lý đặt vé</a><a class="active" th:href="@{/staff/check-in}">Check-in hành khách</a><a th:href="@{/staff/support-requests}">Hỗ trợ khách hàng</a></nav></aside><main class="main"><h1>Check-in hành khách</h1><div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div><div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div><section class="card" th:if="${tripId==null}"><p>Vui lòng chọn chuyến trước khi check-in.</p><a class="btn btn-primary" th:href="@{/staff/trips}">Chọn chuyến</a></section><form class="card" th:if="${tripId!=null}" method="post" th:action="@{/staff/check-in}"><input type="hidden" name="tripId" th:value="${tripId}"><label>Mã vé<input name="ticketCode" required></label><button class="btn btn-primary">Xác nhận check-in</button></form><section class="card" th:if="${checkInResult}"><h2>Check-in thành công</h2><p>Hành khách: <strong th:text="${checkInResult.passengerName()}"></strong></p><p>Ghế: <span th:text="${checkInResult.seatCode()}"></span></p><p>Mã vé: <span th:text="${checkInResult.ticketCode()}"></span></p><p>Thời gian: <span th:text="${checkInResult.checkedInAt()}"></span></p></section></main></div></body></html>
+<!DOCTYPE html>
+
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Check-in hành khách | Staff Transit Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9ff;
+        }
+        /* Custom scrollbar for operational efficiency */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #dce2f3;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bdc7d9;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#bdc7d9",
+                      "on-tertiary": "#ffffff",
+                      "error": "#ba1a1a",
+                      "outline-variant": "#e0c0b1",
+                      "on-tertiary-fixed": "#002109",
+                      "outline": "#8c7164",
+                      "background": "#f9f9ff",
+                      "primary-fixed-dim": "#ffb690",
+                      "on-primary-fixed": "#341100",
+                      "on-primary-fixed-variant": "#783200",
+                      "inverse-surface": "#2a313d",
+                      "on-tertiary-container": "#003b15",
+                      "on-background": "#151c27",
+                      "on-secondary-fixed-variant": "#3d4756",
+                      "surface": "#f9f9ff",
+                      "on-error-container": "#93000a",
+                      "secondary-container": "#d6e0f3",
+                      "tertiary": "#006e2d",
+                      "on-tertiary-fixed-variant": "#005320",
+                      "on-secondary": "#ffffff",
+                      "surface-tint": "#9d4300",
+                      "on-surface-variant": "#584237",
+                      "primary": "#9d4300",
+                      "inverse-on-surface": "#ebf1ff",
+                      "on-secondary-fixed": "#121c2a",
+                      "primary-fixed": "#ffdbca",
+                      "primary-container": "#f97316",
+                      "surface-dim": "#d3daea",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-container": "#596373",
+                      "surface-container-low": "#f0f3ff",
+                      "surface-container": "#e7eefe",
+                      "secondary-fixed": "#d9e3f6",
+                      "secondary": "#555f6f",
+                      "on-surface": "#151c27",
+                      "tertiary-container": "#2cb055",
+                      "surface-container-high": "#e2e8f8",
+                      "tertiary-fixed-dim": "#62df7d",
+                      "surface-container": "#e7eefe",
+                      "tertiary-fixed": "#7ffc97",
+                      "error-container": "#ffdad6",
+                      "on-error": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "surface-variant": "#dce2f3",
+                      "on-primary-container": "#582200",
+                      "surface-bright": "#f9f9ff",
+                      "inverse-primary": "#ffb690"
+              },
+              "borderRadius": {
+                      "DEFAULT": "4px",
+                      "lg": "8px",
+                      "xl": "12px",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "base": "4px",
+                      "xl": "32px",
+                      "sm": "12px",
+                      "margin-desktop": "32px",
+                      "gutter": "16px",
+                      "xs": "8px",
+                      "lg": "24px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "body-md": ["Inter"],
+                      "display-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            },
+          }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Sidebar (Shared Component) -->
+<aside class="w-64 h-full fixed left-0 top-0 bg-surface-container-low border-r border-outline-variant flex flex-col gap-xs p-md z-50">
+<div class="mb-xl px-md">
+<h1 class="text-headline-md font-bold text-primary">Staff</h1>
+<p class="text-label-sm font-label-sm text-secondary">Nhân viên</p>
+</div>
+<nav class="flex flex-col gap-xs flex-1">
+<a class="flex items-center gap-md px-md py-sm text-secondary hover:bg-secondary-container hover:text-on-secondary-container rounded-lg transition-colors" th:href="@{/staff/dashboard}">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-md text-body-md">Tổng quan</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-secondary hover:bg-secondary-container hover:text-on-secondary-container rounded-lg transition-colors" th:href="@{/staff/trips}">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+<span class="font-body-md text-body-md">Bán vé tại quầy</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-secondary hover:bg-secondary-container hover:text-on-secondary-container rounded-lg transition-colors" th:href="@{/staff/bookings}">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+<span class="font-body-md text-body-md">Quản lý đặt vé</span>
+</a>
+<!-- Active State: Check-in hành khách -->
+<a class="flex items-center gap-md px-md py-sm bg-primary-container text-on-primary-container rounded-lg font-bold" th:href="@{/staff/check-in}">
+<span class="material-symbols-outlined" data-icon="how_to_reg">how_to_reg</span>
+<span class="font-body-md text-body-md">Check-in hành khách</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-secondary hover:bg-secondary-container hover:text-on-secondary-container rounded-lg transition-colors" th:href="@{/staff/support-requests}">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+<span class="font-body-md text-body-md">Hỗ trợ khách hàng</span>
+</a>
+</nav>
+<div class="mt-auto flex items-center gap-md p-md border-t border-outline-variant">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a friendly transit staff manager in a crisp white uniform shirt, featuring a soft neutral background and warm studio lighting. The style is modern and high-resolution, suitable for a corporate personnel profile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA65QBRMqHdAEuOEOA6Hue6UCAhZYGZga7huNiNcsLBebMlzzWTC1hDHWq0hQm-VG-cRi3jodC2ieVGbpO0QmraC8EyjE13utinlQA1zLxaRQhmQ89GchK2Eh6YLHl7jgpbE_DvdBK6D8Ov_d5NYKZxh8KdmXmMitMuCX31Gf2LgHKOMBhKmAa1kZTjjnj2aHzU0oHdpCWmvXG_fFIQhZgeBl0veIdT137W3DF5kjBTZaClTN3NW-c"/>
+</div>
+<div class="flex flex-col">
+<span class="text-body-md font-bold" th:text="${currentUser.fullName()}">Nguyễn Văn A</span>
+<span class="text-label-sm text-secondary">ID: NV-1029</span>
+</div>
+</div>
+</aside>
+<!-- Top Navigation Bar (Shared Component) -->
+<header class="h-16 fixed top-0 right-0 left-64 bg-surface border-b border-outline-variant flex items-center justify-between px-xl z-40">
+<h2 class="font-headline-md text-headline-md text-on-surface">Check-in hành khách</h2>
+<div class="flex items-center gap-md">
+<button class="w-10 h-10 flex items-center justify-center text-secondary hover:text-primary transition-opacity cursor-pointer">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant mx-xs"></div>
+<span class="font-label-sm text-label-sm text-secondary">24/07/2026 08:45</span>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 p-xl min-h-[calc(100vh-64px)]"><div class="space-y-sm" th:if="${errorMessage != null or successMessage != null}">
+<div class="rounded-xl border border-red-200 bg-red-50 px-md py-sm text-red-700 font-body-md text-body-md" th:if="${errorMessage != null}" th:text="${errorMessage}">Có lỗi xảy ra.</div>
+<div class="rounded-xl border border-green-200 bg-green-50 px-md py-sm text-green-700 font-body-md text-body-md" th:if="${successMessage != null}" th:text="${successMessage}">Thao tác thành công.</div>
+</div>
+<!-- Breadcrumbs & Header -->
+<nav class="flex items-center gap-xs text-label-sm font-label-sm text-secondary mb-sm">
+<span>Staff</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="chevron_right">chevron_right</span>
+<span class="text-primary">Check-in hành khách</span>
+</nav>
+<div class="mb-lg">
+<h1 class="font-display-lg text-display-lg text-on-surface mb-xs">Xác nhận hành khách lên xe</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Chọn chuyến và nhập mã vé để thực hiện check-in.</p>
+</div>
+<!-- Two Column Layout -->
+<div class="grid grid-cols-12 gap-lg">
+<!-- Left Column: Selection and Entry (65%) -->
+<div class="col-span-8 flex flex-col gap-lg">
+<!-- 'Chuyến check-in' Card -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg" th:if="${tripId != null}">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="directions_bus">directions_bus</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface" th:text="|Chuyến check-in: ${tripId}|">Hà Nội - Đà Nẵng</h3>
+<p class="text-label-sm font-label-sm text-secondary">Lộ trình: Hà Nội → Đà Nẵng</p>
+</div>
+</div>
+<a class="px-md py-base border border-primary text-primary font-label-sm text-label-sm rounded-lg hover:bg-primary-fixed transition-colors active:scale-95 flex items-center gap-xs" th:href="@{/staff/trips}">
+<span class="material-symbols-outlined text-[16px]" data-icon="sync">sync</span>
+                            Đổi chuyến
+                        </a>
+</div>
+<div class="grid grid-cols-3 gap-md mt-lg border-t border-outline-variant pt-md">
+<div class="flex flex-col gap-xs">
+<span class="text-label-sm text-secondary uppercase tracking-wider">Thời gian khởi hành</span>
+<span class="font-body-lg font-bold text-on-surface">24/07/2026 09:00</span>
+</div>
+<div class="flex flex-col gap-xs">
+<span class="text-label-sm text-secondary uppercase tracking-wider">Loại xe</span>
+<span class="font-body-lg font-bold text-on-surface">Xe giường nằm 01</span>
+</div>
+<div class="flex flex-col gap-xs">
+<span class="text-label-sm text-secondary uppercase tracking-wider">Biển số xe</span>
+<span class="font-body-lg font-bold text-on-surface">29B-123.45</span>
+</div>
+</div>
+</section>
+<!-- 'Thông tin vé' Card -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg text-center" th:if="${tripId == null}"><p class="text-on-surface-variant mb-md">Vui lòng chọn chuyến trước khi check-in.</p><a class="inline-flex px-lg py-sm bg-primary-container text-white rounded-xl font-bold" th:href="@{/staff/trips}">Chọn chuyến</a></section><form class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg" method="post" th:action="@{/staff/check-in}" th:if="${tripId != null}"><input name="tripId" th:value="${tripId}" type="hidden"/>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-lg flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="confirmation_number">confirmation_number</span>
+                        Thông tin vé
+                    </h3>
+<div class="space-y-lg">
+<div class="grid grid-cols-12 gap-md items-end">
+<div class="col-span-8 flex flex-col gap-xs">
+<label class="text-label-sm font-bold text-on-surface" for="ticketCode">Mã vé</label>
+<div class="relative">
+<input class="w-full h-12 px-md border border-outline rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-body-lg bg-surface" id="ticketCode" name="ticketCode" placeholder="Nhập mã vé" required="" type="text"/>
+</div>
+<span class="text-label-sm text-secondary italic">Nhập mã vé được in trên vé của hành khách.</span>
+</div>
+<div class="col-span-4">
+<button class="w-full h-12 flex items-center justify-center gap-sm border border-primary text-primary font-bold rounded-xl hover:bg-primary-fixed transition-colors active:scale-95" onclick="document.getElementById('ticketCode').focus()" type="button">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+                                    Quét mã
+                                </button>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="w-full h-14 bg-primary-container text-white font-bold text-body-lg rounded-xl flex items-center justify-center gap-sm shadow-md hover:brightness-110 active:scale-[0.98] transition-all" type="submit">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+                            Xác nhận check-in
+                        </button>
+</div>
+</form>
+<!-- Status Feedback (Initially Hidden/Subtle) -->
+<div class="hidden p-md rounded-xl flex items-center gap-md border" id="checkinStatus">
+<!-- Dynamic content injected by JS -->
+</div>
+</div>
+<!-- Right Column: Instructions and Results (35%) -->
+<div class="col-span-4 flex flex-col gap-lg">
+<!-- 'Hướng dẫn check-in' Card -->
+<section class="bg-surface-container-high border border-outline-variant rounded-xl p-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface-variant mb-md flex items-center gap-sm">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+                        Hướng dẫn check-in
+                    </h3>
+<ul class="space-y-sm">
+<li class="flex gap-sm">
+<span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-[12px] flex items-center justify-center font-bold">1</span>
+<p class="text-body-md text-on-surface">Chọn đúng chuyến xe đang chuẩn bị khởi hành.</p>
+</li>
+<li class="flex gap-sm">
+<span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-[12px] flex items-center justify-center font-bold">2</span>
+<p class="text-body-md text-on-surface">Nhập hoặc quét mã vé từ điện thoại hoặc vé in của khách.</p>
+</li>
+<li class="flex gap-sm">
+<span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-[12px] flex items-center justify-center font-bold">3</span>
+<p class="text-body-md text-on-surface">Kiểm tra thông tin hành khách và ghế ngồi trên màn hình.</p>
+</li>
+<li class="flex gap-sm">
+<span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-[12px] flex items-center justify-center font-bold">4</span>
+<p class="text-body-md text-on-surface">Chỉ cho hành khách lên xe khi hệ thống báo check-in thành công.</p>
+</li>
+</ul>
+<div class="mt-lg p-md bg-error-container text-on-error-container rounded-lg border border-error flex items-start gap-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="warning">warning</span>
+<p class="text-label-sm italic">Cảnh báo: Không chấp nhận vé đã quá hạn hoặc vé đã được check-in trước đó.</p>
+</div>
+</section>
+<!-- Initial Result Area -->
+<section class="bg-surface-container border border-dashed border-outline-variant rounded-xl p-xl flex flex-col items-center justify-center text-center min-h-[300px] transition-all duration-300" id="resultArea" th:if="${checkInResult == null}">
+<div class="flex flex-col items-center" id="resultContent">
+<span class="material-symbols-outlined text-[64px] text-secondary-fixed-dim mb-md" data-icon="pending_actions">pending_actions</span>
+<h3 class="font-headline-md text-headline-md text-secondary mb-xs">Chưa có kết quả check-in</h3>
+<p class="text-body-md text-secondary-fixed-variant">Kết quả xác nhận hành khách sẽ hiển thị tại đây.</p>
+</div>
+</section><section class="bg-tertiary-fixed border border-tertiary rounded-xl p-lg shadow-sm" th:if="${checkInResult != null}"><div class="flex items-center gap-sm mb-lg text-on-tertiary-container"><span class="material-symbols-outlined text-[36px]">check_circle</span><h3 class="font-headline-md text-headline-md font-bold">Check-in thành công</h3></div><div class="space-y-sm text-body-md"><p><strong>Mã vé:</strong> <span th:text="${checkInResult.ticketCode()}"></span></p><p><strong>Hành khách:</strong> <span th:text="${checkInResult.passengerName()}"></span></p><p><strong>Ghế:</strong> <span th:text="${checkInResult.seatCode()}"></span></p><p><strong>Thời gian:</strong> <span th:text="${checkInResult.checkedInAt()}"></span></p><p th:text="${checkInResult.message()}"></p></div></section>
+</div>
+</div>
+</main>
+</body></html>
