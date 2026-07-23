@@ -2,6 +2,7 @@ package com.group8.hsf302.bus_ticket_booking.Application.Service.Customer;
 
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.ChangePasswordForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateBookingForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateReviewForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.SearchTripForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.UpdateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
@@ -33,4 +34,8 @@ public interface CustomerService {
 
     // E5 - Huy ve / hoan tien
     void cancelBooking(UUID bookingId, UUID accountId);
+
+    // E6 - Danh gia chuyen di
+    void reviewBooking(UUID bookingId, UUID accountId, CreateReviewForm form);
+    boolean hasReviewed(UUID bookingId);
 }

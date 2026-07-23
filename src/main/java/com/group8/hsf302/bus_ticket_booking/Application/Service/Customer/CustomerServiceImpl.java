@@ -2,6 +2,7 @@ package com.group8.hsf302.bus_ticket_booking.Application.Service.Customer;
 
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.ChangePasswordForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateBookingForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateReviewForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.SearchTripForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.UpdateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
@@ -14,6 +15,7 @@ import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccountNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.BookingNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.CannotCancelBookingException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.CannotReviewException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.OldPasswordNotMatchException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.PasswordConfirmNotMatchException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.SameStationException;
@@ -23,12 +25,14 @@ import com.group8.hsf302.bus_ticket_booking.Domain.Model.Account;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Booking;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.BookingDetail;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Payment;
+import com.group8.hsf302.bus_ticket_booking.Domain.Model.Review;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.SeatAvailability;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Trip;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.AccountRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.BookingDetailRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.BookingRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.PaymentRepo;
+import com.group8.hsf302.bus_ticket_booking.Domain.Repository.ReviewRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.SeatAvailabilityRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.TripRepo;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Security.PasswordHasher;
@@ -54,10 +58,12 @@ public class CustomerServiceImpl implements CustomerService{
     private final BookingRepo bookingRepo;
     private final BookingDetailRepo bookingDetailRepo;
     private final PaymentRepo paymentRepo;
+    private final ReviewRepo reviewRepo;
 
     public CustomerServiceImpl(AccountRepo accountRepo, AccountMapper mapper, PasswordHasher passwordHasher,
                                TripRepo tripRepo, SeatAvailabilityRepo seatAvailabilityRepo, TripMapper tripMapper,
-                               BookingRepo bookingRepo, BookingDetailRepo bookingDetailRepo, PaymentRepo paymentRepo) {
+                               BookingRepo bookingRepo, BookingDetailRepo bookingDetailRepo, PaymentRepo paymentRepo,
+                               ReviewRepo reviewRepo) {
         this.accountRepo = accountRepo;
         this.mapper = mapper;
         this.passwordHasher = passwordHasher;
@@ -67,6 +73,7 @@ public class CustomerServiceImpl implements CustomerService{
         this.bookingRepo = bookingRepo;
         this.bookingDetailRepo = bookingDetailRepo;
         this.paymentRepo = paymentRepo;
+        this.reviewRepo = reviewRepo;
     }
 
     @Override
@@ -277,6 +284,39 @@ public class CustomerServiceImpl implements CustomerService{
             bookingDetailRepo.delete(detail);
         }
         bookingRepo.delete(booking);
+    }
+
+    // E6 - Danh gia chuyen di (sau khi hoan thanh, moi ve chi danh gia 1 lan)
+    @Override
+    @Transactional
+    public void reviewBooking(UUID bookingId, UUID accountId, CreateReviewForm form) {
+        Booking booking = findOwnedBooking(bookingId, accountId);
+
+        List<SeatAvailability> seats = seatAvailabilityRepo.findByBookingId(bookingId);
+        Trip trip = seats.isEmpty() ? null : seats.get(0).getTrip();
+        boolean completed = trip != null && trip.getDepartureTime() != null
+                && trip.getDepartureTime().isBefore(LocalDateTime.now());
+        if (!completed) {
+            throw new CannotReviewException("Chỉ có thể đánh giá sau khi hoàn thành chuyến đi");
+        }
+        if (reviewRepo.existsByBookingId(bookingId)) {
+            throw new CannotReviewException("Vé này đã được đánh giá");
+        }
+
+        Review review = new Review();
+        review.setRating(form.getRating());
+        review.setComment(form.getComment());
+        review.setCreatedAt(LocalDateTime.now());
+        review.setAccount(booking.getAccount());
+        review.setTrip(trip);
+        review.setBooking(booking);
+        reviewRepo.save(review);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasReviewed(UUID bookingId) {
+        return reviewRepo.existsByBookingId(bookingId);
     }
 
     private Booking findOwnedBooking(UUID bookingId, UUID accountId) {
