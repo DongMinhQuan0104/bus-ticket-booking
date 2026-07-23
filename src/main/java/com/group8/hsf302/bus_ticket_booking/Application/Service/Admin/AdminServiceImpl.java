@@ -5,14 +5,17 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.*;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.Paging.PagedResponse;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.AccountMapper;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.BusMapper;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccountNotFoundException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.BusNotFoundException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.EmailAlreadyExistsException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.LicensePlateAlreadyExistsException;
+import com.group8.hsf302.bus_ticket_booking.Application.Mapper.RouteMapper;
+import com.group8.hsf302.bus_ticket_booking.Application.Mapper.RouteStationMapper;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Account;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Bus;
+import com.group8.hsf302.bus_ticket_booking.Domain.Model.Route;
+import com.group8.hsf302.bus_ticket_booking.Domain.Model.RouteStation;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.AccountRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.BusRepo;
+import com.group8.hsf302.bus_ticket_booking.Domain.Repository.RouteRepo;
+import com.group8.hsf302.bus_ticket_booking.Domain.Repository.RouteStationRepo;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Security.PasswordHasher;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -29,16 +32,20 @@ public class AdminServiceImpl implements AdminService{
 
     private final AccountRepo accountRepo;
     private final BusRepo busRepo;
+    private final RouteRepo routeRepo;
     private final PasswordHasher passwordHasher;
     private final AccountMapper accountMapper;
     private final BusMapper busMapper;
+    private final RouteMapper routeMapper;
 
-    public AdminServiceImpl(AccountRepo accountRepo, BusRepo busRepo, PasswordHasher passwordHasher, AccountMapper accountMapper, BusMapper busMapper) {
+    public AdminServiceImpl(AccountRepo accountRepo, BusRepo busRepo, RouteRepo routeRepo, PasswordHasher passwordHasher, AccountMapper accountMapper, BusMapper busMapper, RouteMapper routeMapper) {
         this.accountRepo = accountRepo;
         this.busRepo = busRepo;
+        this.routeRepo = routeRepo;
         this.passwordHasher = passwordHasher;
         this.accountMapper = accountMapper;
         this.busMapper = busMapper;
+        this.routeMapper = routeMapper;
     }
 
     @Override
@@ -119,7 +126,7 @@ public class AdminServiceImpl implements AdminService{
 
     @Override
     public BusViewModel createBus(AdminCreateBusForm form) {
-        if(existsByLicensePlate(form.getLicensePlate())){
+        if(existsBusByLicensePlate(form.getLicensePlate())){
             throw new LicensePlateAlreadyExistsException();
         }
         Bus bus = busMapper.toEntity(form);
@@ -187,63 +194,71 @@ public class AdminServiceImpl implements AdminService{
     }
 
     @Override
-    public RouteStationViewModel createRouteStation(AdminCreateRouteStationForm form) {
-        return null;
-    }
-
-    @Override
-    public PagedResponse<RouteStationViewModel> getAllRouteStations(int page, int size) {
-        return null;
-    }
-
-    @Override
-    public PagedResponse<RouteStationViewModel> getRouteStationByName(String name, int page, int size) {
-        return null;
-    }
-
-    @Override
-    public PagedResponse<RouteStationViewModel> getRouteStationById(UUID id, int page, int size) {
-        return null;
-    }
-
-    @Override
-    public boolean updateRouteStation(AdminUpdateRouteStationForm form, UUID id) {
-        return false;
-    }
-
-    @Override
-    public boolean deleteRouteStation(UUID id) {
-        return false;
-    }
-
-    @Override
     public RouteViewModel createRoute(AdminCreateRouteForm form) {
-        return null;
+        if(existsRouteByName(form.getName())){
+            throw new RouteNotFound();
+        }
+        Route route = routeMapper.toEntity(form);
+        routeRepo.save(route);
+        return routeMapper.toViewModel(route);
     }
 
     @Override
     public PagedResponse<RouteViewModel> getAllRoutes(int page, int size) {
-        return null;
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Route> routePage = routeRepo.findAll(pageRequest);
+        List<RouteViewModel> routeViewModels = routePage.stream()
+                .map(routeMapper::toViewModel)
+                .toList();
+        return new PagedResponse<>(
+                routeViewModels,
+                routePage.getNumber(),
+                routePage.getSize(),
+                routePage.getTotalElements(),
+                routePage.getTotalPages(),
+                routePage.isLast()
+        );
     }
 
     @Override
     public PagedResponse<RouteViewModel> getRouteByName(String name, int page, int size) {
-        return null;
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Route> routePage = routeRepo.findByNameContaining(name, pageRequest);
+        List<RouteViewModel> routeViewModels = routePage.stream()
+                .map(routeMapper::toViewModel)
+                .toList();
+
+        return new PagedResponse<>(
+                routeViewModels,
+                routePage.getNumber(),
+                routePage.getSize(),
+                routePage.getTotalElements(),
+                routePage.getTotalPages(),
+                routePage.isLast()
+        );
     }
 
     @Override
-    public PagedResponse<RouteViewModel> getRouteById(UUID id, int page, int size) {
-        return null;
+    public RouteViewModel getRouteById(UUID id) {
+        Route route = findRouteById(id);
+        return routeMapper.toViewModel(route);
     }
 
     @Override
     public boolean updateRoute(AdminUpdateRouteForm form, UUID id) {
-        return false;
+        Route route = findRouteById(id);
+        Route updateRoute = routeMapper.updateEntityFromForm(form,route);
+        routeRepo.save(updateRoute);
+        return true;
     }
 
     @Override
     public boolean deletedRoute(UUID id) {
-        return false;
+        Route route = findRouteById(id);
+        routeRepo.delete(route);
+        return true;
     }
 
     @Override
@@ -329,9 +344,15 @@ public class AdminServiceImpl implements AdminService{
         return busRepo.findById(id).orElseThrow(BusNotFoundException::new);
     }
 
-    private boolean existsByLicensePlate(String licensePlate){
+    private boolean existsBusByLicensePlate(String licensePlate){
         return busRepo.findByLicensePlate(licensePlate).isPresent();
     }
 
+    private boolean existsRouteByName(String name){
+        return routeRepo.findByName(name).isPresent();
+    }
 
+    private Route findRouteById(UUID id){
+        return routeRepo.findById(id).orElseThrow(RouteNotFound::new);
+    }
 }

@@ -25,17 +25,10 @@ public interface AdminService {
     public boolean updateBus(AdminUpdateBusForm form, UUID id);
     public boolean deleteBus(UUID id);
 
-    public RouteStationViewModel createRouteStation(AdminCreateRouteStationForm form);
-    public PagedResponse<RouteStationViewModel> getAllRouteStations(int page, int size);
-    public PagedResponse<RouteStationViewModel> getRouteStationByName(String name, int page, int size);
-    public PagedResponse<RouteStationViewModel> getRouteStationById(UUID id, int page, int size);
-    public boolean updateRouteStation(AdminUpdateRouteStationForm form, UUID id);
-    public boolean deleteRouteStation(UUID id);
-
     public RouteViewModel createRoute(AdminCreateRouteForm form);
     public PagedResponse<RouteViewModel> getAllRoutes(int page, int size);
     public PagedResponse<RouteViewModel> getRouteByName(String name, int page, int size);
-    public PagedResponse<RouteViewModel> getRouteById(UUID id, int page, int size);
+    public RouteViewModel getRouteById(UUID id);
     public boolean updateRoute(AdminUpdateRouteForm form, UUID id);
     public boolean deletedRoute(UUID id);
 
