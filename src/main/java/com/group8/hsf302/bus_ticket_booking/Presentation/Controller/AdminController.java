@@ -66,7 +66,6 @@ public class AdminController {
         model.addAttribute("totalAccounts", adminService.getAllAccounts(0, 1).getTotalElements());
         model.addAttribute("totalBuses", adminService.getAllBuses(0, 1).getTotalElements());
         model.addAttribute("totalRoutes", adminService.getAllRoutes(0, 1).getTotalElements());
-        model.addAttribute("totalTrips", adminService.getAllTrips(0, 1).getTotalElements());
         return "admin/dashboard";
     }
 
@@ -164,20 +163,7 @@ public class AdminController {
         return "admin/routes";
     }
 
-    // ===================== TRIP (xem danh sach + xoa) =====================
-    @GetMapping("/trips")
-    public String trips(@RequestParam(defaultValue = "0") int page, HttpSession session, Model model) {
-        AccountViewModel admin = verifyAdminAuth(session);
-        addCommon(model, admin);
-        model.addAttribute("trips", adminService.getAllTrips(page, 10));
-        return "admin/trips";
-    }
-
-    @PostMapping("/trips/{id}/delete")
-    public String deleteTrip(@PathVariable UUID id, RedirectAttributes ra, HttpSession session) {
-        verifyAdminAuth(session);
-        adminService.deletedTrip(id);
-        ra.addFlashAttribute("successMessage", "Da xoa chuyen.");
-        return "redirect:/admin/trips";
-    }
+    // ===================== TRIP =====================
+    // Da BO khoi Admin Console: AdminService.getAllTrips() hien tra ve null (BE Quan chua cai dat).
+    // Se mo lai khi phan BE quan ly Trip (getAllTrips/createTrip/updateTrip) duoc hoan thien.
 }

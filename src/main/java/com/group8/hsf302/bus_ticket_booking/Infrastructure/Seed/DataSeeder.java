@@ -118,9 +118,10 @@ public class DataSeeder implements CommandLineRunner {
 
         // ===== 6. Ve mau cho khach hang (dung dung object-graph nhu createBooking) =====
         // Ve 1: chuyen sap toi t1, 2 ghe -> hien o "Ve cua toi", co the huy (E5)
-        createBooking(khach, t1, List.of("A1", "A2"), List.of("Nguyen Van Khach", "Le Thi Hoa"), PaymentMethod.COD);
+        // Ma ghe phai dung dinh dang ^[A-Z]\d{2}$ (1 chu hoa + 2 chu so), vd A01.
+        createBooking(khach, t1, List.of("A01", "A02"), List.of("Nguyen Van Khach", "Le Thi Hoa"), PaymentMethod.COD);
         // Ve 2: chuyen da hoan thanh t4 -> co the danh gia (E6)
-        createBooking(khach, t4, List.of("A3"), List.of("Nguyen Van Khach"), PaymentMethod.CASH);
+        createBooking(khach, t4, List.of("A03"), List.of("Nguyen Van Khach"), PaymentMethod.CASH);
     }
 
     // ---- helper ----
