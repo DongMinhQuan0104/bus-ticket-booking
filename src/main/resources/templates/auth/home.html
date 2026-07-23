@@ -99,7 +99,8 @@
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">location_on</span>
                             <input class="w-full pl-10 pr-sm py-sm border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-body-main text-body-main"
-                                   id="destinationFrom" name="destinationFrom" placeholder="Thành phố đi" type="text" required/>
+                                   id="destinationFrom" name="destinationFrom" placeholder="Thành phố đi" type="text" list="fromCities" required/>
+                            <datalist id="fromCities"><option th:each="c : ${departureCities}" th:value="${c}"></option></datalist>
                         </div>
                     </div>
                     <div class="space-y-xs">
@@ -107,7 +108,8 @@
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">map</span>
                             <input class="w-full pl-10 pr-sm py-sm border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-body-main text-body-main"
-                                   id="destinationTo" name="destinationTo" placeholder="Thành phố đến" type="text" required/>
+                                   id="destinationTo" name="destinationTo" placeholder="Thành phố đến" type="text" list="toCities" required/>
+                            <datalist id="toCities"><option th:each="c : ${arrivalCities}" th:value="${c}"></option></datalist>
                         </div>
                     </div>
                     <div class="space-y-xs">

@@ -3,6 +3,7 @@ package com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.Trip;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Trip;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -20,4 +21,11 @@ public interface TripJpaRepo extends JpaRepository<Trip, UUID> {
 
     // ===== Driver (An) =====
     List<Trip> findByDriverName(String driverName);
+
+    // ===== Goi y thanh pho cho o tim kiem (FE hien datalist de khoi go tay) =====
+    @Query("select distinct t.destinationFrom from Trip t order by t.destinationFrom")
+    List<String> findDistinctDepartureCities();
+
+    @Query("select distinct t.destinationTo from Trip t order by t.destinationTo")
+    List<String> findDistinctArrivalCities();
 }

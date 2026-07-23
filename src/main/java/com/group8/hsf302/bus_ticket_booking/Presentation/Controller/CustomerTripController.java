@@ -55,6 +55,8 @@ public class CustomerTripController {
         AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("today", LocalDate.now());
+        model.addAttribute("departureCities", customerService.getDepartureCities());
+        model.addAttribute("arrivalCities", customerService.getArrivalCities());
 
         boolean isSubmitted = submitted != null;
         model.addAttribute("submitted", isSubmitted);

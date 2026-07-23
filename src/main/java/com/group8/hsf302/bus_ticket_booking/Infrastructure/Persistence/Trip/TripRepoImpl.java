@@ -57,4 +57,15 @@ public class TripRepoImpl implements TripRepo {
     public void deleteById(UUID id) {
         tripJpaRepo.deleteById(id);
     }
+
+    // ===== Goi y thanh pho (E1) =====
+    @Override
+    public List<String> findDistinctDepartureCities() {
+        return tripJpaRepo.findDistinctDepartureCities();
+    }
+
+    @Override
+    public List<String> findDistinctArrivalCities() {
+        return tripJpaRepo.findDistinctArrivalCities();
+    }
 }

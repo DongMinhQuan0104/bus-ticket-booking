@@ -212,6 +212,19 @@ public class CustomerServiceImpl implements CustomerService{
      *   <li>Tao Payment cho booking</li>
      * </ol>
      */
+    // E1 - Goi y thanh pho co chuyen cho o tim kiem
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getDepartureCities() {
+        return tripRepo.findDistinctDepartureCities();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getArrivalCities() {
+        return tripRepo.findDistinctArrivalCities();
+    }
+
     /** So phut giu ghe tam truoc khi tu dong giai phong neu khach chua thanh toan. */
     public static final int SEAT_HOLD_MINUTES = 10;
 

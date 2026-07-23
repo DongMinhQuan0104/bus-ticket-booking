@@ -49,6 +49,11 @@ public interface CustomerService {
      */
     TripViewModel getTripForBooking(UUID tripId);
 
+    /** E1 - Danh sach thanh pho di / den co chuyen (de FE goi y, khoi go tay). */
+    List<String> getDepartureCities();
+
+    List<String> getArrivalCities();
+
     /** E2 - Danh sach ma ghe DA co nguoi dat cua 1 chuyen (de khoa tren so do ghe). */
     List<String> getOccupiedSeatCodes(UUID tripId);
 

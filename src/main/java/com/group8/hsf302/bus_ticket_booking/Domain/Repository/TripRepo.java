@@ -31,4 +31,9 @@ public interface TripRepo {
     Page<Trip> findAll(Pageable pageable);
 
     void deleteById(UUID id);
+
+    // ===== Goi y thanh pho cho o tim kiem (E1) =====
+    List<String> findDistinctDepartureCities();
+
+    List<String> findDistinctArrivalCities();
 }

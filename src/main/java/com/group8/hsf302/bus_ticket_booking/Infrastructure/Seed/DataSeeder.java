@@ -18,6 +18,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -74,54 +75,125 @@ public class DataSeeder implements CommandLineRunner {
 
         String pwd = passwordHasher.hash("123456");
 
-        // ===== 1. Tai khoan 3 role =====
-        Account admin = new Account(Status.AVAILABLE, "0900000001", pwd, "admin@bus.com", Role.ADMIN, "Quan Tri Vien");
-        Account driver = new Account(Status.AVAILABLE, "0900000002", pwd, "tai@bus.com", Role.DRIVER, "Tran Van Tai");
-        Account khach = new Account(Status.AVAILABLE, "0900000003", pwd, "khach@bus.com", Role.CUSTOMER, "Nguyen Van Khach");
-        Account lan = new Account(Status.AVAILABLE, "0900000004", pwd, "lan@bus.com", Role.CUSTOMER, "Tran Thi Lan");
-        accountRepo.saveAll(List.of(admin, driver, khach, lan));
+        // ===== 1. Tai khoan (1 admin, 3 tai xe, 4 khach hang) =====
+        Account admin = new Account(Status.AVAILABLE, "0900000001", pwd, "admin@bus.com", Role.ADMIN, "Quản Trị Viên");
 
-        // ===== 2. Xe (16 va 32 cho) =====
-        Bus bus16 = new Bus("Limousine 16 cho", "51B-111.11", BusType.SEATED, BusCapacity.SEAT_16, Status.AVAILABLE);
-        Bus bus32 = new Bus("Giuong nam 32 cho", "51B-222.22", BusType.SLEEPER, BusCapacity.SEAT_32, Status.AVAILABLE);
-        busRepo.saveAll(List.of(bus16, bus32));
+        Account taiTai = new Account(Status.AVAILABLE, "0911000001", pwd, "tai@bus.com", Role.DRIVER, "Trần Văn Tài");
+        Account taiHung = new Account(Status.AVAILABLE, "0911000002", pwd, "hung@bus.com", Role.DRIVER, "Lê Mạnh Hùng");
+        Account taiNam = new Account(Status.AVAILABLE, "0911000003", pwd, "nam@bus.com", Role.DRIVER, "Phạm Hoài Nam");
 
-        // ===== 3. Tram =====
-        Station stHaNoi = station("Ben xe My Dinh", "Ha Noi");
-        Station stNinhBinh = station("Ben xe Ninh Binh", "Ninh Binh");
-        Station stVinh = station("Ben xe Vinh", "Nghe An");
-        Station stHue = station("Ben xe Hue", "Thua Thien Hue");
-        stationRepo.saveAll(List.of(stHaNoi, stNinhBinh, stVinh, stHue));
+        Account khach = new Account(Status.AVAILABLE, "0922000001", pwd, "khach@bus.com", Role.CUSTOMER, "Nguyễn Văn Khách");
+        Account lan = new Account(Status.AVAILABLE, "0922000002", pwd, "lan@bus.com", Role.CUSTOMER, "Trần Thị Lan");
+        Account minh = new Account(Status.AVAILABLE, "0922000003", pwd, "minh@bus.com", Role.CUSTOMER, "Hoàng Đức Minh");
+        Account thao = new Account(Status.AVAILABLE, "0922000004", pwd, "thao@bus.com", Role.CUSTOMER, "Vũ Phương Thảo");
 
-        // ===== 4. Tuyen + cac tram tren tuyen =====
-        Route routeBac = new Route();
-        routeBac.setName("Ha Noi - Vinh");
-        routeBac.getRouteStations().add(routeStation(routeBac, stHaNoi, 1, 0.0));
-        routeBac.getRouteStations().add(routeStation(routeBac, stNinhBinh, 2, 120000.0));
-        routeBac.getRouteStations().add(routeStation(routeBac, stVinh, 3, 250000.0));
-        routeRepo.save(routeBac);
+        accountRepo.saveAll(List.of(admin, taiTai, taiHung, taiNam, khach, lan, minh, thao));
 
-        Route routeTrung = new Route();
-        routeTrung.setName("Ha Noi - Hue");
-        routeTrung.getRouteStations().add(routeStation(routeTrung, stHaNoi, 1, 0.0));
-        routeTrung.getRouteStations().add(routeStation(routeTrung, stHue, 2, 400000.0));
-        routeRepo.save(routeTrung);
+        // ===== 2. Xe (6 xe, ca 16 va 32 cho) =====
+        Bus bus1 = new Bus("Limousine 16 chỗ", "29B-111.11", BusType.SEATED, BusCapacity.SEAT_16, Status.AVAILABLE);
+        Bus bus2 = new Bus("Giường nằm 32 chỗ", "29B-222.22", BusType.SLEEPER, BusCapacity.SEAT_32, Status.AVAILABLE);
+        Bus bus3 = new Bus("Thaco Mobihome", "51B-333.33", BusType.SLEEPER, BusCapacity.SEAT_32, Status.AVAILABLE);
+        Bus bus4 = new Bus("Hyundai Solati", "51B-444.44", BusType.SEATED, BusCapacity.SEAT_16, Status.AVAILABLE);
+        Bus bus5 = new Bus("Ford Transit", "43B-555.55", BusType.SEATED, BusCapacity.SEAT_16, Status.AVAILABLE);
+        Bus bus6 = new Bus("Xe bảo trì", "43B-666.66", BusType.SLEEPER, BusCapacity.SEAT_32, Status.NOT_AVAILABLE);
+        busRepo.saveAll(List.of(bus1, bus2, bus3, bus4, bus5, bus6));
 
-        // ===== 5. Chuyen xe =====
-        LocalDateTime base = LocalDateTime.now().plusDays(1).withHour(7).withMinute(0).withSecond(0).withNano(0);
-        Trip t1 = trip("Ha Noi", "Vinh", base, "Tran Van Tai", 250000.0, TripStatus.SCHEDULED, routeBac, bus16);
-        Trip t2 = trip("Ha Noi", "Vinh", base.plusHours(5), "Tran Van Tai", 250000.0, TripStatus.SCHEDULED, routeBac, bus32);
-        Trip t3 = trip("Ha Noi", "Hue", base.plusDays(1), "Tran Van Tai", 400000.0, TripStatus.SCHEDULED, routeTrung, bus32);
-        Trip t4 = trip("Ha Noi", "Vinh", LocalDateTime.now().minusDays(2).withHour(8), "Tran Van Tai",
-                250000.0, TripStatus.COMPLETED, routeBac, bus16); // chuyen da hoan thanh -> danh gia (E6)
-        tripRepo.saveAll(List.of(t1, t2, t3, t4));
+        // ===== 3. Ben xe =====
+        Station stHaNoi = station("Bến xe Mỹ Đình", "Hà Nội");
+        Station stNinhBinh = station("Bến xe Ninh Bình", "Ninh Bình");
+        Station stThanhHoa = station("Bến xe Thanh Hóa", "Thanh Hóa");
+        Station stVinh = station("Bến xe Vinh", "Nghệ An");
+        Station stHue = station("Bến xe Huế", "Thừa Thiên Huế");
+        Station stDaNang = station("Bến xe Đà Nẵng", "Đà Nẵng");
+        Station stHaiPhong = station("Bến xe Niệm Nghĩa", "Hải Phòng");
+        Station stSaiGon = station("Bến xe Miền Đông", "Sài Gòn");
+        stationRepo.saveAll(List.of(stHaNoi, stNinhBinh, stThanhHoa, stVinh, stHue, stDaNang, stHaiPhong, stSaiGon));
 
-        // ===== 6. Ve mau cho khach hang (dung dung object-graph nhu createBooking) =====
-        // Ve 1: chuyen sap toi t1, 2 ghe -> hien o "Ve cua toi", co the huy (E5)
+        // ===== 4. Tuyen + cac diem dung =====
+        Route rHaNoiVinh = route("Hà Nội - Vinh",
+                stop(stHaNoi, 1, 0.0), stop(stNinhBinh, 2, 100000.0), stop(stThanhHoa, 3, 170000.0), stop(stVinh, 4, 250000.0));
+        Route rHaNoiHue = route("Hà Nội - Huế",
+                stop(stHaNoi, 1, 0.0), stop(stVinh, 2, 250000.0), stop(stHue, 3, 400000.0));
+        Route rHaNoiDaNang = route("Hà Nội - Đà Nẵng",
+                stop(stHaNoi, 1, 0.0), stop(stHue, 2, 400000.0), stop(stDaNang, 3, 480000.0));
+        Route rHaNoiHaiPhong = route("Hà Nội - Hải Phòng",
+                stop(stHaNoi, 1, 0.0), stop(stHaiPhong, 2, 120000.0));
+        Route rDaNangSaiGon = route("Đà Nẵng - Sài Gòn",
+                stop(stDaNang, 1, 0.0), stop(stSaiGon, 2, 550000.0));
+        routeRepo.saveAll(List.of(rHaNoiVinh, rHaNoiHue, rHaNoiDaNang, rHaNoiHaiPhong, rDaNangSaiGon));
+
+        // ===== 5. Chuyen xe: nhieu ngay, nhieu tuyen, nhieu tai xe =====
+        LocalDateTime d1 = LocalDateTime.now().plusDays(1).withHour(6).withMinute(0).withSecond(0).withNano(0);
+        List<Trip> trips = new ArrayList<>();
+
+        // Ha Noi -> Vinh: 3 khung gio moi ngay, trong 3 ngay toi
+        for (int day = 0; day < 3; day++) {
+            trips.add(trip("Hà Nội", "Vinh", d1.plusDays(day),               "Trần Văn Tài", 250000.0, TripStatus.SCHEDULED, rHaNoiVinh, bus1));
+            trips.add(trip("Hà Nội", "Vinh", d1.plusDays(day).plusHours(6),  "Lê Mạnh Hùng", 250000.0, TripStatus.SCHEDULED, rHaNoiVinh, bus2));
+            trips.add(trip("Hà Nội", "Vinh", d1.plusDays(day).plusHours(13), "Phạm Hoài Nam", 280000.0, TripStatus.SCHEDULED, rHaNoiVinh, bus3));
+        }
+        // Cac tuyen khac
+        for (int day = 0; day < 3; day++) {
+            trips.add(trip("Hà Nội", "Huế",       d1.plusDays(day).plusHours(2),  "Trần Văn Tài", 400000.0, TripStatus.SCHEDULED, rHaNoiHue, bus2));
+            trips.add(trip("Hà Nội", "Đà Nẵng",   d1.plusDays(day).plusHours(4),  "Lê Mạnh Hùng", 480000.0, TripStatus.SCHEDULED, rHaNoiDaNang, bus3));
+            trips.add(trip("Hà Nội", "Hải Phòng", d1.plusDays(day).plusHours(8),  "Phạm Hoài Nam", 120000.0, TripStatus.SCHEDULED, rHaNoiHaiPhong, bus4));
+            trips.add(trip("Đà Nẵng", "Sài Gòn",  d1.plusDays(day).plusHours(10), "Trần Văn Tài", 550000.0, TripStatus.SCHEDULED, rDaNangSaiGon, bus5));
+        }
+        // Chuyen sap chay hom nay (de test huy ve <12h -> khong hoan tien)
+        Trip soon = trip("Hà Nội", "Vinh", LocalDateTime.now().plusHours(5), "Trần Văn Tài",
+                250000.0, TripStatus.SCHEDULED, rHaNoiVinh, bus1);
+        trips.add(soon);
+        // Chuyen dang chay (tai xe xem duoc danh sach khach)
+        Trip running = trip("Hà Nội", "Huế", LocalDateTime.now().minusHours(2), "Trần Văn Tài",
+                400000.0, TripStatus.RUNNING, rHaNoiHue, bus2);
+        trips.add(running);
+        // Chuyen da hoan thanh (de test danh gia E6)
+        Trip done1 = trip("Hà Nội", "Vinh", LocalDateTime.now().minusDays(2).withHour(8), "Trần Văn Tài",
+                250000.0, TripStatus.COMPLETED, rHaNoiVinh, bus1);
+        Trip done2 = trip("Hà Nội", "Đà Nẵng", LocalDateTime.now().minusDays(5).withHour(9), "Lê Mạnh Hùng",
+                480000.0, TripStatus.COMPLETED, rHaNoiDaNang, bus3);
+        trips.add(done1);
+        trips.add(done2);
+        tripRepo.saveAll(trips);
+
+        // ===== 6. Ve mau =====
         // Ma ghe phai dung dinh dang ^[A-Z]\d{2}$ (1 chu hoa + 2 chu so), vd A01.
-        createBooking(khach, t1, List.of("A01", "A02"), List.of("Nguyen Van Khach", "Le Thi Hoa"), PaymentMethod.COD);
-        // Ve 2: chuyen da hoan thanh t4 -> co the danh gia (E6)
-        createBooking(khach, t4, List.of("A03"), List.of("Nguyen Van Khach"), PaymentMethod.CASH);
+        Trip firstHaNoiVinh = trips.get(0);
+        // khach@bus.com: 1 ve sap di (huy duoc, hoan 100%), 1 ve da di (danh gia duoc)
+        createBooking(khach, firstHaNoiVinh, List.of("A01", "A02"),
+                List.of("Nguyễn Văn Khách", "Lê Thị Hoa"), PaymentMethod.COD);
+        createBooking(khach, done1, List.of("A03"), List.of("Nguyễn Văn Khách"), PaymentMethod.CASH);
+        // ve chuyen sap chay trong 5h -> test huy khong duoc hoan tien
+        createBooking(khach, soon, List.of("A05"), List.of("Nguyễn Văn Khách"), PaymentMethod.COD);
+
+        // lan@bus.com: giu san vai ghe de thay ghe da co nguoi dat tren so do
+        createBooking(lan, firstHaNoiVinh, List.of("A04"), List.of("Trần Thị Lan"), PaymentMethod.COD);
+        createBooking(lan, done2, List.of("A07", "A08"),
+                List.of("Trần Thị Lan", "Hoàng Đức Minh"), PaymentMethod.CASH);
+
+        // minh@bus.com: khach tren chuyen DANG CHAY -> tai xe check-in duoc
+        createBooking(minh, running, List.of("A10", "A11"),
+                List.of("Hoàng Đức Minh", "Vũ Phương Thảo"), PaymentMethod.COD);
+    }
+
+    /** Tao tuyen kem cac diem dung. */
+    private Route route(String name, RouteStation... stops) {
+        Route r = new Route();
+        r.setName(name);
+        for (RouteStation s : stops) {
+            s.setRoute(r);
+            r.getRouteStations().add(s);
+        }
+        return r;
+    }
+
+    /** 1 diem dung (chua gan route - route duoc gan trong route(...)). */
+    private RouteStation stop(Station station, int order, double priceFromStart) {
+        RouteStation rs = new RouteStation();
+        rs.setStation(station);
+        rs.setStationOrder(order);
+        rs.setPriceFromStart(priceFromStart);
+        return rs;
     }
 
     // ---- helper ----
