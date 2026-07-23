@@ -1,4 +1,4 @@
-package com.group8.hsf302.bus_ticket_booking.Application.Service.Account;
+package com.group8.hsf302.bus_ticket_booking.Application.Service.Customer;
 
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.ChangePasswordForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.UpdateAccountForm;

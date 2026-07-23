@@ -24,9 +24,6 @@ public class Trip {
 
     private LocalDateTime departureTime;
 
-    @NotBlank(message = "license plate can not blank")
-    private String busLicensePlate;
-
     @NotBlank(message = "driver name can not blank")
     private String driverName;
 
@@ -37,17 +34,21 @@ public class Trip {
     @JoinColumn(name = "route_id")
     private Route route;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bus")
+    private Bus bus;
+
     public Trip() {
     }
 
-    public Trip(String destinationFrom, String destinationTo, LocalDateTime departureTime, String busLicensePlate, String driverName, Status status, Route route) {
+    public Trip(String destinationFrom, String destinationTo, LocalDateTime departureTime, String driverName, Status status, Route route, Bus bus) {
         this.destinationFrom = destinationFrom;
         this.destinationTo = destinationTo;
         this.departureTime = departureTime;
-        this.busLicensePlate = busLicensePlate;
         this.driverName = driverName;
         this.status = status;
         this.route = route;
+        this.bus = bus;
     }
 
     public UUID getId() {
@@ -82,14 +83,6 @@ public class Trip {
         this.departureTime = departureTime;
     }
 
-    public String getBusLicensePlate() {
-        return busLicensePlate;
-    }
-
-    public void setBusLicensePlate(String busLicensePlate) {
-        this.busLicensePlate = busLicensePlate;
-    }
-
     public String getDriverName() {
         return driverName;
     }
@@ -114,6 +107,14 @@ public class Trip {
         this.route = route;
     }
 
+    public Bus getBus() {
+        return bus;
+    }
+
+    public void setBus(Bus bus) {
+        this.bus = bus;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -133,9 +134,10 @@ public class Trip {
                 ", destinationFrom='" + destinationFrom + '\'' +
                 ", destinationTo='" + destinationTo + '\'' +
                 ", departureTime=" + departureTime +
-                ", busLicensePlate='" + busLicensePlate + '\'' +
                 ", driverName='" + driverName + '\'' +
                 ", status=" + status +
+                ", route=" + route +
+                ", bus=" + bus +
                 '}';
     }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -27,6 +28,9 @@ public class BookingDetail {
 
     private Double subTotal;
 
+    @Column(nullable = false)
+    private Boolean isReturnTicket = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id")
     private Booking booking;
@@ -34,13 +38,13 @@ public class BookingDetail {
     public BookingDetail() {
     }
 
-    public BookingDetail(UUID id, String passengerName, Double ticketPrice, Double luggageWeightKg, Double luggageFee, Double subTotal, Booking booking) {
-        this.id = id;
+    public BookingDetail(String passengerName, Double ticketPrice, Double luggageWeightKg, Double luggageFee, Double subTotal, Boolean isReturnTicket, Booking booking) {
         this.passengerName = passengerName;
         this.ticketPrice = ticketPrice;
         this.luggageWeightKg = luggageWeightKg;
         this.luggageFee = luggageFee;
         this.subTotal = subTotal;
+        this.isReturnTicket = isReturnTicket;
         this.booking = booking;
     }
 
@@ -92,11 +96,45 @@ public class BookingDetail {
         this.subTotal = subTotal;
     }
 
+    public Boolean getReturnTicket() {
+        return isReturnTicket;
+    }
+
+    public void setReturnTicket(Boolean returnTicket) {
+        isReturnTicket = returnTicket;
+    }
+
     public Booking getBooking() {
         return booking;
     }
 
     public void setBooking(Booking booking) {
         this.booking = booking;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        BookingDetail that = (BookingDetail) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "BookingDetail{" +
+                "id=" + id +
+                ", passengerName='" + passengerName + '\'' +
+                ", ticketPrice=" + ticketPrice +
+                ", luggageWeightKg=" + luggageWeightKg +
+                ", luggageFee=" + luggageFee +
+                ", subTotal=" + subTotal +
+                ", isReturnTicket=" + isReturnTicket +
+                ", booking=" + booking +
+                '}';
     }
 }

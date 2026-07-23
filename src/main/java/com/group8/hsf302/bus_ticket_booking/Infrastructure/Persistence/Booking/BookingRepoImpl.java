@@ -7,14 +7,5 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.UUID;
 
-@Component
 public class BookingRepoImpl implements BookingRepo {
-
-    @Autowired
-    private BookingJpaRepo bookingJpaRepo;
-
-    @Override
-    public Optional<Booking> findById(UUID id) {
-        return bookingJpaRepo.findById(id);
-    }
 }
