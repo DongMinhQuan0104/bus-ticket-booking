@@ -47,10 +47,12 @@ public class CustomerTripController {
             return "trip-search";
         }
 
+        model.addAttribute("showResults", false);
         if (!bindingResult.hasErrors()) {
             try {
                 List<TripViewModel> trips = searchTripService.search(searchForm);
                 model.addAttribute("trips", trips);
+                model.addAttribute("showResults", true);
             } catch (SameStationException e) {
                 bindingResult.rejectValue("destinationTo", "sameStation", e.getMessage());
             }
