@@ -1,23 +1,16 @@
 package com.group8.hsf302.bus_ticket_booking.Presentation.Exception;
 
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.LoginForm;
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.RegisterForm;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.EmailAlreadyExistsException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.InvalidCredentialsException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.BookingNotFoundException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.CannotCancelBookingException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.CannotReviewException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.PasswordConfirmNotMatchException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.SeatAlreadyBookedException;
-import com.group8.hsf302.bus_ticket_booking.Domain.Exception.TripNotFoundException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.*;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    // ===== Authentication / tai khoan (co san) =====
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public String handleEmailExist(EmailAlreadyExistsException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
@@ -39,6 +32,66 @@ public class GlobalExceptionHandler {
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/auth/login");
     }
+
+    @ExceptionHandler(AccountNotFoundException.class)
+    public String handleAccountNotFound(AccountNotFoundException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : ".....");
+    }
+
+    @ExceptionHandler(OldPasswordNotMatchException.class)
+    public String handleOldPasswordNotMatch(OldPasswordNotMatchException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : ".....");
+    }
+
+    // ===== Admin: Bus / Route / Station (nhanh main - Quan) =====
+
+    @ExceptionHandler(BusNotFoundException.class)
+    public String handleBusNotFound(BusNotFoundException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : ".....");
+    }
+
+    @ExceptionHandler(LicensePlateAlreadyExistsException.class)
+    public String handleLicensePlateAlreadyExists(LicensePlateAlreadyExistsException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : ".....");
+    }
+
+    @ExceptionHandler(RouteAlreadyExistsException.class)
+    public String handleRouteAlreadyExists(RouteAlreadyExistsException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : ".....");
+    }
+
+    @ExceptionHandler(RouteStationNotFound.class)
+    public String handleRouteNotFound(RouteStationNotFound e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : ".....");
+    }
+
+    @ExceptionHandler(StationAlreadyExistsException.class)
+    public String handleStationAlreadyExists(StationAlreadyExistsException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : ".....");
+    }
+
+    @ExceptionHandler(StationNotFoundException.class)
+    public String handleStationNotFound(StationNotFoundException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : ".....");
+    }
+
+    // ===== Customer: dat ve / huy / danh gia (E1-E6 - Viet) =====
 
     @ExceptionHandler(TripNotFoundException.class)
     public String handleTripNotFound(TripNotFoundException e, RedirectAttributes redirectAttributes) {

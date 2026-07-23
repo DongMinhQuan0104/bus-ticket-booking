@@ -3,6 +3,8 @@ package com.group8.hsf302.bus_ticket_booking.Domain.Model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -17,11 +19,15 @@ public class Route {
     @NotBlank(message = "name can not blank")
     private String name;
 
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RouteStation> routeStations = new ArrayList<>();
+
     public Route() {
     }
 
-    public Route(String name) {
+    public Route(String name, List<RouteStation> routeStations) {
         this.name = name;
+        this.routeStations = routeStations;
     }
 
     public UUID getId() {
@@ -38,6 +44,14 @@ public class Route {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<RouteStation> getRouteStations() {
+        return routeStations;
+    }
+
+    public void setRouteStations(List<RouteStation> routeStations) {
+        this.routeStations = routeStations;
     }
 
     @Override
@@ -57,6 +71,7 @@ public class Route {
         return "Route{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
+                ", routeStations=" + routeStations +
                 '}';
     }
 }
