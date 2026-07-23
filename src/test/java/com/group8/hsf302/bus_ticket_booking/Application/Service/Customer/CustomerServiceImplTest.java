@@ -1,8 +1,12 @@
 package com.group8.hsf302.bus_ticket_booking.Application.Service.Customer;
 
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.ChangePasswordForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateBookingForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateReviewForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.SearchTripForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.UpdateAccountForm;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.OldPasswordNotMatchException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.PasswordConfirmNotMatchException;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.AccountMapper;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.TripMapper;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.BusCapacity;
@@ -256,6 +260,78 @@ class CustomerServiceImplTest {
 
         assertThrows(CannotReviewException.class, () -> service.reviewBooking(bookingId, accountId, form));
         verify(reviewRepo, never()).save(any());
+    }
+
+    // ===== Ho so ca nhan (getAccount/update/changePassword/deleted) =====
+
+    @Test
+    void deleted_softDelete_setsNotAvailable() {
+        account.setStatus(Status.AVAILABLE);
+        when(accountRepo.findActiveById(accountId)).thenReturn(Optional.of(account));
+
+        boolean result = service.deleted(accountId);
+
+        assertEquals(true, result);
+        assertEquals(Status.NOT_AVAILABLE, account.getStatus());
+        verify(accountRepo).save(account);
+    }
+
+    @Test
+    void update_savesAndReturnsViewModel() {
+        UpdateAccountForm form = new UpdateAccountForm();
+        when(accountRepo.findActiveById(accountId)).thenReturn(Optional.of(account));
+        when(accountMapper.updateEntityFromForm(form, account)).thenReturn(account);
+
+        service.update(form, accountId);
+
+        verify(accountRepo).save(account);
+        verify(accountMapper).toViewModel(account);
+    }
+
+    @Test
+    void changePassword_wrongOldPassword_throws() {
+        ChangePasswordForm form = new ChangePasswordForm();
+        form.setOldPassword("sai");
+        form.setNewPassword("newpass");
+        form.setConfirmNewPassword("newpass");
+        account.setPassword("hashed");
+        when(accountRepo.findActiveById(accountId)).thenReturn(Optional.of(account));
+        when(passwordHasher.verify("sai", "hashed")).thenReturn(false);
+
+        assertThrows(OldPasswordNotMatchException.class, () -> service.changePassword(form, accountId));
+        verify(accountRepo, never()).save(any());
+    }
+
+    @Test
+    void changePassword_confirmMismatch_throws() {
+        ChangePasswordForm form = new ChangePasswordForm();
+        form.setOldPassword("old");
+        form.setNewPassword("aaa");
+        form.setConfirmNewPassword("bbb");
+        account.setPassword("hashed");
+        when(accountRepo.findActiveById(accountId)).thenReturn(Optional.of(account));
+        when(passwordHasher.verify("old", "hashed")).thenReturn(true);
+
+        assertThrows(PasswordConfirmNotMatchException.class, () -> service.changePassword(form, accountId));
+        verify(accountRepo, never()).save(any());
+    }
+
+    @Test
+    void changePassword_success_savesHashed() {
+        ChangePasswordForm form = new ChangePasswordForm();
+        form.setOldPassword("old");
+        form.setNewPassword("newpass");
+        form.setConfirmNewPassword("newpass");
+        account.setPassword("hashed");
+        when(accountRepo.findActiveById(accountId)).thenReturn(Optional.of(account));
+        when(passwordHasher.verify("old", "hashed")).thenReturn(true);
+        when(passwordHasher.hash("newpass")).thenReturn("newhashed");
+
+        boolean result = service.changePassword(form, accountId);
+
+        assertEquals(true, result);
+        assertEquals("newhashed", account.getPassword());
+        verify(accountRepo).save(account);
     }
 
     @Test
