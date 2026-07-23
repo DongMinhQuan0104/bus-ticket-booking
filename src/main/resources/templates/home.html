@@ -32,6 +32,13 @@
                 <a class="btn btn-primary" th:href="@{/auth/register}">Get started</a>
                 <a class="btn btn-outline" th:href="@{/auth/login}">I already have an account</a>
             </div>
+            <!-- Dieu huong theo vai tro sau khi dang nhap -->
+            <div class="actions" th:if="${currentUser != null}">
+                <a th:if="${currentUser.role().name() == 'ADMIN'}" class="btn btn-primary" th:href="@{/admin/dashboard}">Trang quản trị</a>
+                <a th:if="${currentUser.role().name() == 'DRIVER'}" class="btn btn-primary" th:href="@{/driver/trips}">Cổng tài xế</a>
+                <a th:if="${currentUser.role().name() == 'CUSTOMER'}" class="btn btn-primary" th:href="@{/trips/search}">Tìm chuyến xe</a>
+                <a th:if="${currentUser.role().name() == 'CUSTOMER'}" class="btn btn-outline" th:href="@{/my-tickets}">Vé của tôi</a>
+            </div>
         </section>
 
         <section class="features">
