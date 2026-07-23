@@ -8,4 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface SeatAvailabilityJpaRepo extends JpaRepository<SeatAvailability, UUID> {
+
+    long countByTripIdAndBookingDetailIsNotNull(UUID tripId);
 }
