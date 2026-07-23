@@ -19,5 +19,6 @@ public interface DriverMapper {
     @Mapping(target = "bookingDetailId", source = "id")
     @Mapping(target = "bookingId", source = "booking.id")
     @Mapping(target = "isCheckedIn", source = "isCheckedIn")
+    @Mapping(target = "isReturnTicket", source = "returnTicket")
     PassengerManifestViewModel toViewModel(BookingDetail bookingDetail);
 }
