@@ -21,21 +21,14 @@ public interface AdminService {
     public BusViewModel createBus(AdminCreateBusForm form);
     public PagedResponse<BusViewModel> getAllBuses(int page, int size);
     public PagedResponse<BusViewModel> getBusByName(String name,int page, int size);
-    public PagedResponse<BusViewModel> getBusById(UUID id, int page, int size);
+    public BusViewModel getBusById(UUID id);
     public boolean updateBus(AdminUpdateBusForm form, UUID id);
     public boolean deleteBus(UUID id);
-
-    public RouteStationViewModel createRouteStation(AdminCreateRouteStationForm form);
-    public PagedResponse<RouteStationViewModel> getAllRouteStations(int page, int size);
-    public PagedResponse<RouteStationViewModel> getRouteStationByName(String name, int page, int size);
-    public PagedResponse<RouteStationViewModel> getRouteStationById(UUID id, int page, int size);
-    public boolean updateRouteStation(AdminUpdateRouteStationForm form, UUID id);
-    public boolean deleteRouteStation(UUID id);
 
     public RouteViewModel createRoute(AdminCreateRouteForm form);
     public PagedResponse<RouteViewModel> getAllRoutes(int page, int size);
     public PagedResponse<RouteViewModel> getRouteByName(String name, int page, int size);
-    public PagedResponse<RouteViewModel> getRouteById(UUID id, int page, int size);
+    public RouteViewModel getRouteById(UUID id);
     public boolean updateRoute(AdminUpdateRouteForm form, UUID id);
     public boolean deletedRoute(UUID id);
 
@@ -46,7 +39,7 @@ public interface AdminService {
     public StationViewModel createStation(AdminCreateStationForm form);
     public PagedResponse<StationViewModel> getAllStations(int page, int size);
     public PagedResponse<StationViewModel> getStationByName(String name, int page, int size);
-    public PagedResponse<StationViewModel> getStationById(UUID id, int page, int size);
+    public StationViewModel getStationById(UUID id);
     public boolean updateStation(AdminUpdateStationForm form, UUID id);
     public boolean deletedStation(UUID id);
 
