@@ -4,6 +4,5 @@ public enum TripStatus {
     SCHEDULED,
     READY,
     RUNNING,
-    DELAYED,
     COMPLETED
 }

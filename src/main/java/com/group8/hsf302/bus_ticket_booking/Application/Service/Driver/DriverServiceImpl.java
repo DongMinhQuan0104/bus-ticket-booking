@@ -51,15 +51,8 @@ public class DriverServiceImpl implements DriverService {
         Trip trip = tripRepo.findById(tripId)
                 .orElseThrow(TripNotFoundException::new);
 
-        // Constraint 1: Driver can only mark trip as READY within 1 hour before departure time
-        if (status == TripStatus.READY) {
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime allowedStartTime = trip.getDepartureTime() != null ? trip.getDepartureTime().minusHours(1) : now;
-            if (now.isBefore(allowedStartTime)) {
-                throw new IllegalStateException("Driver can only mark READY within 1 hour before departure time.");
-            }
-
-            // Constraint 2: Driver can only have 1 active trip (READY or RUNNING) at a time
+        // Constraint: Driver can only have 1 active trip (READY or RUNNING) at a time
+        if (status == TripStatus.READY || status == TripStatus.RUNNING) {
             List<Trip> assignedTrips = tripRepo.findByDriverName(trip.getDriverName());
             boolean hasActiveOtherTrip = assignedTrips.stream()
                     .anyMatch(t -> !t.getId().equals(tripId) && (t.getStatus() == TripStatus.READY || t.getStatus() == TripStatus.RUNNING));
@@ -78,7 +71,7 @@ public class DriverServiceImpl implements DriverService {
         Trip trip = tripRepo.findById(tripId)
                 .orElseThrow(TripNotFoundException::new);
 
-        // Constraint 3: Manifest list is locked until driver marks trip as READY, RUNNING, or COMPLETED
+        // Manifest list unlocks when driver marks status as READY, RUNNING, or COMPLETED
         if (trip.getStatus() == TripStatus.SCHEDULED) {
             throw new IllegalStateException("Passenger manifest is locked until driver marks trip status as READY or RUNNING.");
         }
@@ -96,6 +89,7 @@ public class DriverServiceImpl implements DriverService {
         if (Boolean.TRUE.equals(bookingDetail.getIsCheckedIn())) {
             throw new AlreadyCheckedInException();
         }
+
         bookingDetail.setIsCheckedIn(true);
         BookingDetail savedDetail = bookingDetailRepo.save(bookingDetail);
         return driverMapper.toViewModel(savedDetail);
