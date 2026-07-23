@@ -1,21 +1,31 @@
 package com.group8.hsf302.bus_ticket_booking.Application.Service.Customer;
 
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.ChangePasswordForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateBookingForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.SearchTripForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.UpdateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.TripViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.AccountMapper;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.TripMapper;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.BookingType;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccountNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.OldPasswordNotMatchException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.PasswordConfirmNotMatchException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.SameStationException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.SeatAlreadyBookedException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.TripNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Account;
+import com.group8.hsf302.bus_ticket_booking.Domain.Model.Booking;
+import com.group8.hsf302.bus_ticket_booking.Domain.Model.BookingDetail;
+import com.group8.hsf302.bus_ticket_booking.Domain.Model.Payment;
+import com.group8.hsf302.bus_ticket_booking.Domain.Model.SeatAvailability;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Trip;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.AccountRepo;
+import com.group8.hsf302.bus_ticket_booking.Domain.Repository.BookingDetailRepo;
+import com.group8.hsf302.bus_ticket_booking.Domain.Repository.BookingRepo;
+import com.group8.hsf302.bus_ticket_booking.Domain.Repository.PaymentRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.SeatAvailabilityRepo;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.TripRepo;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Security.PasswordHasher;
@@ -38,15 +48,22 @@ public class CustomerServiceImpl implements CustomerService{
     private final TripRepo tripRepo;
     private final SeatAvailabilityRepo seatAvailabilityRepo;
     private final TripMapper tripMapper;
+    private final BookingRepo bookingRepo;
+    private final BookingDetailRepo bookingDetailRepo;
+    private final PaymentRepo paymentRepo;
 
     public CustomerServiceImpl(AccountRepo accountRepo, AccountMapper mapper, PasswordHasher passwordHasher,
-                               TripRepo tripRepo, SeatAvailabilityRepo seatAvailabilityRepo, TripMapper tripMapper) {
+                               TripRepo tripRepo, SeatAvailabilityRepo seatAvailabilityRepo, TripMapper tripMapper,
+                               BookingRepo bookingRepo, BookingDetailRepo bookingDetailRepo, PaymentRepo paymentRepo) {
         this.accountRepo = accountRepo;
         this.mapper = mapper;
         this.passwordHasher = passwordHasher;
         this.tripRepo = tripRepo;
         this.seatAvailabilityRepo = seatAvailabilityRepo;
         this.tripMapper = tripMapper;
+        this.bookingRepo = bookingRepo;
+        this.bookingDetailRepo = bookingDetailRepo;
+        this.paymentRepo = paymentRepo;
     }
 
     @Override
@@ -143,5 +160,72 @@ public class CustomerServiceImpl implements CustomerService{
             return 0;
         }
         return trip.getBus().getCapacity().getSeats();
+    }
+
+    // E3 - Tao booking, giu ghe va tao thanh toan
+    @Override
+    @Transactional
+    public UUID createBooking(CreateBookingForm form, UUID accountId) {
+        Account account = findActiveById(accountId);
+
+        Trip trip = tripRepo.findById(form.getTripId())
+                .filter(t -> t.getStatus() == Status.AVAILABLE)
+                .orElseThrow(TripNotFoundException::new);
+
+        List<String> seatCodes = form.getSeatCodes();
+        if (seatCodes == null || seatCodes.isEmpty()) {
+            throw new SeatAlreadyBookedException("no seat selected");
+        }
+
+        // BE khong tin FE: kiem tra lai ghe co con trong khong (chong race condition)
+        List<String> taken = seatAvailabilityRepo.findTakenSeatCodes(trip.getId(), seatCodes);
+        if (!taken.isEmpty()) {
+            throw new SeatAlreadyBookedException(String.join(", ", taken));
+        }
+
+        double unitPrice = trip.getPrice() != null ? trip.getPrice() : 0.0;
+        double totalPrice = unitPrice * seatCodes.size();
+
+        Booking booking = new Booking();
+        booking.setDateBooked(LocalDateTime.now());
+        booking.setTotalPrice(totalPrice);
+        booking.setNote(form.getNote());
+        booking.setBookingType(form.getBookingType() != null ? form.getBookingType() : BookingType.ONEWAY);
+        booking.setAccount(account);
+        bookingRepo.save(booking);
+
+        List<String> names = form.getPassengerNames();
+        for (int i = 0; i < seatCodes.size(); i++) {
+            String code = seatCodes.get(i);
+            String passengerName = (names != null && i < names.size()
+                    && names.get(i) != null && !names.get(i).isBlank())
+                    ? names.get(i).trim() : account.getFullName();
+
+            BookingDetail detail = new BookingDetail();
+            detail.setPassengerName(passengerName);
+            detail.setTicketPrice(unitPrice);
+            detail.setLuggageWeightKg(0.0);
+            detail.setLuggageFee(0.0);
+            detail.setSubTotal(unitPrice);
+            detail.setReturnTicket(false);
+            detail.setBooking(booking);
+            bookingDetailRepo.save(detail);
+
+            SeatAvailability seat = new SeatAvailability();
+            seat.setSeatCode(code);
+            seat.setStartStationOrder(0);
+            seat.setEndStationOrder(0);
+            seat.setBookingDetail(detail);
+            seat.setTrip(trip);
+            seatAvailabilityRepo.save(seat);
+        }
+
+        Payment payment = new Payment();
+        payment.setCreatePayment(LocalDateTime.now());
+        payment.setPaymentMethod(form.getPaymentMethod());
+        payment.setBooking(booking);
+        paymentRepo.save(payment);
+
+        return booking.getId();
     }
 }

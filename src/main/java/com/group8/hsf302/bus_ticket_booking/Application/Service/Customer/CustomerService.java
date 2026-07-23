@@ -1,6 +1,7 @@
 package com.group8.hsf302.bus_ticket_booking.Application.Service.Customer;
 
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.ChangePasswordForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateBookingForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.SearchTripForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.UpdateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
@@ -21,4 +22,7 @@ public interface CustomerService {
     // E2 - Chon ghe & dat ve
     TripViewModel getTripForBooking(UUID tripId);
     List<String> getOccupiedSeatCodes(UUID tripId);
+
+    // E3 - Tao booking & thanh toan
+    UUID createBooking(CreateBookingForm form, UUID accountId);
 }
