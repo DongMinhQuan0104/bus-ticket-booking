@@ -1,65 +1,163 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Bus Ticket Booking</title>
-    <link rel="stylesheet" th:href="@{/css/main.css}">
-    <link rel="stylesheet" th:href="@{/css/auth.css}">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Đăng nhập - Bus Booking Ticker</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: { extend: {
+            "colors": {
+                "on-secondary-fixed": "#2f1500","surface-container": "#edeeef","on-tertiary-fixed": "#002106",
+                "on-surface": "#191c1d","tertiary-fixed": "#83fc8e","surface-container-low": "#f3f4f5",
+                "secondary-fixed": "#ffdcc3","surface-container-high": "#e7e8e9","on-secondary-container": "#603100",
+                "surface-bright": "#f8f9fa","on-primary": "#ffffff","on-tertiary-container": "#6fe87c",
+                "on-error": "#ffffff","error": "#ba1a1a","secondary-fixed-dim": "#ffb77d","background": "#f8f9fa",
+                "on-secondary-fixed-variant": "#6e3900","on-primary-fixed": "#001a40","tertiary": "#004c17",
+                "on-tertiary-fixed-variant": "#00531a","error-container": "#ffdad6","surface-dim": "#d9dadb",
+                "surface-variant": "#e1e3e4","on-tertiary": "#ffffff","secondary-container": "#fd8b00",
+                "on-surface-variant": "#424752","surface-container-highest": "#e1e3e4","primary": "#003f87",
+                "outline-variant": "#c2c6d4","tertiary-container": "#006722","outline": "#727784",
+                "on-primary-fixed-variant": "#004491","surface-tint": "#115cb9","on-primary-container": "#bbd0ff",
+                "surface": "#f8f9fa","primary-fixed-dim": "#acc7ff","on-secondary": "#ffffff",
+                "inverse-on-surface": "#f0f1f2","inverse-primary": "#acc7ff","primary-container": "#0056b3",
+                "on-background": "#191c1d","surface-container-lowest": "#ffffff","secondary": "#904d00",
+                "on-error-container": "#93000a","inverse-surface": "#2e3132","primary-fixed": "#d7e2ff",
+                "tertiary-fixed-dim": "#66df75"
+            },
+            "borderRadius": { "DEFAULT": "0.125rem","lg": "0.25rem","xl": "0.5rem","full": "0.75rem" },
+            "spacing": { "base":"8px","xs":"4px","sm":"12px","lg":"48px","gutter":"24px","xl":"80px","md":"24px","container-max":"1200px" },
+            "fontFamily": { "title-sm":["Inter"],"headline-md-mobile":["Inter"],"data-mono":["JetBrains Mono"],"label-caps":["Inter"],"body-sm":["Inter"],"headline-md":["Inter"],"data-price":["JetBrains Mono"],"display-lg":["Inter"],"body-main":["Inter"] },
+            "fontSize": {
+                "title-sm":["18px",{"lineHeight":"24px","fontWeight":"600"}],
+                "headline-md-mobile":["24px",{"lineHeight":"32px","fontWeight":"600"}],
+                "data-mono":["16px",{"lineHeight":"24px","fontWeight":"500"}],
+                "label-caps":["12px",{"lineHeight":"16px","letterSpacing":"0.05em","fontWeight":"700"}],
+                "body-sm":["14px",{"lineHeight":"20px","fontWeight":"400"}],
+                "headline-md":["32px",{"lineHeight":"40px","letterSpacing":"-0.01em","fontWeight":"600"}],
+                "data-price":["20px",{"lineHeight":"28px","letterSpacing":"-0.02em","fontWeight":"600"}],
+                "display-lg":["48px",{"lineHeight":"56px","letterSpacing":"-0.02em","fontWeight":"700"}],
+                "body-main":["16px",{"lineHeight":"24px","fontWeight":"400"}]
+            }
+        } },
+      }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .btn-active-shift:active { transform: translateY(1px); }
+    </style>
 </head>
+<body class="bg-background text-on-surface font-body-main selection:bg-secondary-fixed selection:text-on-secondary-fixed">
+<!-- Top Navigation Bar -->
+<header class="bg-surface border-b border-outline-variant fixed top-0 w-full z-50">
+    <div class="flex justify-between items-center h-16 px-gutter max-w-container-max mx-auto">
+        <a th:href="@{/home}" class="font-headline-md text-headline-md font-bold text-primary">Bus Booking Ticker</a>
+        <nav class="hidden md:flex gap-md items-center">
+            <a th:href="@{/home}" class="text-on-surface-variant hover:text-secondary transition-colors font-body-main text-body-main">Trang chủ</a>
+            <a th:href="@{/trips/search}" class="text-on-surface-variant hover:text-secondary transition-colors font-body-main text-body-main">Tìm chuyến</a>
+            <a th:href="@{/my-tickets}" class="text-on-surface-variant hover:text-secondary transition-colors font-body-main text-body-main">Vé của tôi</a>
+        </nav>
+        <div class="flex gap-sm items-center">
+            <a th:href="@{/auth/login}" class="text-primary font-body-main text-body-main px-sm py-xs hover:text-secondary transition-colors">Đăng nhập</a>
+            <a th:href="@{/auth/register}" class="bg-primary text-on-primary font-body-main text-body-main px-md py-xs rounded-lg hover:brightness-90 transition-all">Đăng ký</a>
+        </div>
+    </div>
+</header>
 
-<body>
+<main class="min-h-screen flex items-center justify-center pt-16 px-gutter relative overflow-hidden">
+    <div class="w-full max-w-md z-10">
+        <div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-lg shadow-sm">
+            <div class="mb-lg text-center">
+                <h1 class="font-headline-md text-headline-md mb-xs text-on-surface">Chào mừng trở lại</h1>
+                <p class="text-on-surface-variant font-body-sm text-body-sm">Đăng nhập để quản lý vé và khám phá hành trình mới.</p>
+            </div>
 
-    <header class="navbar">
-        <a class="brand" th:href="@{/home}">BusTicketBooking</a>
-    </header>
+            <!-- Thong bao loi/thanh cong (flash tu GlobalExceptionHandler) -->
+            <div th:if="${errorMessage}" class="mb-md flex items-center gap-xs px-sm py-sm rounded bg-error-container text-on-error-container font-body-sm text-body-sm">
+                <span class="material-symbols-outlined text-[20px]">error</span><span th:text="${errorMessage}"></span>
+            </div>
+            <div th:if="${successMessage}" class="mb-md flex items-center gap-xs px-sm py-sm rounded bg-tertiary-fixed text-on-tertiary-fixed font-body-sm text-body-sm">
+                <span class="material-symbols-outlined text-[20px]">check_circle</span><span th:text="${successMessage}"></span>
+            </div>
 
-    <main class="auth-wrapper">
-        <div class="auth-card" th:object="${loginForm}">
-            <h1 class="auth-title">Welcome back</h1>
-            <p class="auth-subtitle">Sign in to continue booking your bus tickets</p>
-
-            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}">Success message</div>
-
-            <form th:action="@{/auth/login}" method="post" novalidate>
-
-                <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="text" id="login-email" th:field="*{email}"
-                        th:classappend="${#fields.hasErrors('email')} ? ' is-invalid'" class="form-control"
-                        placeholder="you@example.com" autocomplete="email" />
+            <form class="space-y-md" method="post" th:action="@{/auth/login}" th:object="${loginForm}">
+                <!-- Email -->
+                <div class="space-y-xs">
+                    <label class="font-label-caps text-label-caps text-on-surface-variant block uppercase tracking-wider" for="email">Email</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">person</span>
+                        <input class="w-full pl-10 pr-md py-sm bg-surface-container-lowest border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-body-main text-body-main"
+                               id="email" th:field="*{email}" placeholder="Nhập email của bạn" type="email" required/>
+                    </div>
+                    <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-error font-body-sm text-body-sm"></p>
                 </div>
 
-                <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" th:field="*{password}"
-                        th:classappend="${#fields.hasErrors('password')} ? ' is-invalid'" class="form-control"
-                        placeholder="Your password" autocomplete="current-password" />
+                <!-- Password -->
+                <div class="space-y-xs">
+                    <label class="font-label-caps text-label-caps text-on-surface-variant block uppercase tracking-wider" for="password">Mật khẩu</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">lock</span>
+                        <input class="w-full pl-10 pr-md py-sm bg-surface-container-lowest border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-body-main text-body-main"
+                               id="password" th:field="*{password}" placeholder="••••••••" type="password" required/>
+                    </div>
+                    <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-error font-body-sm text-body-sm"></p>
                 </div>
 
-                <button type="submit" class="btn btn-primary auth-submit">Login</button>
+                <button class="w-full bg-secondary-container text-on-primary font-body-main text-body-main font-bold py-sm rounded transition-all hover:brightness-90 active:scale-[0.98] btn-active-shift flex justify-center items-center gap-xs" type="submit">
+                    <span>Đăng nhập</span>
+                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                </button>
             </form>
 
-            <p class="auth-switch">Don't have an account? <a th:href="@{/auth/register}">Register here</a></p>
-
-            <div id="errorModal" class="error-modal-overlay" th:if="${errorMessage != null or #fields.hasErrors('*')}">
-                <div class="error-modal">
-                    <div class="error-modal-header">
-                        <span class="error-modal-icon">&#33;</span>
-                        <h3 class="error-modal-title">Đăng nhập không thành công</h3>
-                    </div>
-                    <ul class="error-modal-list">
-                        <li th:if="${errorMessage}" th:text="${errorMessage}">Error message</li>
-                        <li th:each="err : ${#fields.errors('*')}" th:text="${err}">Field error</li>
-                    </ul>
-                    <button type="button" class="btn btn-primary error-modal-close"
-                        onclick="document.getElementById('errorModal').remove()">Đóng</button>
-                </div>
+            <div class="mt-lg text-center">
+                <p class="text-on-surface-variant font-body-sm text-body-sm">
+                    Chưa có tài khoản?
+                    <a class="text-primary font-bold hover:underline" th:href="@{/auth/register}">Đăng ký ngay</a>
+                </p>
             </div>
         </div>
-    </main>
 
+        <div class="mt-md flex items-center justify-center gap-md opacity-40">
+            <div class="flex items-center gap-xs">
+                <span class="material-symbols-outlined text-[18px]">verified_user</span>
+                <span class="font-label-caps text-label-caps">Bảo mật SSL</span>
+            </div>
+            <div class="flex items-center gap-xs">
+                <span class="material-symbols-outlined text-[18px]">support_agent</span>
+                <span class="font-label-caps text-label-caps">Hỗ trợ 24/7</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="bg-surface-container py-lg px-gutter border-t border-outline-variant">
+    <div class="max-w-container-max mx-auto">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-md mb-lg">
+            <div class="col-span-2">
+                <div class="font-title-sm text-title-sm font-bold text-on-surface mb-sm">Bus Booking Ticker</div>
+                <p class="text-on-surface-variant font-body-sm text-body-sm max-w-xs">Giải pháp di chuyển hiệu quả cho hành khách hiện đại. Tin cậy, đúng giờ.</p>
+            </div>
+            <div class="space-y-xs">
+                <div class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-xs">Pháp lý</div>
+                <a class="block text-on-surface-variant hover:text-primary font-body-sm text-body-sm transition-colors" href="#">Điều khoản dịch vụ</a>
+                <a class="block text-on-surface-variant hover:text-primary font-body-sm text-body-sm transition-colors" href="#">Chính sách bảo mật</a>
+            </div>
+            <div class="space-y-xs">
+                <div class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-xs">Công ty</div>
+                <a class="block text-on-surface-variant hover:text-primary font-body-sm text-body-sm transition-colors" href="#">Về chúng tôi</a>
+                <a class="block text-on-surface-variant hover:text-primary font-body-sm text-body-sm transition-colors" href="#">Tuyển dụng</a>
+            </div>
+        </div>
+        <div class="flex flex-col md:flex-row justify-between items-center pt-md border-t border-outline-variant gap-sm">
+            <p class="font-body-sm text-body-sm text-on-surface-variant">© 2026 Bus Booking Ticker. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
 </body>
-
 </html>

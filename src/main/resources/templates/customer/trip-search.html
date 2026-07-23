@@ -267,7 +267,7 @@
                                 250.000đ</p>
                             <p class="text-xs font-medium"
                                 th:classappend="${trip.soldOut()} ? ' text-error' : ' text-tertiary'"
-                                th:text="${trip.soldOut()} ? 'Đã hết chỗ' : ('Còn ' + trip.availableSeats() + '/' + trip.totalSeats() + ' ghế')">
+                                th:text="${trip.soldOut() ? 'Đã hết chỗ' : ('Còn ' + trip.availableSeats() + '/' + trip.totalSeats() + ' ghế')}">
                                 Còn 8/16 ghế</p>
                         </div>
                         <a th:if="${!trip.soldOut()}" th:href="@{/trips/{id}/booking(id=${trip.id()})}"

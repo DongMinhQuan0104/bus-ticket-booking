@@ -13,6 +13,6 @@ public class HomeController {
     public String showHome(HttpSession session, Model model) {
         AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
         model.addAttribute("currentUser", currentUser);
-        return "home";
+        return "auth/home";
     }
 }

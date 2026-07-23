@@ -8,6 +8,8 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateT
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateTripForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateStationForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateStationForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateRouteForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateRouteForm;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.BusViewModel;
@@ -160,13 +162,40 @@ public class AdminController {
         return "redirect:/admin/accounts";
     }
 
-    // ===================== ROUTE (xem danh sach) =====================
+    // ===================== ROUTE (B2 - CRUD day du) =====================
     @GetMapping("/routes")
     public String routes(@RequestParam(defaultValue = "0") int page, HttpSession session, Model model) {
         AccountViewModel admin = verifyAdminAuth(session);
         addCommon(model, admin);
         model.addAttribute("routes", adminService.getAllRoutes(page, 10));
+        // Danh sach tram cho dropdown chon diem dung khi tao/sua tuyen
+        model.addAttribute("stations", adminService.getAllStations(0, 1000).getContent());
         return "admin/routes";
+    }
+
+    @PostMapping("/routes/create")
+    public String createRoute(@ModelAttribute AdminCreateRouteForm form, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.createRoute(form);
+        ra.addFlashAttribute("successMessage", "Da them tuyen moi.");
+        return "redirect:/admin/routes";
+    }
+
+    @PostMapping("/routes/{id}/update")
+    public String updateRoute(@PathVariable UUID id, @ModelAttribute AdminUpdateRouteForm form,
+                              RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.updateRoute(form, id);
+        ra.addFlashAttribute("successMessage", "Da cap nhat tuyen.");
+        return "redirect:/admin/routes";
+    }
+
+    @PostMapping("/routes/{id}/delete")
+    public String deleteRoute(@PathVariable UUID id, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.deletedRoute(id);
+        ra.addFlashAttribute("successMessage", "Da xoa tuyen.");
+        return "redirect:/admin/routes";
     }
 
     // ===================== STATION (B2 - Quan ly ben/tram) =====================

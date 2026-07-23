@@ -9,9 +9,15 @@
     <div class="max-w-[1200px] mx-auto px-12 py-12">
         <div th:replace="~{admin/layout :: flash}"></div>
 
-        <div class="mb-8">
-            <h1 class="font-headline-md text-headline-md text-on-surface mb-2">Quản lý tuyến</h1>
-            <p class="font-body-main text-body-main text-on-surface-variant">Các tuyến đường và điểm dừng trong hệ thống.</p>
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 class="font-headline-md text-headline-md text-on-surface mb-2">Quản lý tuyến</h1>
+                <p class="font-body-main text-body-main text-on-surface-variant">Các tuyến đường và điểm dừng trong hệ thống.</p>
+            </div>
+            <button type="button" onclick="openCreate()"
+                    class="bg-secondary-container text-white px-6 py-3 rounded-lg font-title-sm text-title-sm hover:brightness-90 transition-all flex items-center gap-2 shadow-sm whitespace-nowrap active:translate-y-px">
+                <span class="material-symbols-outlined">add</span> Thêm tuyến mới
+            </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -19,11 +25,25 @@
                 Chưa có tuyến nào.
             </div>
             <div th:each="route : ${routes.content}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-                <div class="flex items-center gap-3 mb-4">
-                    <span class="material-symbols-outlined text-primary">route</span>
-                    <h2 class="font-title-sm text-title-sm text-on-surface" th:text="${route.name()}">Tên tuyến</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary">route</span>
+                        <h2 class="font-title-sm text-title-sm text-on-surface" th:text="${route.name()}">Tên tuyến</h2>
+                    </div>
+                    <div class="flex items-center">
+                        <button type="button" class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Chỉnh sửa"
+                                th:attr="onclick=|openEdit('${route.id()}','${route.name()}')|">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <form method="post" th:action="@{'/admin/routes/' + ${route.id()} + '/delete'}" class="inline" onsubmit="return confirm('Xóa tuyến này?');">
+                            <button type="submit" class="text-on-surface-variant hover:text-error transition-colors p-1 ml-1" title="Xóa">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 <ol class="relative border-l-2 border-outline-variant ml-2 flex flex-col gap-4">
+                    <li th:if="${route.stations() == null or route.stations().isEmpty()}" class="ml-4 text-on-surface-variant text-body-sm">Chưa có điểm dừng.</li>
                     <li th:each="st : ${route.stations()}" class="ml-4">
                         <span class="absolute -left-[9px] w-4 h-4 rounded-full bg-primary-container border-2 border-surface-container-lowest"></span>
                         <div class="flex justify-between items-center">
@@ -38,8 +58,99 @@
                 </ol>
             </div>
         </div>
-        <p class="mt-6 text-body-sm text-on-surface-variant italic">* Tạo/sửa tuyến sẽ mở khi phần BE quản lý Trạm (StationViewModel) được hoàn thiện.</p>
     </div>
 </main>
+
+<!-- MODAL Thêm/Sửa tuyến -->
+<div id="routeModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/40 p-4">
+    <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between p-6 border-b border-outline-variant">
+            <h2 id="modalTitle" class="font-title-sm text-title-sm text-on-surface">Thêm tuyến mới</h2>
+            <button type="button" onclick="closeModal()" class="text-on-surface-variant hover:text-error"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <form id="routeForm" method="post" class="p-6 flex flex-col gap-4">
+            <div>
+                <label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Tên tuyến</label>
+                <input id="f_name" name="name" type="text" required placeholder="VD: Hà Nội - Vinh"
+                       class="mt-1 w-full border border-outline-variant rounded-lg py-2 px-3 bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"/>
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Các điểm dừng</label>
+                    <button type="button" onclick="addStopRow()" class="text-primary hover:underline text-body-sm flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">add</span> Thêm điểm dừng
+                    </button>
+                </div>
+                <p id="editHint" class="hidden text-body-sm text-on-surface-variant italic mb-2">
+                    * Để trống nếu không muốn thay đổi các điểm dừng hiện tại.
+                </p>
+                <div id="stopRows" class="flex flex-col gap-2"></div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="closeModal()" class="px-5 py-2 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-low">Hủy</button>
+                <button type="submit" class="px-5 py-2 rounded-lg bg-primary text-white font-title-sm text-title-sm hover:brightness-110">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    // Danh sach tram de chon lam diem dung (lay tu BE)
+    const STATIONS = /*[[${stations}]]*/ [];
+    const modal = document.getElementById('routeModal');
+    const form = document.getElementById('routeForm');
+    const rows = document.getElementById('stopRows');
+    const createUrl = /*[[@{/admin/routes/create}]]*/ '/admin/routes/create';
+    let idx = 0;
+
+    function show(){ modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    function closeModal(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
+    function stationOptions(){
+        return STATIONS.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }
+
+    // Moi dong = 1 diem dung: stations[i].stationId / stationOrder / priceFromStart
+    function addStopRow(){
+        const i = idx++;
+        const div = document.createElement('div');
+        div.className = 'flex gap-2 items-center';
+        div.innerHTML = `
+            <select name="stations[${i}].stationId" required
+                    class="flex-1 border border-outline-variant rounded-lg py-2 px-3 bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none">
+                <option value="">-- Chọn trạm --</option>${stationOptions()}
+            </select>
+            <input name="stations[${i}].stationOrder" type="number" min="0" placeholder="Thứ tự" value="${i + 1}" required
+                   class="w-24 border border-outline-variant rounded-lg py-2 px-3 bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"/>
+            <input name="stations[${i}].priceFromStart" type="number" min="0" step="1000" placeholder="Giá từ đầu" value="0"
+                   class="w-36 border border-outline-variant rounded-lg py-2 px-3 bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"/>
+            <button type="button" class="text-on-surface-variant hover:text-error p-1" title="Xóa dòng"
+                    onclick="this.parentElement.remove()"><span class="material-symbols-outlined">close</span></button>`;
+        rows.appendChild(div);
+    }
+
+    function resetRows(){ rows.innerHTML = ''; idx = 0; }
+
+    function openCreate(){
+        document.getElementById('modalTitle').textContent = 'Thêm tuyến mới';
+        form.action = createUrl;
+        form.reset(); resetRows();
+        document.getElementById('editHint').classList.add('hidden');
+        addStopRow(); addStopRow();   // mac dinh 2 diem (di - den)
+        show();
+    }
+
+    function openEdit(id, name){
+        document.getElementById('modalTitle').textContent = 'Chỉnh sửa tuyến';
+        form.action = '/admin/routes/' + id + '/update';
+        form.reset(); resetRows();
+        document.getElementById('f_name').value = name;
+        // Khong nap san diem dung: de trong = giu nguyen (BE chi ghi de khi form co stations)
+        document.getElementById('editHint').classList.remove('hidden');
+        show();
+    }
+</script>
 </body>
 </html>
