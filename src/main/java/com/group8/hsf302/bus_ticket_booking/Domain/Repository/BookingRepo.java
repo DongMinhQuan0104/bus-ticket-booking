@@ -5,5 +5,4 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface BookingRepo {
-    Optional<Booking> findById(UUID id);
 }

@@ -1,4 +1,4 @@
-package com.group8.hsf302.bus_ticket_booking.Application.Service.Account;
+package com.group8.hsf302.bus_ticket_booking.Application.Service.Driver;
 
 import org.springframework.stereotype.Service;
 

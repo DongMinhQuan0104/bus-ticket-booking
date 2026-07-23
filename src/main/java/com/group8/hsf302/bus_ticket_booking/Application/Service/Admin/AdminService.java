@@ -1,4 +1,4 @@
-package com.group8.hsf302.bus_ticket_booking.Application.Service.Account;
+package com.group8.hsf302.bus_ticket_booking.Application.Service.Admin;
 
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateAccountForm;
