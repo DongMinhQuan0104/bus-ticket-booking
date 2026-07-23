@@ -12,6 +12,7 @@ import com.group8.hsf302.bus_ticket_booking.Application.Mapper.TripMapper;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.BusCapacity;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.PaymentMethod;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.BookingNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.CannotCancelBookingException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.CannotReviewException;
@@ -93,7 +94,7 @@ class CustomerServiceImplTest {
         trip.setDestinationFrom("Ha Noi");
         trip.setDestinationTo("Hai Phong");
         trip.setDepartureTime(departure);
-        trip.setStatus(Status.AVAILABLE);
+        trip.setStatus(TripStatus.SCHEDULED);
         trip.setPrice(250000.0);
         trip.setBus(bus);
         return trip;

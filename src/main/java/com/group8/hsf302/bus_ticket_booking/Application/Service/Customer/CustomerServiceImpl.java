@@ -172,7 +172,7 @@ public class CustomerServiceImpl implements CustomerService{
     @Transactional(readOnly = true)
     public TripViewModel getTripForBooking(UUID tripId) {
         Trip trip = tripRepo.findById(tripId)
-                .filter(t -> t.getStatus() == Status.AVAILABLE)
+                .filter(Trip::isBookable)
                 .orElseThrow(TripNotFoundException::new);
         int totalSeats = totalSeatsOf(trip);
         long booked = seatAvailabilityRepo.countBookedSeats(tripId);
@@ -212,7 +212,7 @@ public class CustomerServiceImpl implements CustomerService{
         Account account = findActiveById(accountId);
 
         Trip trip = tripRepo.findById(form.getTripId())
-                .filter(t -> t.getStatus() == Status.AVAILABLE)
+                .filter(Trip::isBookable)
                 .orElseThrow(TripNotFoundException::new);
 
         List<String> seatCodes = form.getSeatCodes();
