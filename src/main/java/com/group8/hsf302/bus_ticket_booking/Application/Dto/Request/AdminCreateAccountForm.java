@@ -6,7 +6,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public class CreateAccountForm {
+public class AdminCreateAccountForm {
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -18,7 +18,7 @@ public class CreateAccountForm {
     @NotBlank(message = "password can not blank")
     private String password;
 
-    public CreateAccountForm() {
+    public AdminCreateAccountForm() {
     }
 
     public Role getRole() {
