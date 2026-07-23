@@ -8,6 +8,11 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * E6 - Entity Review (MOI, tao khi lam E6 vi truoc do he thong chua co model danh gia).
+ * Luu 1 danh gia cua khach cho 1 chuyen da di: so sao (1-5), nhan xet, thoi diem,
+ * kem lien ket toi Account (nguoi danh gia), Trip (chuyen) va Booking (ve - moi ve chi danh gia 1 lan).
+ */
 @Entity
 @Table(name = "review")
 public class Review {

@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * E3 - Du lieu form xac nhan dat ve (Request DTO), gui khi bam "Xac nhan & Dat ve" tren trang checkout.
+ * seatCodes va passengerNames di theo cap: passengerNames[i] la ten hanh khach cua ghe seatCodes[i].
+ */
 public class CreateBookingForm {
 
     @NotNull(message = "trip can not be null")
@@ -17,6 +21,7 @@ public class CreateBookingForm {
     @NotEmpty(message = "must select at least one seat")
     private List<String> seatCodes = new ArrayList<>();
 
+    // Cung chi so voi seatCodes: ten hanh khach cua tung ghe (co the rong -> lay ten chu tai khoan)
     private List<String> passengerNames = new ArrayList<>();
 
     private String contactPhone;

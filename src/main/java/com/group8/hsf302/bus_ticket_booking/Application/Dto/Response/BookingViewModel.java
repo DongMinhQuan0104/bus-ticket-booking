@@ -6,6 +6,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * E4 - Du lieu 1 ve da dat de hien o trang "Ve cua toi" (va E5/E6).
+ * Vi Booking khong tro truc tiep toi Trip nen thong tin chuyen (tuyen/gio/nha xe) duoc gom san vao day.
+ * completed = chuyen da khoi hanh -> quyet dinh canReview (E6) va canCancel (E5).
+ */
 public record BookingViewModel(
         UUID id,
         LocalDateTime dateBooked,

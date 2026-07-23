@@ -4,6 +4,9 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
+/**
+ * E6 - Form danh gia chuyen di (Request DTO): so sao bat buoc (1-5) va nhan xet tuy chon.
+ */
 public class CreateReviewForm {
 
     @NotNull(message = "rating can not be null")

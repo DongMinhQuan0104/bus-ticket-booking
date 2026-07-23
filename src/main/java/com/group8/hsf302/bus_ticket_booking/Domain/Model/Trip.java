@@ -28,6 +28,7 @@ public class Trip {
     @NotBlank(message = "driver name can not blank")
     private String driverName;
 
+    // Gia ve co ban cua chuyen (them khi lam E3). Dung de tinh tong tien khi dat ve.
     @Min(value = 0, message = "price can not be negative")
     private Double price;
 
