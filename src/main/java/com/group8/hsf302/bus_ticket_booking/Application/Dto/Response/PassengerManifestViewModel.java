@@ -2,7 +2,7 @@ package com.group8.hsf302.bus_ticket_booking.Application.Dto.Response;
 
 import java.util.UUID;
 
-public class PassengerManifestResponse {
+public class PassengerManifestViewModel {
 
     private UUID bookingDetailId;
     private String passengerName;
@@ -13,10 +13,10 @@ public class PassengerManifestResponse {
     private UUID bookingId;
     private Boolean isCheckedIn;
 
-    public PassengerManifestResponse() {
+    public PassengerManifestViewModel() {
     }
 
-    public PassengerManifestResponse(UUID bookingDetailId, String passengerName, Double ticketPrice, Double luggageWeightKg, Double luggageFee, Boolean isReturnTicket, UUID bookingId, Boolean isCheckedIn) {
+    public PassengerManifestViewModel(UUID bookingDetailId, String passengerName, Double ticketPrice, Double luggageWeightKg, Double luggageFee, Boolean isReturnTicket, UUID bookingId, Boolean isCheckedIn) {
         this.bookingDetailId = bookingDetailId;
         this.passengerName = passengerName;
         this.ticketPrice = ticketPrice;

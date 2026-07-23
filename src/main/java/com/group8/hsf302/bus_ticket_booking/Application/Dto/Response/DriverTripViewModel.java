@@ -5,7 +5,7 @@ import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class DriverTripResponse {
+public class DriverTripViewModel {
 
     private UUID id;
     private String destinationFrom;
@@ -18,10 +18,10 @@ public class DriverTripResponse {
     private String busLicensePlate;
     private int totalPassengers;
 
-    public DriverTripResponse() {
+    public DriverTripViewModel() {
     }
 
-    public DriverTripResponse(UUID id, String destinationFrom, String destinationTo, LocalDateTime departureTime, String driverName, Status status, String routeName, String busName, String busLicensePlate, int totalPassengers) {
+    public DriverTripViewModel(UUID id, String destinationFrom, String destinationTo, LocalDateTime departureTime, String driverName, Status status, String routeName, String busName, String busLicensePlate, int totalPassengers) {
         this.id = id;
         this.destinationFrom = destinationFrom;
         this.destinationTo = destinationTo;
