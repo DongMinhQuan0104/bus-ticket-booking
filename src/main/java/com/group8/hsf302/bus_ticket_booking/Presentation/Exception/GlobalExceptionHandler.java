@@ -6,6 +6,7 @@ import com.group8.hsf302.bus_ticket_booking.Domain.Exception.EmailAlreadyExistsE
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.InvalidCredentialsException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.BookingNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.CannotCancelBookingException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.CannotReviewException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.PasswordConfirmNotMatchException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.SeatAlreadyBookedException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.TripNotFoundException;
@@ -61,6 +62,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CannotCancelBookingException.class)
     public String handleCannotCancel(CannotCancelBookingException e, RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("errorMessage", "Vé không thể hủy (chuyến đã khởi hành).");
+        return "redirect:/my-tickets";
+    }
+
+    @ExceptionHandler(CannotReviewException.class)
+    public String handleCannotReview(CannotReviewException e, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         return "redirect:/my-tickets";
     }
 }
