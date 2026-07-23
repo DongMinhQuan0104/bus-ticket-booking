@@ -5,6 +5,8 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountView
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.DriverTripViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.PassengerManifestViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Service.Driver.DriverService;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Role;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccessDeniedException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -26,13 +28,21 @@ public class DriverController {
         this.driverService = driverService;
     }
 
-    @GetMapping("/trips")
-    public String showAssignedTrips(HttpSession session, Model model) {
+    private AccountViewModel verifyDriverAuth(HttpSession session) {
         AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
         if (currentUser == null) {
-            return "redirect:/auth/login";
+            throw new AccessDeniedException("Please login to access the Driver Portal.");
         }
-        List<DriverTripViewModel> trips = driverService.getAssignedTrips(currentUser.getFullName());
+        if (currentUser.role() != Role.DRIVER) {
+            throw new AccessDeniedException("Access denied. DRIVER role is required.");
+        }
+        return currentUser;
+    }
+
+    @GetMapping("/trips")
+    public String showAssignedTrips(HttpSession session, Model model) {
+        AccountViewModel currentUser = verifyDriverAuth(session);
+        List<DriverTripViewModel> trips = driverService.getAssignedTrips(currentUser.fullName());
         model.addAttribute("trips", trips);
         model.addAttribute("currentUser", currentUser);
         return "driver/trips";
@@ -40,10 +50,7 @@ public class DriverController {
 
     @GetMapping("/trips/{id}/manifest")
     public String showPassengerManifest(@PathVariable("id") UUID tripId, HttpSession session, Model model) {
-        AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
-        if (currentUser == null) {
-            return "redirect:/auth/login";
-        }
+        AccountViewModel currentUser = verifyDriverAuth(session);
         DriverTripViewModel trip = driverService.getTripById(tripId);
         List<PassengerManifestViewModel> manifest = driverService.getPassengerManifest(tripId);
         model.addAttribute("trip", trip);
@@ -56,7 +63,9 @@ public class DriverController {
     public String updateTripStatus(@PathVariable("id") UUID tripId,
                                   @Valid @ModelAttribute("statusForm") UpdateTripStatusForm form,
                                   BindingResult bindingResult,
+                                  HttpSession session,
                                   RedirectAttributes redirectAttributes) {
+        verifyDriverAuth(session);
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid status form data");
             return "redirect:/driver/trips";
@@ -69,7 +78,9 @@ public class DriverController {
     @PostMapping("/tickets/{id}/checkin")
     public String checkInPassenger(@PathVariable("id") UUID bookingDetailId,
                                    @RequestParam("tripId") UUID tripId,
+                                   HttpSession session,
                                    RedirectAttributes redirectAttributes) {
+        verifyDriverAuth(session);
         driverService.checkInPassenger(bookingDetailId);
         redirectAttributes.addFlashAttribute("successMessage", "Passenger checked in successfully");
         return "redirect:/driver/trips/" + tripId + "/manifest";

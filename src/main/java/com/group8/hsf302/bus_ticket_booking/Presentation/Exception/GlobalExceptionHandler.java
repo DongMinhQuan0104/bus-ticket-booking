@@ -1,12 +1,11 @@
 package com.group8.hsf302.bus_ticket_booking.Presentation.Exception;
 
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.LoginForm;
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.RegisterForm;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccessDeniedException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.EmailAlreadyExistsException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.InvalidCredentialsException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.PasswordConfirmNotMatchException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.TripNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -33,5 +32,17 @@ public class GlobalExceptionHandler {
         redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/auth/login");
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public String handleAccessDenied(AccessDeniedException e, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        return "redirect:/home";
+    }
+
+    @ExceptionHandler(TripNotFoundException.class)
+    public String handleTripNotFound(TripNotFoundException e, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        return "redirect:/driver/trips";
     }
 }
