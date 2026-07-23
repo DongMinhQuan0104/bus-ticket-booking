@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="light" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Vé của tôi | Bus Ticket Booking</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: { extend: {
+                "colors": {
+                    "background": "#f8f9fa", "surface": "#f8f9fa",
+                    "surface-container-low": "#f3f4f5", "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#e1e3e4",
+                    "outline": "#727784", "outline-variant": "#c2c6d4",
+                    "primary": "#003f87", "on-primary": "#ffffff",
+                    "on-surface": "#191c1d", "on-surface-variant": "#424752",
+                    "brand-orange": "#F26A21", "brand-dark": "#0E2A47",
+                    "tertiary": "#004c17", "error": "#ba1a1a",
+                    "success": "#2E9E5B", "success-container": "#d7f5e3",
+                    "error-container": "#ffdad6", "on-error-container": "#93000a"
+                },
+                "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                "spacing": { "gutter": "24px", "md": "24px", "lg": "48px", "sm": "12px", "xl": "80px", "container-max": "1200px" },
+                "fontFamily": { "data-price": ["JetBrains Mono"], "body-main": ["Inter"] }
+            }}
+        }
+    </script>
+    <style>.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400; vertical-align: middle; }</style>
+</head>
+<body class="bg-background text-on-surface font-body-main">
+
+<header class="bg-surface border-b border-outline-variant sticky top-0 z-50">
+    <div class="flex justify-between items-center h-20 px-gutter max-w-container-max mx-auto">
+        <div class="flex items-center gap-8">
+            <a class="text-xl font-bold text-brand-dark" th:href="@{/home}">Bus Ticket Booking</a>
+            <nav class="hidden md:flex gap-6">
+                <a class="text-on-surface-variant hover:text-primary transition-colors" th:href="@{/trips/search}">Tìm chuyến</a>
+                <a class="text-primary border-b-2 border-brand-orange font-bold pb-1" th:href="@{/my-tickets}">Vé của tôi</a>
+            </nav>
+        </div>
+        <div class="flex gap-4 items-center">
+            <span th:if="${currentUser != null}" class="font-medium" th:text="${'Xin chào, ' + (currentUser.fullName() ?: currentUser.email())}">Xin chào</span>
+            <a class="px-5 py-2 text-primary border border-primary font-semibold rounded hover:bg-surface-container-low" th:href="@{/auth/logout}">Đăng xuất</a>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-container-max mx-auto px-gutter py-lg">
+    <h1 class="text-2xl font-bold mb-6">Vé của tôi</h1>
+
+    <div th:if="${successMessage}" class="bg-success-container text-tertiary p-4 rounded-lg mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined">check_circle</span><span th:text="${successMessage}">OK</span>
+    </div>
+    <div th:if="${errorMessage}" class="bg-error-container text-on-error-container p-4 rounded-lg mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined">error</span><span th:text="${errorMessage}">Lỗi</span>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${#lists.isEmpty(bookings)}"
+         class="bg-surface-container-low p-10 rounded-xl text-center border-2 border-dashed border-outline-variant">
+        <span class="material-symbols-outlined text-outline text-5xl mb-3">confirmation_number</span>
+        <p class="font-medium text-on-surface-variant">Bạn chưa có vé nào</p>
+        <a th:href="@{/trips/search}" class="inline-block mt-4 bg-brand-orange text-white font-bold px-6 py-2 rounded-lg hover:brightness-90">Tìm chuyến ngay</a>
+    </div>
+
+    <!-- Booking list -->
+    <div class="space-y-4">
+        <div th:each="b : ${bookings}"
+             class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md custom-shadow flex flex-col md:flex-row justify-between gap-6">
+            <div class="flex-1 space-y-3">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <span class="font-data-price text-sm text-on-surface-variant"
+                          th:text="'#' + ${#strings.toUpperCase(#strings.substring(b.id().toString(),0,8))}">#BK</span>
+                    <span th:if="${b.completed()}" class="bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded text-[10px] font-bold uppercase">Đã hoàn thành</span>
+                    <span th:unless="${b.completed()}" class="bg-success-container text-tertiary px-2 py-0.5 rounded text-[10px] font-bold uppercase">Sắp đi</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary">directions_bus</span>
+                    <div>
+                        <p class="font-bold" th:text="${b.destinationFrom()} + ' → ' + ${b.destinationTo()}">Tuyến</p>
+                        <p class="text-sm text-on-surface-variant"
+                           th:text="${b.departureTime() != null ? #temporals.format(b.departureTime(),'HH:mm · dd/MM/yyyy') : 'N/A'} + ' · ' + (${b.busName()} ?: 'Nhà xe')">Giờ · Nhà xe</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 text-sm">
+                    <span class="text-on-surface-variant">Ghế:</span>
+                    <span th:each="s : ${b.seatCodes()}" class="font-data-price bg-surface-container-highest px-2 rounded" th:text="${s}">A01</span>
+                </div>
+                <p class="text-sm text-on-surface-variant">Hành khách:
+                    <span th:text="${#strings.listJoin(b.passengerNames(), ', ')}">Tên</span></p>
+            </div>
+
+            <div class="md:w-1/4 flex flex-col items-start md:items-end justify-between border-t md:border-t-0 md:border-l border-outline-variant pt-4 md:pt-0 md:pl-6">
+                <div class="md:text-right">
+                    <p class="text-xs text-on-surface-variant">Tổng tiền</p>
+                    <p class="text-xl font-data-price text-brand-orange"
+                       th:text="${b.totalPrice() != null ? #numbers.formatInteger(b.totalPrice(),0,'POINT') + 'đ' : '—'}">0đ</p>
+                </div>
+                <div class="flex gap-2 mt-4 w-full md:w-auto">
+                    <a th:if="${b.canReview()}" th:href="@{/my-tickets/{id}/review(id=${b.id()})}"
+                       class="flex-1 text-center text-sm border border-primary text-primary font-semibold px-4 py-2 rounded hover:bg-surface-container-low">Đánh giá</a>
+                    <a th:if="${b.canCancel()}" th:href="@{/my-tickets/{id}/cancel(id=${b.id()})}"
+                       class="flex-1 text-center text-sm border border-error text-error font-semibold px-4 py-2 rounded hover:bg-error-container">Hủy vé</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="bg-surface-container-highest mt-xl border-t border-outline-variant">
+    <div class="max-w-container-max mx-auto px-lg py-6 text-center text-sm text-on-surface-variant">
+        © 2026 Bus Ticket Booking. All rights reserved.
+    </div>
+</footer>
+</body>
+</html>
