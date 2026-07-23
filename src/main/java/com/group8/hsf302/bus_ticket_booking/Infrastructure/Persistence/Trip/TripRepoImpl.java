@@ -3,6 +3,8 @@ package com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.Trip;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Trip;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.TripRepo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -43,5 +45,16 @@ public class TripRepoImpl implements TripRepo {
     @Override
     public Trip save(Trip trip) {
         return tripJpaRepo.save(trip);
+    }
+
+    // ===== Admin (B4) =====
+    @Override
+    public Page<Trip> findAll(Pageable pageable) {
+        return tripJpaRepo.findAll(pageable);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        tripJpaRepo.deleteById(id);
     }
 }

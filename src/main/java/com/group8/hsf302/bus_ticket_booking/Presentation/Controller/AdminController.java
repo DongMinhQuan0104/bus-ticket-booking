@@ -4,6 +4,11 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateA
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateBusForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateAccountForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateBusForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateTripForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateTripForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateStationForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateStationForm;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.BusViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.Paging.PagedResponse;
@@ -66,6 +71,7 @@ public class AdminController {
         model.addAttribute("totalAccounts", adminService.getAllAccounts(0, 1).getTotalElements());
         model.addAttribute("totalBuses", adminService.getAllBuses(0, 1).getTotalElements());
         model.addAttribute("totalRoutes", adminService.getAllRoutes(0, 1).getTotalElements());
+        model.addAttribute("totalTrips", adminService.getAllTrips(0, 1).getTotalElements());
         return "admin/dashboard";
     }
 
@@ -163,7 +169,82 @@ public class AdminController {
         return "admin/routes";
     }
 
-    // ===================== TRIP =====================
-    // Da BO khoi Admin Console: AdminService.getAllTrips() hien tra ve null (BE Quan chua cai dat).
-    // Se mo lai khi phan BE quan ly Trip (getAllTrips/createTrip/updateTrip) duoc hoan thien.
+    // ===================== STATION (B2 - Quan ly ben/tram) =====================
+    @GetMapping("/stations")
+    public String stations(@RequestParam(defaultValue = "0") int page,
+                           @RequestParam(required = false) String q,
+                           HttpSession session, Model model) {
+        AccountViewModel admin = verifyAdminAuth(session);
+        addCommon(model, admin);
+        model.addAttribute("stations", (q != null && !q.isBlank())
+                ? adminService.getStationByName(q, page, 10)
+                : adminService.getAllStations(page, 10));
+        model.addAttribute("q", q);
+        model.addAttribute("statuses", Status.values());
+        return "admin/stations";
+    }
+
+    @PostMapping("/stations/create")
+    public String createStation(@ModelAttribute AdminCreateStationForm form, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.createStation(form);
+        ra.addFlashAttribute("successMessage", "Da them tram.");
+        return "redirect:/admin/stations";
+    }
+
+    @PostMapping("/stations/{id}/update")
+    public String updateStation(@PathVariable UUID id, @ModelAttribute AdminUpdateStationForm form,
+                                RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.updateStation(form, id);
+        ra.addFlashAttribute("successMessage", "Da cap nhat tram.");
+        return "redirect:/admin/stations";
+    }
+
+    @PostMapping("/stations/{id}/delete")
+    public String deleteStation(@PathVariable UUID id, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.deletedStation(id);
+        ra.addFlashAttribute("successMessage", "Da xoa tram.");
+        return "redirect:/admin/stations";
+    }
+
+    // ===================== TRIP (B4 - CRUD) =====================
+    // Da mo lai sau khi hoan thien BE (getAllTrips/createTrip/updateTrip/deletedTrip).
+    @GetMapping("/trips")
+    public String trips(@RequestParam(defaultValue = "0") int page, HttpSession session, Model model) {
+        AccountViewModel admin = verifyAdminAuth(session);
+        addCommon(model, admin);
+        model.addAttribute("trips", adminService.getAllTrips(page, 10));
+        // Danh sach tuyen + xe cho dropdown trong modal them/sua
+        model.addAttribute("routes", adminService.getAllRoutes(0, 1000).getContent());
+        model.addAttribute("buses", adminService.getAllBuses(0, 1000).getContent());
+        model.addAttribute("tripStatuses", TripStatus.values());
+        return "admin/trips";
+    }
+
+    @PostMapping("/trips/create")
+    public String createTrip(@ModelAttribute AdminCreateTripForm form, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.createTrip(form);
+        ra.addFlashAttribute("successMessage", "Da them chuyen moi.");
+        return "redirect:/admin/trips";
+    }
+
+    @PostMapping("/trips/{id}/update")
+    public String updateTrip(@PathVariable UUID id, @ModelAttribute AdminUpdateTripForm form,
+                             RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.updateTrip(form, id);
+        ra.addFlashAttribute("successMessage", "Da cap nhat chuyen.");
+        return "redirect:/admin/trips";
+    }
+
+    @PostMapping("/trips/{id}/delete")
+    public String deleteTrip(@PathVariable UUID id, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.deletedTrip(id);
+        ra.addFlashAttribute("successMessage", "Da xoa chuyen.");
+        return "redirect:/admin/trips";
+    }
 }

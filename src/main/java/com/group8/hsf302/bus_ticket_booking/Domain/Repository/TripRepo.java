@@ -1,6 +1,8 @@
 package com.group8.hsf302.bus_ticket_booking.Domain.Repository;
 
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Trip;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,4 +26,9 @@ public interface TripRepo {
     List<Trip> findByDriverName(String driverName);
 
     Trip save(Trip trip);
+
+    // ===== Admin (B4 - quan ly chuyen) =====
+    Page<Trip> findAll(Pageable pageable);
+
+    void deleteById(UUID id);
 }

@@ -22,6 +22,13 @@
                 <div class="font-display-lg text-display-lg text-on-surface" th:text="${totalAccounts}">0</div>
                 <div class="font-body-main text-on-surface-variant">Tài khoản</div>
             </a>
+            <a th:href="@{/admin/trips}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:border-primary transition-colors">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">directions_bus</span>
+                </div>
+                <div class="font-display-lg text-display-lg text-on-surface" th:text="${totalTrips}">0</div>
+                <div class="font-body-main text-on-surface-variant">Chuyến xe</div>
+            </a>
             <a th:href="@{/admin/buses}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:border-primary transition-colors">
                 <div class="flex items-center justify-between mb-4">
                     <span class="material-symbols-outlined text-primary text-3xl">local_shipping</span>

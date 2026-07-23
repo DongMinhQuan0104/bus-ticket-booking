@@ -80,6 +80,11 @@
            class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
             <span class="material-symbols-outlined">group</span><span>Quản lý tài khoản</span>
         </a>
+        <a th:href="@{/admin/trips}"
+           th:classappend="${active == 'trips'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
+            <span class="material-symbols-outlined">directions_bus</span><span>Quản lý chuyến xe</span>
+        </a>
         <a th:href="@{/admin/buses}"
            th:classappend="${active == 'buses'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
            class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
@@ -89,6 +94,11 @@
            th:classappend="${active == 'routes'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
            class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
             <span class="material-symbols-outlined">route</span><span>Quản lý tuyến</span>
+        </a>
+        <a th:href="@{/admin/stations}"
+           th:classappend="${active == 'stations'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
+            <span class="material-symbols-outlined">location_on</span><span>Quản lý bến</span>
         </a>
     </div>
     <div class="mt-auto border-t border-white/10 pt-4 pb-6 flex flex-col gap-1">

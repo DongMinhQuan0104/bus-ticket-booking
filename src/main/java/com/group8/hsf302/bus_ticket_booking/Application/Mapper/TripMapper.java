@@ -16,5 +16,8 @@ public interface TripMapper {
     @Mapping(target = "busName", source = "trip.bus.busName")
     @Mapping(target = "busType", source = "trip.bus.busType")
     @Mapping(target = "busCapacity", source = "trip.bus.capacity")
+    @Mapping(target = "status", source = "trip.status")
+    @Mapping(target = "routeId", source = "trip.route.id")
+    @Mapping(target = "busId", source = "trip.bus.id")
     TripViewModel toViewModel(Trip trip, int totalSeats, int availableSeats);
 }

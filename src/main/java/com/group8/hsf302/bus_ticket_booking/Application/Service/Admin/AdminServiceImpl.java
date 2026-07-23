@@ -4,6 +4,7 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.*;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.*;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.Paging.PagedResponse;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.*;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.*;
@@ -25,22 +26,26 @@ public class AdminServiceImpl implements AdminService{
     private final BusRepo busRepo;
     private final RouteRepo routeRepo;
     private final StationRepo stationRepo;
+    private final TripRepo tripRepo;
     private final PasswordHasher passwordHasher;
     private final AccountMapper accountMapper;
     private final BusMapper busMapper;
     private final RouteMapper routeMapper;
     private final StationMapper stationMapper;
+    private final TripMapper tripMapper;
 
-    public AdminServiceImpl(AccountRepo accountRepo, BusRepo busRepo, RouteRepo routeRepo, StationRepo stationRepo, PasswordHasher passwordHasher, AccountMapper accountMapper, BusMapper busMapper, RouteMapper routeMapper, StationMapper stationMapper) {
+    public AdminServiceImpl(AccountRepo accountRepo, BusRepo busRepo, RouteRepo routeRepo, StationRepo stationRepo, TripRepo tripRepo, PasswordHasher passwordHasher, AccountMapper accountMapper, BusMapper busMapper, RouteMapper routeMapper, StationMapper stationMapper, TripMapper tripMapper) {
         this.accountRepo = accountRepo;
         this.busRepo = busRepo;
         this.routeRepo = routeRepo;
         this.stationRepo = stationRepo;
+        this.tripRepo = tripRepo;
         this.passwordHasher = passwordHasher;
         this.accountMapper = accountMapper;
         this.busMapper = busMapper;
         this.routeMapper = routeMapper;
         this.stationMapper = stationMapper;
+        this.tripMapper = tripMapper;
     }
 
     @Override
@@ -348,34 +353,81 @@ public class AdminServiceImpl implements AdminService{
         return true;
     }
 
+    // ===================== TRIP (B4 - Admin quan ly chuyen) =====================
+    // Truoc day cac method nay tra ve null (chua cai). Da hoan thien de Admin FE dung duoc.
+
     @Override
     public TripViewModel createTrip(AdminCreateTripForm form) {
-        return null;
+        Trip trip = new Trip();
+        applyTripForm(trip, form.getDestinationFrom(), form.getDestinationTo(), form.getDepartureTime(),
+                form.getDriverName(), form.getPrice(), form.getRouteId(), form.getBusId(),
+                form.getStatus() != null ? form.getStatus() : TripStatus.SCHEDULED);
+        Trip saved = tripRepo.save(trip);
+        return tripMapper.toViewModel(saved, totalSeatsOfTrip(saved), totalSeatsOfTrip(saved));
     }
 
     @Override
     public PagedResponse<TripViewModel> getAllTrips(int page, int size) {
-        return null;
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "departureTime"));
+        Page<Trip> tripPage = tripRepo.findAll(pageRequest);
+        List<TripViewModel> viewModels = tripPage.stream()
+                .map(t -> tripMapper.toViewModel(t, totalSeatsOfTrip(t), totalSeatsOfTrip(t)))
+                .toList();
+        return new PagedResponse<>(
+                viewModels, tripPage.getNumber(), tripPage.getSize(),
+                tripPage.getTotalElements(), tripPage.getTotalPages(), tripPage.isLast());
     }
 
     @Override
     public PagedResponse<TripViewModel> getTripByName(String name, int page, int size) {
-        return null;
+        // Tam thoi khong loc theo ten (Trip khong co "ten"); tra ve toan bo co phan trang.
+        return getAllTrips(page, size);
     }
 
     @Override
     public PagedResponse<TripViewModel> getTripById(UUID id, int page, int size) {
-        return null;
+        List<TripViewModel> content = tripRepo.findById(id)
+                .map(t -> List.of(tripMapper.toViewModel(t, totalSeatsOfTrip(t), totalSeatsOfTrip(t))))
+                .orElse(List.of());
+        return new PagedResponse<>(content, 0, size, content.size(), content.isEmpty() ? 0 : 1, true);
     }
 
     @Override
     public boolean updateTrip(AdminUpdateTripForm form, UUID id) {
-        return false;
+        return tripRepo.findById(id).map(trip -> {
+            applyTripForm(trip, form.getDestinationFrom(), form.getDestinationTo(), form.getDepartureTime(),
+                    form.getDriverName(), form.getPrice(), form.getRouteId(), form.getBusId(), form.getStatus());
+            tripRepo.save(trip);
+            return true;
+        }).orElse(false);
     }
 
     @Override
     public boolean deletedTrip(UUID id) {
-        return false;
+        if (tripRepo.findById(id).isEmpty()) {
+            return false;
+        }
+        tripRepo.deleteById(id);
+        return true;
+    }
+
+    /** Gan cac truong tu form vao Trip (chi ghi de khi gia tri khong null - dung chung create/update). */
+    private void applyTripForm(Trip trip, String from, String to, java.time.LocalDateTime departure,
+                               String driverName, Double price, UUID routeId, UUID busId, TripStatus status) {
+        if (from != null) trip.setDestinationFrom(from);
+        if (to != null) trip.setDestinationTo(to);
+        if (departure != null) trip.setDepartureTime(departure);
+        if (driverName != null) trip.setDriverName(driverName);
+        if (price != null) trip.setPrice(price);
+        if (status != null) trip.setStatus(status);
+        if (routeId != null) routeRepo.findById(routeId).ifPresent(trip::setRoute);
+        if (busId != null) busRepo.findById(busId).ifPresent(trip::setBus);
+    }
+
+    /** Tong so ghe theo suc chua cua xe (0 neu chua gan xe). */
+    private int totalSeatsOfTrip(Trip trip) {
+        if (trip.getBus() == null || trip.getBus().getCapacity() == null) return 0;
+        return trip.getBus().getCapacity().getSeats();
     }
 
 

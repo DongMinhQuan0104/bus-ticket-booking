@@ -2,6 +2,7 @@ package com.group8.hsf302.bus_ticket_booking.Application.Dto.Response;
 
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.BusCapacity;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.BusType;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -22,7 +23,11 @@ public record TripViewModel(
         BusType busType,
         BusCapacity busCapacity,
         int totalSeats,
-        int availableSeats
+        int availableSeats,
+        // Admin (B4) - de prefill form sua chuyen; Customer khong dung nhung khong anh huong.
+        TripStatus status,
+        UUID routeId,
+        UUID busId
 ) {
     /** Het cho khi khong con ghe trong -> giao dien lam mo card va khoa nut chon. */
     public boolean soldOut() {
