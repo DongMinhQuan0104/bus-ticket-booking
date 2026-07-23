@@ -46,12 +46,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Cai dat nghiep vu Customer (E1 -> E6).
+ * <p>
+ * Cac dependency duoc them trong qua trinh lam E1-E6 (inject qua constructor):
+ * <ul>
+ *   <li>tripRepo, tripMapper, seatAvailabilityRepo: phuc vu tim chuyen (E1) va chon ghe (E2)</li>
+ *   <li>bookingRepo, bookingDetailRepo, paymentRepo: phuc vu tao/huy ve (E3, E4, E5)</li>
+ *   <li>reviewRepo: phuc vu danh gia (E6)</li>
+ * </ul>
+ * Cac phuong thuc ghi du lieu (E3, E5, E6) dung @Transactional de dam bao toan ven;
+ * cac phuong thuc chi doc dung @Transactional(readOnly = true) de nap duoc quan he LAZY
+ * (vd: trip.bus) trong khi map sang ViewModel.
+ */
 @Service
 public class CustomerServiceImpl implements CustomerService{
 
     private final AccountRepo accountRepo;
     private final AccountMapper mapper;
     private final PasswordHasher passwordHasher;
+    // ==== Cac repo/mapper duoc them cho luong dat ve E1-E6 ====
     private final TripRepo tripRepo;
     private final SeatAvailabilityRepo seatAvailabilityRepo;
     private final TripMapper tripMapper;
@@ -117,23 +131,30 @@ public class CustomerServiceImpl implements CustomerService{
         return accountRepo.findActiveById(accountId).orElseThrow(AccountNotFoundException::new);
     }
 
+    /**
+     * E1 - Tim chuyen theo diem di/den + ngay di.
+     * Cach lam: quy ngay di thanh khoang [00:00, 23:59:59] roi tim cac Trip AVAILABLE trong khoang do.
+     * So ghe trong = tong ghe cua xe (theo BusCapacity) tru so ghe da co nguoi dat.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<TripViewModel> searchTrips(SearchTripForm form) {
         String from = form.getDestinationFrom().trim();
         String to = form.getDestinationTo().trim();
 
-        // BE khong tin FE: kiem tra lai nghiep vu tai tang service
+        // BE khong tin FE: kiem tra lai nghiep vu tai tang service (chan diem di trung diem den)
         if (from.equalsIgnoreCase(to)) {
             throw new SameStationException();
         }
 
+        // Nguoi dung chi chon "ngay" -> mo rong thanh khoang ca ngay de loc theo departureTime
         LocalDate date = form.getDepartureDate();
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
 
         List<Trip> trips = tripRepo.searchAvailable(from, to, startOfDay, endOfDay);
 
+        // Voi moi chuyen: tinh so ghe con trong roi map sang ViewModel de hien ra giao dien
         List<TripViewModel> result = new ArrayList<>();
         for (Trip trip : trips) {
             int totalSeats = totalSeatsOf(trip);
@@ -165,6 +186,7 @@ public class CustomerServiceImpl implements CustomerService{
         return seatAvailabilityRepo.findOccupiedSeatCodes(tripId);
     }
 
+    /** Tong so ghe cua xe theo BusCapacity (SEAT_16 -> 16, SEAT_32 -> 32). Tra 0 neu chua gan xe. */
     private int totalSeatsOf(Trip trip) {
         if (trip.getBus() == null || trip.getBus().getCapacity() == null) {
             return 0;
@@ -172,10 +194,21 @@ public class CustomerServiceImpl implements CustomerService{
         return trip.getBus().getCapacity().getSeats();
     }
 
-    // E3 - Tao booking, giu ghe va tao thanh toan
+    /**
+     * E3 - Tao booking, giu ghe va tao thanh toan (chay trong 1 transaction).
+     * Cac buoc:
+     * <ol>
+     *   <li>Lay tai khoan dang nhap va chuyen (phai AVAILABLE)</li>
+     *   <li>Kiem tra lai ghe con trong (chong 2 nguoi dat trung 1 ghe)</li>
+     *   <li>Tinh tong tien = gia chuyen * so ghe</li>
+     *   <li>Tao Booking, roi moi ghe tao 1 BookingDetail + 1 SeatAvailability (giu ghe)</li>
+     *   <li>Tao Payment cho booking</li>
+     * </ol>
+     */
     @Override
     @Transactional
     public UUID createBooking(CreateBookingForm form, UUID accountId) {
+        // (1) Tai khoan + chuyen phai hop le
         Account account = findActiveById(accountId);
 
         Trip trip = tripRepo.findById(form.getTripId())
@@ -187,15 +220,17 @@ public class CustomerServiceImpl implements CustomerService{
             throw new SeatAlreadyBookedException("no seat selected");
         }
 
-        // BE khong tin FE: kiem tra lai ghe co con trong khong (chong race condition)
+        // (2) BE khong tin FE: kiem tra lai ghe co con trong khong (chong race condition)
         List<String> taken = seatAvailabilityRepo.findTakenSeatCodes(trip.getId(), seatCodes);
         if (!taken.isEmpty()) {
             throw new SeatAlreadyBookedException(String.join(", ", taken));
         }
 
+        // (3) Tinh tien: gia ve lay tu chuyen (Trip.price)
         double unitPrice = trip.getPrice() != null ? trip.getPrice() : 0.0;
         double totalPrice = unitPrice * seatCodes.size();
 
+        // (4) Tao don dat ve
         Booking booking = new Booking();
         booking.setDateBooked(LocalDateTime.now());
         booking.setTotalPrice(totalPrice);
@@ -204,6 +239,8 @@ public class CustomerServiceImpl implements CustomerService{
         booking.setAccount(account);
         bookingRepo.save(booking);
 
+        // Moi ghe -> 1 chi tiet ve (hanh khach) + 1 ban ghi giu ghe.
+        // Neu FE khong nhap ten hanh khach thi lay ten chu tai khoan.
         List<String> names = form.getPassengerNames();
         for (int i = 0; i < seatCodes.size(); i++) {
             String code = seatCodes.get(i);
@@ -230,6 +267,7 @@ public class CustomerServiceImpl implements CustomerService{
             seatAvailabilityRepo.save(seat);
         }
 
+        // (5) Ghi nhan phuong thuc thanh toan cho don
         Payment payment = new Payment();
         payment.setCreatePayment(LocalDateTime.now());
         payment.setPaymentMethod(form.getPaymentMethod());
@@ -319,6 +357,10 @@ public class CustomerServiceImpl implements CustomerService{
         return reviewRepo.existsByBookingId(bookingId);
     }
 
+    /**
+     * Lay booking va kiem tra quyen so huu: booking phai thuoc ve dung tai khoan dang thao tac.
+     * Neu khong tim thay hoac khong phai chu -> nem BookingNotFoundException (khong lo thong tin ve nguoi khac).
+     */
     private Booking findOwnedBooking(UUID bookingId, UUID accountId) {
         Booking booking = bookingRepo.findById(bookingId).orElseThrow(BookingNotFoundException::new);
         if (booking.getAccount() == null || !booking.getAccount().getId().equals(accountId)) {
@@ -327,6 +369,11 @@ public class CustomerServiceImpl implements CustomerService{
         return booking;
     }
 
+    /**
+     * Gom du lieu 1 Booking thanh BookingViewModel de hien E4/E5/E6.
+     * Luu y: Booking khong tro truc tiep toi Trip -> phai di qua SeatAvailability de lay thong tin chuyen.
+     * completed = true khi chuyen da khoi hanh (dung cho: E5 chi cho huy khi chua di, E6 chi cho danh gia khi da di).
+     */
     private BookingViewModel toBookingViewModel(Booking booking) {
         List<SeatAvailability> seats = seatAvailabilityRepo.findByBookingId(booking.getId());
         List<BookingDetail> details = bookingDetailRepo.findByBookingId(booking.getId());
