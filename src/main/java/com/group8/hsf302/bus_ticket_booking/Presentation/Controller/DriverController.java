@@ -75,6 +75,13 @@ public class DriverController {
         return "redirect:/driver/trips";
     }
 
+    @GetMapping("/profile")
+    public String showDriverProfile(HttpSession session, Model model) {
+        AccountViewModel currentUser = verifyDriverAuth(session);
+        model.addAttribute("currentUser", currentUser);
+        return "driver/profile";
+    }
+
     @PostMapping("/tickets/{id}/checkin")
     public String checkInPassenger(@PathVariable("id") UUID bookingDetailId,
                                    @RequestParam("tripId") UUID tripId,
@@ -83,6 +90,6 @@ public class DriverController {
         verifyDriverAuth(session);
         driverService.checkInPassenger(bookingDetailId);
         redirectAttributes.addFlashAttribute("successMessage", "Passenger checked in successfully");
-        return "redirect:/driver/trips/" + tripId + "/manifest";
+        return "redirect:/driver/trips/" + tripId + "/passengers";
     }
 }

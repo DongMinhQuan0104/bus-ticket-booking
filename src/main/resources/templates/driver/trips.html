@@ -86,7 +86,7 @@
     <!-- SideNavBar -->
     <aside class="fixed left-0 top-0 bottom-0 w-[280px] z-40 flex flex-col pt-[80px] pb-4 bg-deep-blue shadow-lg hidden md:flex">
         <nav class="flex-1 space-y-2">
-            <a class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-300 hover:bg-white/10 transition-all" href="#">
+            <a th:href="@{/driver/trips}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-300 hover:bg-white/10 transition-all">
                 <span class="material-symbols-outlined">dashboard</span>
                 <span class="text-sm">Dashboard</span>
             </a>
@@ -94,7 +94,7 @@
                 <span class="material-symbols-outlined">calendar_today</span>
                 <span class="text-sm">Lịch trình</span>
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-300 hover:bg-white/10 transition-all">
+            <a th:href="@{/driver/trips}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-300 hover:bg-white/10 transition-all">
                 <span class="material-symbols-outlined">group</span>
                 <span class="text-sm">Hành khách</span>
             </a>
