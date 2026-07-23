@@ -17,4 +17,8 @@ public interface CustomerService {
 
     // E1 - Tim kiem chuyen xe
     List<TripViewModel> searchTrips(SearchTripForm form);
+
+    // E2 - Chon ghe & dat ve
+    TripViewModel getTripForBooking(UUID tripId);
+    List<String> getOccupiedSeatCodes(UUID tripId);
 }

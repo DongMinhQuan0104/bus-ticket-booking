@@ -12,6 +12,7 @@ import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccountNotFoundExce
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.OldPasswordNotMatchException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.PasswordConfirmNotMatchException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.SameStationException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.TripNotFoundException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Account;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Trip;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.AccountRepo;
@@ -117,6 +118,24 @@ public class CustomerServiceImpl implements CustomerService{
             result.add(tripMapper.toViewModel(trip, totalSeats, available));
         }
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TripViewModel getTripForBooking(UUID tripId) {
+        Trip trip = tripRepo.findById(tripId)
+                .filter(t -> t.getStatus() == Status.AVAILABLE)
+                .orElseThrow(TripNotFoundException::new);
+        int totalSeats = totalSeatsOf(trip);
+        long booked = seatAvailabilityRepo.countBookedSeats(tripId);
+        int available = Math.max(0, totalSeats - (int) booked);
+        return tripMapper.toViewModel(trip, totalSeats, available);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getOccupiedSeatCodes(UUID tripId) {
+        return seatAvailabilityRepo.findOccupiedSeatCodes(tripId);
     }
 
     private int totalSeatsOf(Trip trip) {
