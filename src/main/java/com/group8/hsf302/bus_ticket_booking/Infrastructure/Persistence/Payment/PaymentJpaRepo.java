@@ -4,8 +4,15 @@ import com.group8.hsf302.bus_ticket_booking.Domain.Model.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface PaymentJpaRepo extends JpaRepository<Payment, UUID> {
+public interface PaymentJpaRepo
+        extends JpaRepository<Payment, UUID> {
+
+    Optional<Payment>
+    findFirstByBooking_IdOrderByCreatePaymentDesc(
+            UUID bookingId
+    );
 }
