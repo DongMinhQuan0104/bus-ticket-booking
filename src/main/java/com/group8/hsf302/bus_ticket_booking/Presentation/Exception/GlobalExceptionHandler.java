@@ -5,6 +5,7 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.RegisterForm
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.EmailAlreadyExistsException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.InvalidCredentialsException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.PasswordConfirmNotMatchException;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.SeatAlreadyBookedException;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.TripNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.ui.Model;
@@ -40,5 +41,12 @@ public class GlobalExceptionHandler {
     public String handleTripNotFound(TripNotFoundException e, RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         return "redirect:/trips/search";
+    }
+
+    @ExceptionHandler(SeatAlreadyBookedException.class)
+    public String handleSeatAlreadyBooked(SeatAlreadyBookedException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", "Một số ghế vừa được người khác đặt. Vui lòng chọn lại.");
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/trips/search");
     }
 }
