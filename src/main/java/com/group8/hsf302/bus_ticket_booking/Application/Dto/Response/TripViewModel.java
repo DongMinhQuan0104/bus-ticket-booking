@@ -11,6 +11,8 @@ import java.util.UUID;
  * E1/E2 - Du lieu 1 chuyen xe tra ra giao dien (Response DTO, dang record - bat bien).
  * Khong lo Entity Trip ra ngoai; cac truong busName/busType/busCapacity lay tu Trip.bus qua TripMapper.
  * price (E3) va totalSeats/availableSeats (tinh o service) duoc them de hien gia va so ghe con trong.
+ * status/routeId/busId phuc vu Admin (B4) prefill form sua chuyen.
+ * routeName/busLicensePlate: Admin hien ten tuyen + bien so trong danh sach chuyen.
  */
 public record TripViewModel(
         UUID id,
@@ -27,7 +29,9 @@ public record TripViewModel(
         // Admin (B4) - de prefill form sua chuyen; Customer khong dung nhung khong anh huong.
         TripStatus status,
         UUID routeId,
-        UUID busId
+        String routeName,
+        UUID busId,
+        String busLicensePlate
 ) {
     /** Het cho khi khong con ghe trong -> giao dien lam mo card va khoa nut chon. */
     public boolean soldOut() {

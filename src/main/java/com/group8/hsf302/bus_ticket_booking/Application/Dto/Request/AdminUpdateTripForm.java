@@ -8,6 +8,7 @@ import java.util.UUID;
 
 /**
  * Form cap nhat chuyen (Admin - B4). Truoc day rong nen BE khong sua duoc chuyen.
+ * Khong dat @NotBlank de cho phep cap nhat tung phan (updateEntityFromForm bo qua field null).
  */
 public class AdminUpdateTripForm {
 
@@ -22,6 +23,9 @@ public class AdminUpdateTripForm {
     private UUID routeId;
     private UUID busId;
     private TripStatus status;
+
+    public AdminUpdateTripForm() {
+    }
 
     public String getDestinationFrom() { return destinationFrom; }
     public void setDestinationFrom(String destinationFrom) { this.destinationFrom = destinationFrom; }

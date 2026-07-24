@@ -4,7 +4,7 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.*;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.*;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.Paging.PagedResponse;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.*;
-import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Role;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.*;
@@ -105,6 +105,15 @@ public class AdminServiceImpl implements AdminService{
     public AccountViewModel getAccountById(UUID id) {
         Account account = findAccountById(id);
         return accountMapper.toViewModel(account);
+    }
+
+    @Override
+    public List<AccountViewModel> getAccountByRole(Role role) {
+        List<Account> accounts = accountRepo.findByRole(role);
+
+        return accounts.stream()
+                .map(accountMapper::toViewModel)
+                .toList();
     }
 
     @Override
@@ -358,76 +367,80 @@ public class AdminServiceImpl implements AdminService{
 
     @Override
     public TripViewModel createTrip(AdminCreateTripForm form) {
-        Trip trip = new Trip();
-        applyTripForm(trip, form.getDestinationFrom(), form.getDestinationTo(), form.getDepartureTime(),
-                form.getDriverName(), form.getPrice(), form.getRouteId(), form.getBusId(),
-                form.getStatus() != null ? form.getStatus() : TripStatus.SCHEDULED);
-        Trip saved = tripRepo.save(trip);
-        return tripMapper.toViewModel(saved, totalSeatsOfTrip(saved), totalSeatsOfTrip(saved));
+        Route route = findRouteById(form.getRouteId());
+        Bus bus = findBusById(form.getBusId());
+        Trip trip = tripMapper.toEntity(form);
+        trip.setRoute(route);
+        trip.setBus(bus);
+        tripRepo.save(trip);
+        return tripMapper.toViewModel(trip);
     }
 
     @Override
+    @Transactional
     public PagedResponse<TripViewModel> getAllTrips(int page, int size) {
+
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "departureTime"));
         Page<Trip> tripPage = tripRepo.findAll(pageRequest);
         List<TripViewModel> viewModels = tripPage.stream()
-                .map(t -> tripMapper.toViewModel(t, totalSeatsOfTrip(t), totalSeatsOfTrip(t)))
+                .map(tripMapper::toViewModel)
                 .toList();
         return new PagedResponse<>(
-                viewModels, tripPage.getNumber(), tripPage.getSize(),
-                tripPage.getTotalElements(), tripPage.getTotalPages(), tripPage.isLast());
+                viewModels,
+                tripPage.getNumber(),
+                tripPage.getSize(),
+                tripPage.getTotalElements(),
+                tripPage.getTotalPages(),
+                tripPage.isLast()
+        );
     }
 
     @Override
-    public PagedResponse<TripViewModel> getTripByName(String name, int page, int size) {
-        // Tam thoi khong loc theo ten (Trip khong co "ten"); tra ve toan bo co phan trang.
-        return getAllTrips(page, size);
+    @Transactional
+    public PagedResponse<TripViewModel> getTripByRouteName(String name, int page, int size) {
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "departureTime"));
+        Page<Trip> tripPage = tripRepo.findByRouteNameContainingIgnoreCase(name, pageRequest);
+
+        List<TripViewModel> viewModels = tripPage.stream()
+                .map(tripMapper::toViewModel)
+                .toList();
+
+        return new PagedResponse<>(
+                viewModels,
+                tripPage.getNumber(),
+                tripPage.getSize(),
+                tripPage.getTotalElements(),
+                tripPage.getTotalPages(),
+                tripPage.isLast()
+        );
     }
 
     @Override
-    public PagedResponse<TripViewModel> getTripById(UUID id, int page, int size) {
-        List<TripViewModel> content = tripRepo.findById(id)
-                .map(t -> List.of(tripMapper.toViewModel(t, totalSeatsOfTrip(t), totalSeatsOfTrip(t))))
-                .orElse(List.of());
-        return new PagedResponse<>(content, 0, size, content.size(), content.isEmpty() ? 0 : 1, true);
+    public TripViewModel getTripById(UUID id) {
+        Trip trip = findTripById(id);
+        return tripMapper.toViewModel(trip);
     }
 
     @Override
     public boolean updateTrip(AdminUpdateTripForm form, UUID id) {
-        return tripRepo.findById(id).map(trip -> {
-            applyTripForm(trip, form.getDestinationFrom(), form.getDestinationTo(), form.getDepartureTime(),
-                    form.getDriverName(), form.getPrice(), form.getRouteId(), form.getBusId(), form.getStatus());
-            tripRepo.save(trip);
-            return true;
-        }).orElse(false);
+        Trip existingTrip = findTripById(id);
+        Trip newTrip = tripMapper.updateEntityFromForm(form, existingTrip);
+        if (form.getRouteId() != null) {
+            newTrip.setRoute(findRouteById(form.getRouteId()));
+        }
+        if (form.getBusId() != null) {
+            newTrip.setBus(findBusById(form.getBusId()));
+        }
+        tripRepo.save(newTrip);
+        return true;
     }
 
     @Override
     public boolean deletedTrip(UUID id) {
-        if (tripRepo.findById(id).isEmpty()) {
-            return false;
-        }
-        tripRepo.deleteById(id);
+        Trip trip = findTripById(id);
+        tripRepo.delete(trip);
         return true;
-    }
-
-    /** Gan cac truong tu form vao Trip (chi ghi de khi gia tri khong null - dung chung create/update). */
-    private void applyTripForm(Trip trip, String from, String to, java.time.LocalDateTime departure,
-                               String driverName, Double price, UUID routeId, UUID busId, TripStatus status) {
-        if (from != null) trip.setDestinationFrom(from);
-        if (to != null) trip.setDestinationTo(to);
-        if (departure != null) trip.setDepartureTime(departure);
-        if (driverName != null) trip.setDriverName(driverName);
-        if (price != null) trip.setPrice(price);
-        if (status != null) trip.setStatus(status);
-        if (routeId != null) routeRepo.findById(routeId).ifPresent(trip::setRoute);
-        if (busId != null) busRepo.findById(busId).ifPresent(trip::setBus);
-    }
-
-    /** Tong so ghe theo suc chua cua xe (0 neu chua gan xe). */
-    private int totalSeatsOfTrip(Trip trip) {
-        if (trip.getBus() == null || trip.getBus().getCapacity() == null) return 0;
-        return trip.getBus().getCapacity().getSeats();
     }
 
 
@@ -458,6 +471,10 @@ public class AdminServiceImpl implements AdminService{
 
     private Station findStationById(UUID id){
         return stationRepo.findById(id).orElseThrow(StationNotFoundException::new);
+    }
+
+    private Trip findTripById(UUID id){
+        return tripRepo.findById(id).orElseThrow(TripNotFoundException::new);
     }
 
     private void processRouteStations(List<AdminRouteStationForm> stationForms, Route parentRoute) {

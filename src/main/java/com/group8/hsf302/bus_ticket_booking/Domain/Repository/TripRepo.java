@@ -11,9 +11,8 @@ import java.util.UUID;
 
 /**
  * Repository (interface o tang Domain) cho Trip. Cai dat that o Infrastructure (TripRepoImpl).
- * searchAvailable: phuc vu E1 (tim chuyen con dat duoc theo diem di/den + khoang thoi gian ngay di).
- * findById: phuc vu E2/E3 (lay chuyen de chon ghe / dat ve).
- * findByDriverName / save: phuc vu nghiep vu Driver (An).
+ * searchAvailable: E1 (tim chuyen con dat duoc). findById: E2/E3.
+ * findByDriverName/save: nghiep vu Driver (An). findAll/delete/findByRouteName...: Admin (B4 - Quan).
  */
 public interface TripRepo {
     // ===== Customer (Viet) =====
@@ -30,7 +29,9 @@ public interface TripRepo {
     // ===== Admin (B4 - quan ly chuyen) =====
     Page<Trip> findAll(Pageable pageable);
 
-    void deleteById(UUID id);
+    Page<Trip> findByRouteNameContainingIgnoreCase(String name, Pageable pageable);
+
+    void delete(Trip trip);
 
     // ===== Goi y thanh pho cho o tim kiem (E1) =====
     List<String> findDistinctDepartureCities();

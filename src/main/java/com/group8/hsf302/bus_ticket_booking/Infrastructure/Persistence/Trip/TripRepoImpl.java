@@ -54,8 +54,13 @@ public class TripRepoImpl implements TripRepo {
     }
 
     @Override
-    public void deleteById(UUID id) {
-        tripJpaRepo.deleteById(id);
+    public Page<Trip> findByRouteNameContainingIgnoreCase(String name, Pageable pageable) {
+        return tripJpaRepo.findByRouteNameContainingIgnoreCase(name, pageable);
+    }
+
+    @Override
+    public void delete(Trip trip) {
+        tripJpaRepo.delete(trip);
     }
 
     // ===== Goi y thanh pho (E1) =====

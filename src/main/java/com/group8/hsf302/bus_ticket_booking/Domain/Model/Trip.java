@@ -36,11 +36,11 @@ public class Trip {
     private TripStatus status = TripStatus.SCHEDULED;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "route_id")
+    @JoinColumn(name = "route_id",nullable = false)
     private Route route;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bus")
+    @JoinColumn(name = "bus_id",nullable = false)
     private Bus bus;
 
     public Trip() {
