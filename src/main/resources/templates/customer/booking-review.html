@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="light" lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Đánh giá chuyến đi | Bus Ticket Booking</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class", theme: {
+                extend: {
+                    "colors": {
+                        "background": "#f8f9fa", "surface": "#f8f9fa",
+                        "surface-container-low": "#f3f4f5", "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e1e3e4",
+                        "outline": "#727784", "outline-variant": "#c2c6d4",
+                        "primary": "#003f87", "on-surface": "#191c1d", "on-surface-variant": "#424752",
+                        "brand-orange": "#F26A21", "brand-dark": "#0E2A47", "tertiary": "#004c17",
+                        "success-container": "#d7f5e3", "error-container": "#ffdad6", "on-error-container": "#93000a"
+                    },
+                    "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                    "spacing": { "gutter": "24px", "md": "24px", "lg": "48px", "sm": "12px", "xl": "80px", "container-max": "1200px" },
+                    "fontFamily": { "body-main": ["Inter"] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400;
+            vertical-align: middle;
+        }
+
+        .star {
+            cursor: pointer;
+            font-size: 40px;
+            color: #c2c6d4;
+            transition: color .15s;
+        }
+
+        .star.active {
+            color: #F26A21;
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface font-body-main">
+
+    <header class="bg-surface border-b border-outline-variant sticky top-0 z-50">
+        <div class="flex justify-between items-center h-20 px-gutter max-w-container-max mx-auto">
+            <a class="text-xl font-bold text-brand-dark" th:href="@{/home}">Bus Ticket Booking</a>
+            <a class="text-on-surface-variant hover:text-primary" th:href="@{/my-tickets}">← Vé của tôi</a>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-gutter py-lg">
+        <h1 class="text-2xl font-bold mb-6">Đánh giá chuyến đi</h1>
+
+        <div th:if="${errorMessage}"
+            class="bg-error-container text-on-error-container p-4 rounded-lg mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined">error</span><span th:text="${errorMessage}">Lỗi</span>
+        </div>
+
+        <!-- Tom tat chuyen -->
+        <div class="bg-white border border-outline-variant rounded-xl p-md mb-4">
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-on-surface-variant">Tuyến</span>
+                    <span class="font-medium"
+                        th:text="${booking.destinationFrom()} + ' → ' + ${booking.destinationTo()}">Tuyến</span>
+                </div>
+                <div class="flex justify-between"><span class="text-on-surface-variant">Ngày đi</span>
+                    <span class="font-medium"
+                        th:text="${booking.departureTime() != null ? #temporals.format(booking.departureTime(),'HH:mm · dd/MM/yyyy') : 'N/A'}">Giờ</span>
+                </div>
+                <div class="flex justify-between"><span class="text-on-surface-variant">Tài xế</span>
+                    <span class="font-medium" th:text="${booking.driverName()}">Tài xế</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Da danh gia -->
+        <div th:if="${alreadyReviewed}" class="bg-success-container text-tertiary p-6 rounded-xl text-center">
+            <span class="material-symbols-outlined text-4xl mb-2">verified</span>
+            <p class="font-bold">Bạn đã đánh giá vé này.</p>
+            <a th:href="@{/my-tickets}" class="inline-block mt-3 text-primary underline">Về Vé của tôi</a>
+        </div>
+
+        <!-- Form danh gia -->
+        <form th:unless="${alreadyReviewed}" th:action="@{/my-tickets/{id}/review(id=${booking.id()})}" method="post"
+            th:object="${reviewForm}" class="bg-white border border-outline-variant rounded-xl p-md">
+            <h2 class="text-lg font-bold mb-2">Bạn thấy chuyến đi thế nào?</h2>
+            <div class="flex justify-center gap-2 my-4" id="stars">
+                <span class="material-symbols-outlined star" data-value="1">star</span>
+                <span class="material-symbols-outlined star" data-value="2">star</span>
+                <span class="material-symbols-outlined star" data-value="3">star</span>
+                <span class="material-symbols-outlined star" data-value="4">star</span>
+                <span class="material-symbols-outlined star" data-value="5">star</span>
+            </div>
+            <input type="hidden" th:field="*{rating}" id="rating-input" />
+
+            <div class="flex flex-col gap-2 mb-4">
+                <label class="text-[10px] uppercase text-on-surface-variant">Nhận xét (tuỳ chọn)</label>
+                <textarea th:field="*{comment}" rows="4" placeholder="Chia sẻ trải nghiệm của bạn..."
+                    class="w-full border border-outline-variant rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none"></textarea>
+            </div>
+
+            <button type="submit" id="submit-btn" disabled
+                class="w-full bg-brand-orange disabled:bg-outline-variant disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg hover:brightness-90 active:translate-y-px">
+                GỬI ĐÁNH GIÁ
+            </button>
+        </form>
+    </main>
+
+    <script>
+        const stars = document.querySelectorAll('.star');
+        const ratingInput = document.getElementById('rating-input');
+        const submitBtn = document.getElementById('submit-btn');
+        let current = 0;
+
+        if (stars.length) {
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    current = parseInt(star.dataset.value);
+                    ratingInput.value = current;
+                    paint(current);
+                    submitBtn.disabled = current < 1;
+                });
+                star.addEventListener('mouseenter', () => paint(parseInt(star.dataset.value)));
+                star.addEventListener('mouseleave', () => paint(current));
+            });
+        }
+        function paint(n) {
+            stars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= n));
+        }
+    </script>
+</body>
+
+</html>

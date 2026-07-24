@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<!--/*
+  Layout dung chung cho Admin Console. Giu NGUYEN thiet ke + mau sac cua Stitch,
+  chi tach thanh cac fragment de tai su dung (head / sidebar / topbar).
+  Cac trang admin/*.html se th:replace cac fragment nay.
+*/-->
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(pageTitle)">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title th:text="${pageTitle} + ' - Admin Console'">Admin Console</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal; font-style: normal; font-size: 24px; line-height: 1;
+            letter-spacing: normal; text-transform: none; display: inline-block;
+            white-space: nowrap; word-wrap: normal; direction: ltr;
+            -webkit-font-smoothing: antialiased; font-variation-settings: 'FILL' 0;
+        }
+    </style>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: { extend: {
+            "colors": {
+              "on-tertiary-container": "#6fe87c","surface-bright": "#f8f9fa","on-tertiary": "#ffffff",
+              "on-primary-fixed-variant": "#004491","on-error": "#ffffff","tertiary-fixed": "#83fc8e",
+              "surface-container-low": "#f3f4f5","primary-fixed-dim": "#acc7ff","inverse-surface": "#2e3132",
+              "on-primary": "#ffffff","tertiary": "#004c17","on-secondary-fixed": "#2f1500","surface-dim": "#d9dadb",
+              "secondary-fixed": "#ffdcc3","on-tertiary-fixed-variant": "#00531a","surface-tint": "#115cb9",
+              "inverse-on-surface": "#f0f1f2","tertiary-container": "#006722","surface-container": "#edeeef",
+              "secondary-container": "#fd8b00","surface-container-lowest": "#ffffff","inverse-primary": "#acc7ff",
+              "outline-variant": "#c2c6d4","on-secondary-container": "#603100","on-secondary": "#ffffff",
+              "secondary-fixed-dim": "#ffb77d","on-primary-fixed": "#001a40","error": "#ba1a1a",
+              "on-primary-container": "#bbd0ff","on-error-container": "#93000a","tertiary-fixed-dim": "#66df75",
+              "secondary": "#904d00","on-surface-variant": "#424752","on-background": "#191c1d","on-surface": "#191c1d",
+              "surface": "#f8f9fa","primary": "#003f87","error-container": "#ffdad6","primary-fixed": "#d7e2ff",
+              "primary-container": "#0056b3","surface-container-high": "#e7e8e9","surface-container-highest": "#e1e3e4",
+              "outline": "#727784","surface-variant": "#e1e3e4","on-secondary-fixed-variant": "#6e3900",
+              "on-tertiary-fixed": "#002106","background": "#f8f9fa"
+            },
+            "borderRadius": { "DEFAULT": "0.125rem","lg": "0.25rem","xl": "0.5rem","full": "0.75rem" },
+            "spacing": { "xs":"4px","sm":"12px","container-max":"1200px","xl":"80px","gutter":"24px","base":"8px","md":"24px","lg":"48px" },
+            "fontFamily": { "display-lg":["Inter"],"body-main":["Inter"],"label-caps":["Inter"],"body-sm":["Inter"],"title-sm":["Inter"],"headline-md-mobile":["Inter"],"headline-md":["Inter"],"data-price":["JetBrains Mono"],"data-mono":["JetBrains Mono"] },
+            "fontSize": {
+              "display-lg":["48px",{"lineHeight":"56px","letterSpacing":"-0.02em","fontWeight":"700"}],
+              "body-main":["16px",{"lineHeight":"24px","fontWeight":"400"}],
+              "label-caps":["12px",{"lineHeight":"16px","letterSpacing":"0.05em","fontWeight":"700"}],
+              "body-sm":["14px",{"lineHeight":"20px","fontWeight":"400"}],
+              "title-sm":["18px",{"lineHeight":"24px","fontWeight":"600"}],
+              "headline-md-mobile":["24px",{"lineHeight":"32px","fontWeight":"600"}],
+              "headline-md":["32px",{"lineHeight":"40px","letterSpacing":"-0.01em","fontWeight":"600"}],
+              "data-price":["20px",{"lineHeight":"28px","letterSpacing":"-0.02em","fontWeight":"600"}],
+              "data-mono":["16px",{"lineHeight":"24px","fontWeight":"500"}]
+            }
+          } },
+        }
+    </script>
+</head>
+<body>
+<!-- ===================== SIDEBAR ===================== -->
+<nav th:fragment="sidebar(active)" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0E2A47] overflow-y-auto flex flex-col shadow-xl">
+    <div class="p-6 shrink-0">
+        <div class="font-headline-md text-headline-md font-bold text-white mb-1">Bus Admin</div>
+        <div class="text-primary-fixed-dim font-body-sm text-body-sm">Hệ thống quản trị</div>
+    </div>
+    <div class="flex-1 flex flex-col gap-1 mt-4">
+        <a th:href="@{/admin/dashboard}"
+           th:classappend="${active == 'dashboard'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
+            <span class="material-symbols-outlined">dashboard</span><span>Dashboard</span>
+        </a>
+        <a th:href="@{/admin/accounts}"
+           th:classappend="${active == 'accounts'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
+            <span class="material-symbols-outlined">group</span><span>Quản lý tài khoản</span>
+        </a>
+        <a th:href="@{/admin/trips}"
+           th:classappend="${active == 'trips'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
+            <span class="material-symbols-outlined">directions_bus</span><span>Quản lý chuyến xe</span>
+        </a>
+        <a th:href="@{/admin/buses}"
+           th:classappend="${active == 'buses'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
+            <span class="material-symbols-outlined">local_shipping</span><span>Quản lý xe</span>
+        </a>
+        <a th:href="@{/admin/routes}"
+           th:classappend="${active == 'routes'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
+            <span class="material-symbols-outlined">route</span><span>Quản lý tuyến</span>
+        </a>
+        <a th:href="@{/admin/stations}"
+           th:classappend="${active == 'stations'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
+            <span class="material-symbols-outlined">location_on</span><span>Quản lý bến</span>
+        </a>
+    </div>
+    <div class="mt-auto border-t border-white/10 pt-4 pb-6 flex flex-col gap-1">
+        <a th:href="@{/auth/logout}" class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:bg-white/10 rounded-lg mx-2 transition-colors">
+            <span class="material-symbols-outlined">logout</span><span>Đăng xuất</span>
+        </a>
+    </div>
+</nav>
+
+<!-- ===================== TOP BAR ===================== -->
+<header th:fragment="topbar" class="w-full h-16 fixed top-0 right-0 z-40 bg-surface-container-lowest border-b border-outline-variant flex justify-between items-center px-gutter ml-64 pl-64 transition-all duration-200">
+    <div class="flex-1"></div>
+    <div class="flex items-center gap-4">
+        <div class="h-6 w-px bg-outline-variant mx-2"></div>
+        <div class="flex items-center gap-3 py-1 px-2 rounded-lg">
+            <div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold font-body-sm text-body-sm"
+                 th:text="${currentUser != null} ? ${#strings.substring(currentUser.fullName(),0,1)} : 'A'">A</div>
+            <div class="hidden md:block text-sm">
+                <div class="font-title-sm text-title-sm text-primary" th:text="${currentUser != null} ? ${currentUser.fullName()} : 'Admin'">Admin</div>
+                <div class="font-body-sm text-body-sm text-on-surface-variant">Quản trị viên</div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===================== FLASH MESSAGES ===================== -->
+<div th:fragment="flash">
+    <div th:if="${successMessage}" class="mb-6 flex items-center gap-2 px-4 py-3 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed border border-tertiary/30">
+        <span class="material-symbols-outlined">check_circle</span><span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="mb-6 flex items-center gap-2 px-4 py-3 rounded-xl bg-error-container text-on-error-container border border-error/30">
+        <span class="material-symbols-outlined">error</span><span th:text="${errorMessage}"></span>
+    </div>
+</div>
+</body>
+</html>

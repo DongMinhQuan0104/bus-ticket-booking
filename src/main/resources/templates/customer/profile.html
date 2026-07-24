@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="light" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Hồ sơ của tôi | Bus Ticket Booking</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = { darkMode: "class", theme: { extend: {
+            "colors": {
+                "background": "#f8f9fa", "surface": "#f8f9fa",
+                "surface-container-low": "#f3f4f5", "surface-container-lowest": "#ffffff",
+                "surface-container-highest": "#e1e3e4",
+                "outline": "#727784", "outline-variant": "#c2c6d4",
+                "primary": "#003f87", "on-primary": "#ffffff",
+                "on-surface": "#191c1d", "on-surface-variant": "#424752",
+                "brand-orange": "#F26A21", "brand-dark": "#0E2A47", "tertiary": "#004c17",
+                "success-container": "#d7f5e3", "error": "#ba1a1a",
+                "error-container": "#ffdad6", "on-error-container": "#93000a"
+            },
+            "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+            "spacing": { "gutter": "24px", "md": "24px", "lg": "48px", "sm": "12px", "xl": "80px", "container-max": "1200px" },
+            "fontFamily": { "body-main": ["Inter"] }
+        }}}
+    </script>
+    <style>.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400; vertical-align: middle; }</style>
+</head>
+<body class="bg-background text-on-surface font-body-main">
+
+<header class="bg-surface border-b border-outline-variant sticky top-0 z-50">
+    <div class="flex justify-between items-center h-20 px-gutter max-w-container-max mx-auto">
+        <div class="flex items-center gap-8">
+            <a class="text-xl font-bold text-brand-dark" th:href="@{/home}">Bus Ticket Booking</a>
+            <nav class="hidden md:flex gap-6">
+                <a class="text-on-surface-variant hover:text-primary transition-colors" th:href="@{/trips/search}">Tìm chuyến</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors" th:href="@{/my-tickets}">Vé của tôi</a>
+                <a class="text-primary border-b-2 border-brand-orange font-bold pb-1" th:href="@{/profile}">Hồ sơ</a>
+            </nav>
+        </div>
+        <div class="flex gap-4 items-center">
+            <span th:if="${currentUser != null}" class="font-medium" th:text="${'Xin chào, ' + (currentUser.fullName() ?: currentUser.email())}">Xin chào</span>
+            <a class="px-5 py-2 text-primary border border-primary font-semibold rounded hover:bg-surface-container-low" th:href="@{/auth/logout}">Đăng xuất</a>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-2xl mx-auto px-gutter py-lg space-y-6">
+    <h1 class="text-2xl font-bold">Hồ sơ của tôi</h1>
+
+    <div th:if="${successMessage}" class="bg-success-container text-tertiary p-4 rounded-lg flex items-center gap-2">
+        <span class="material-symbols-outlined">check_circle</span><span th:text="${successMessage}">OK</span>
+    </div>
+    <div th:if="${errorMessage}" class="bg-error-container text-on-error-container p-4 rounded-lg flex items-center gap-2">
+        <span class="material-symbols-outlined">error</span><span th:text="${errorMessage}">Lỗi</span>
+    </div>
+
+    <!-- Thong tin hien tai + cap nhat -->
+    <div class="bg-white border border-outline-variant rounded-xl p-md">
+        <h2 class="text-lg font-bold mb-4">Thông tin cá nhân</h2>
+        <form th:action="@{/profile}" method="post" th:object="${updateForm}" class="space-y-4" novalidate>
+            <div class="flex flex-col gap-2">
+                <label class="text-[10px] uppercase text-on-surface-variant">Họ và tên</label>
+                <input type="text" th:field="*{fullName}" th:value="${account.fullName()}"
+                       th:classappend="${#fields.hasErrors('fullName')} ? ' border-error' : ' border-outline-variant'"
+                       class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none"/>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label class="text-[10px] uppercase text-on-surface-variant">Email</label>
+                <input type="text" th:field="*{email}" th:value="${account.email()}"
+                       th:classappend="${#fields.hasErrors('email')} ? ' border-error' : ' border-outline-variant'"
+                       class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none"/>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label class="text-[10px] uppercase text-on-surface-variant">Số điện thoại</label>
+                <input type="text" th:field="*{phoneNumber}" th:value="${account.phoneNumber()}"
+                       th:classappend="${#fields.hasErrors('phoneNumber')} ? ' border-error' : ' border-outline-variant'"
+                       class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none"/>
+            </div>
+            <div class="text-xs text-on-surface-variant">Vai trò:
+                <span class="font-medium" th:text="${account.role()}">CUSTOMER</span></div>
+            <button type="submit" class="bg-brand-orange text-white font-bold px-6 py-2 rounded-lg hover:brightness-90 active:translate-y-px">
+                Lưu thay đổi
+            </button>
+        </form>
+    </div>
+
+    <!-- Doi mat khau -->
+    <div class="bg-white border border-outline-variant rounded-xl p-md">
+        <h2 class="text-lg font-bold mb-4">Đổi mật khẩu</h2>
+        <form th:action="@{/profile/change-password}" method="post" th:object="${changePasswordForm}" class="space-y-4" novalidate>
+            <div class="flex flex-col gap-2">
+                <label class="text-[10px] uppercase text-on-surface-variant">Mật khẩu hiện tại</label>
+                <input type="password" th:field="*{oldPassword}"
+                       class="w-full border border-outline-variant rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none"/>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label class="text-[10px] uppercase text-on-surface-variant">Mật khẩu mới</label>
+                <input type="password" th:field="*{newPassword}"
+                       class="w-full border border-outline-variant rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none"/>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label class="text-[10px] uppercase text-on-surface-variant">Xác nhận mật khẩu mới</label>
+                <input type="password" th:field="*{confirmNewPassword}"
+                       class="w-full border border-outline-variant rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none"/>
+            </div>
+            <button type="submit" class="border border-primary text-primary font-bold px-6 py-2 rounded-lg hover:bg-surface-container-low">
+                Đổi mật khẩu
+            </button>
+        </form>
+    </div>
+
+    <!-- Vo hieu hoa tai khoan -->
+    <div class="bg-white border border-error/40 rounded-xl p-md">
+        <h2 class="text-lg font-bold mb-2 text-error">Vô hiệu hóa tài khoản</h2>
+        <p class="text-sm text-on-surface-variant mb-4">Tài khoản sẽ bị vô hiệu hóa và bạn sẽ bị đăng xuất. Lịch sử vé vẫn được giữ lại.</p>
+        <form th:action="@{/profile/deactivate}" method="post" onsubmit="return confirm('Bạn chắc chắn muốn vô hiệu hóa tài khoản?');">
+            <button type="submit" class="bg-error text-white font-bold px-6 py-2 rounded-lg hover:brightness-90 active:translate-y-px">
+                Vô hiệu hóa tài khoản
+            </button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

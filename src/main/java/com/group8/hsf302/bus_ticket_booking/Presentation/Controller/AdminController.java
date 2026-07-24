@@ -1,19 +1,39 @@
 package com.group8.hsf302.bus_ticket_booking.Presentation.Controller;
 
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.*;
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.*;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateAccountForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateBusForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateAccountForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateBusForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateTripForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateTripForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateStationForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateStationForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminCreateRouteForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.AdminUpdateRouteForm;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.BusViewModel;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.Paging.PagedResponse;
 import com.group8.hsf302.bus_ticket_booking.Application.Service.Admin.AdminService;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.BusCapacity;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.BusType;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Role;
-import jakarta.validation.Valid;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
+import com.group8.hsf302.bus_ticket_booking.Domain.Exception.AccessDeniedException;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
 
+/**
+ * Admin Console (Quan tri vien). Chi mo cho tai khoan role ADMIN.
+ * Pham vi FE hoan thien theo phan BE da san sang: Bus (CRUD day du), Account (CRUD),
+ * Route (xem danh sach), Trip (xem danh sach + xoa).
+ * (Tao/sua Trip va quan ly Tram/Ghe chua lam do DTO BE con trong - de danh cho phan BE cua Quan.)
+ */
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
@@ -24,355 +44,236 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    @GetMapping("/stations")
-    public String listStations(@RequestParam(required = false) String name,
-                               @RequestParam(defaultValue = "0") int page,
-                               @RequestParam(defaultValue = "10") int size,
-                               Model model) {
-        PagedResponse<StationViewModel> pageData;
-        if (name != null && !name.trim().isEmpty()) {
-            pageData = adminService.getStationByName(name, page, size);
-            model.addAttribute("searchName", name);
-        } else {
-            pageData = adminService.getAllStations(page, size);
+    /** Chi cho ADMIN vao. Giong pattern verifyDriverAuth cua DriverController. */
+    private AccountViewModel verifyAdminAuth(HttpSession session) {
+        AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
+        if (currentUser == null) {
+            throw new AccessDeniedException("Vui long dang nhap de vao trang quan tri.");
         }
-        model.addAttribute("pageData", pageData);
-        return "/station/list";
-    }
-
-    @GetMapping("/stations/create")
-    public String showCreateStationForm(Model model) {
-        if (!model.containsAttribute("form")) {
-            model.addAttribute("form", new AdminCreateStationForm());
+        if (currentUser.role() != Role.ADMIN) {
+            throw new AccessDeniedException("Ban khong co quyen truy cap trang quan tri (can role ADMIN).");
         }
-        return "/station/create";
+        return currentUser;
     }
 
-    @PostMapping("/stations/create")
-    public String createStation(@Valid @ModelAttribute("form") AdminCreateStationForm form,
-                                BindingResult result, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            return "admin/station/create";
-        }
-        adminService.createStation(form);
-        redirectAttributes.addFlashAttribute("successMessage", "Add new station successfully");
-        return "redirect:/admin/stations";
+    private void addCommon(Model model, AccountViewModel admin) {
+        model.addAttribute("currentUser", admin);
     }
 
-    @GetMapping("/stations/{id}/edit")
-    public String showEditStationForm(@PathVariable UUID id, Model model) {
-        if (!model.containsAttribute("form")) {
-            StationViewModel station = adminService.getStationById(id);
-            model.addAttribute("form", station);
-        }
-        return "/station/edit";
+    @GetMapping({"", "/"})
+    public String index() {
+        return "redirect:/admin/dashboard";
     }
 
-    @PostMapping("/stations/{id}/edit")
-    public String updateStation(@PathVariable UUID id,
-                                @Valid @ModelAttribute("form") AdminUpdateStationForm form,
-                                BindingResult result, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            return "/station/edit";
-        }
-        adminService.updateStation(form, id);
-        redirectAttributes.addFlashAttribute("successMessage", "Update station successfully");
-        return "redirect:/admin/stations";
+    // ===== Dashboard: vai so lieu tong quan =====
+    @GetMapping("/dashboard")
+    public String dashboard(HttpSession session, Model model) {
+        AccountViewModel admin = verifyAdminAuth(session);
+        addCommon(model, admin);
+        model.addAttribute("totalAccounts", adminService.getAllAccounts(0, 1).getTotalElements());
+        model.addAttribute("totalBuses", adminService.getAllBuses(0, 1).getTotalElements());
+        model.addAttribute("totalRoutes", adminService.getAllRoutes(0, 1).getTotalElements());
+        model.addAttribute("totalTrips", adminService.getAllTrips(0, 1).getTotalElements());
+        return "admin/dashboard";
     }
 
-    @PostMapping("/stations/{id}/delete")
-    public String deleteStation(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-        adminService.deletedStation(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Delete station successfully");
-        return "redirect:/admin/stations";
-    }
-
-
+    // ===================== BUS (CRUD day du) =====================
     @GetMapping("/buses")
-    public String listBuses(@RequestParam(required = false) String name,
-                            @RequestParam(defaultValue = "0") int page,
-                            @RequestParam(defaultValue = "10") int size,
-                            Model model) {
-        PagedResponse<BusViewModel> pageData;
-        if (name != null && !name.trim().isEmpty()) {
-            pageData = adminService.getBusByName(name, page, size);
-            model.addAttribute("searchName", name);
-        } else {
-            pageData = adminService.getAllBuses(page, size);
-        }
-        model.addAttribute("pageData", pageData);
-        return "admin/bus/list";
-    }
-
-    @GetMapping("/buses/create")
-    public String showCreateBusForm(Model model) {
-        if (!model.containsAttribute("form")) {
-            model.addAttribute("form", new AdminCreateBusForm());
-        }
-        return "admin/bus/create";
+    public String buses(@RequestParam(defaultValue = "0") int page,
+                        @RequestParam(required = false) String q,
+                        HttpSession session, Model model) {
+        AccountViewModel admin = verifyAdminAuth(session);
+        addCommon(model, admin);
+        PagedResponse<BusViewModel> buses = (q != null && !q.isBlank())
+                ? adminService.getBusByName(q, page, 10)
+                : adminService.getAllBuses(page, 10);
+        model.addAttribute("buses", buses);
+        model.addAttribute("q", q);
+        model.addAttribute("busTypes", BusType.values());
+        model.addAttribute("busCapacities", BusCapacity.values());
+        model.addAttribute("statuses", Status.values());
+        return "admin/buses";
     }
 
     @PostMapping("/buses/create")
-    public String createBus(@Valid @ModelAttribute("form") AdminCreateBusForm form,
-                            BindingResult result, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            return "admin/bus/create";
-        }
+    public String createBus(@ModelAttribute AdminCreateBusForm form, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
         adminService.createBus(form);
-        redirectAttributes.addFlashAttribute("successMessage", "Create bus successfully");
+        ra.addFlashAttribute("successMessage", "Da them xe moi.");
         return "redirect:/admin/buses";
     }
 
-    @GetMapping("/buses/{id}/edit")
-    public String showEditBusForm(@PathVariable UUID id, Model model) {
-        if (!model.containsAttribute("form")) {
-            BusViewModel bus = adminService.getBusById(id);
-            model.addAttribute("form", bus);
-        }
-        return "admin/bus/edit";
-    }
-
-    @PostMapping("/buses/{id}/edit")
-    public String updateBus(@PathVariable UUID id,
-                            @Valid @ModelAttribute("form") AdminUpdateBusForm form,
-                            BindingResult result, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            return "admin/bus/edit";
-        }
+    @PostMapping("/buses/{id}/update")
+    public String updateBus(@PathVariable UUID id, @ModelAttribute AdminUpdateBusForm form,
+                            RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
         adminService.updateBus(form, id);
-        redirectAttributes.addFlashAttribute("successMessage", "Update bus successfully");
+        ra.addFlashAttribute("successMessage", "Da cap nhat xe.");
         return "redirect:/admin/buses";
     }
 
     @PostMapping("/buses/{id}/delete")
-    public String deleteBus(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+    public String deleteBus(@PathVariable UUID id, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
         adminService.deleteBus(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Delete bus successfully!");
+        ra.addFlashAttribute("successMessage", "Da xoa xe.");
         return "redirect:/admin/buses";
     }
 
-
-    // =========================================================================
-    // 3. QUẢN LÝ TUYẾN ĐƯỜNG (ROUTE)
-    // =========================================================================
-
-    @GetMapping("/routes")
-    public String listRoutes(@RequestParam(required = false) String name,
-                             @RequestParam(defaultValue = "0") int page,
-                             @RequestParam(defaultValue = "10") int size,
-                             Model model) {
-        PagedResponse<RouteViewModel> pageData;
-        if (name != null && !name.trim().isEmpty()) {
-            pageData = adminService.getRouteByName(name, page, size);
-            model.addAttribute("searchName", name);
-        } else {
-            pageData = adminService.getAllRoutes(page, size);
-        }
-        model.addAttribute("pageData", pageData);
-        return "admin/route/list";
-    }
-
-    @GetMapping("/routes/create")
-    public String showCreateRouteForm(Model model) {
-        if (!model.containsAttribute("form")) {
-            model.addAttribute("form", new AdminCreateRouteForm());
-        }
-        // Bơm danh sách các bến xe ra Dropdown để Admin chọn lúc tạo tuyến
-        model.addAttribute("allStations", adminService.getAllStations(0, 1000));
-        return "admin/route/create";
-    }
-
-    @PostMapping("/routes/create")
-    public String createRoute(@Valid @ModelAttribute("form") AdminCreateRouteForm form,
-                              BindingResult result, Model model, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            model.addAttribute("allStations", adminService.getAllStations(0, 1000));
-            return "admin/route/create";
-        }
-        adminService.createRoute(form);
-        redirectAttributes.addFlashAttribute("successMessage", "Tạo tuyến đường thành công!");
-        return "redirect:/admin/routes";
-    }
-
-    @GetMapping("/routes/{id}/edit")
-    public String showEditRouteForm(@PathVariable UUID id, Model model) {
-        if (!model.containsAttribute("form")) {
-            RouteViewModel route = adminService.getRouteById(id);
-            model.addAttribute("form", route);
-        }
-        model.addAttribute("allStations", adminService.getAllStations(0, 1000));
-        return "admin/route/edit";
-    }
-
-    @PostMapping("/routes/{id}/edit")
-    public String updateRoute(@PathVariable UUID id,
-                              @Valid @ModelAttribute("form") AdminUpdateRouteForm form,
-                              BindingResult result, Model model, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            model.addAttribute("allStations", adminService.getAllStations(0, 1000));
-            return "admin/route/edit";
-        }
-        adminService.updateRoute(form, id);
-        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật tuyến đường thành công!");
-        return "redirect:/admin/routes";
-    }
-
-    @PostMapping("/routes/{id}/delete")
-    public String deleteRoute(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-        adminService.deletedRoute(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Đã xóa tuyến đường!");
-        return "redirect:/admin/routes";
-    }
-
-
-    // =========================================================================
-    // 4. QUẢN LÝ TÀI KHOẢN (ACCOUNT)
-    // =========================================================================
-
+    // ===================== ACCOUNT (CRUD) =====================
     @GetMapping("/accounts")
-    public String listAccounts(@RequestParam(required = false) String name,
-                               @RequestParam(defaultValue = "0") int page,
-                               @RequestParam(defaultValue = "10") int size,
-                               Model model) {
-        PagedResponse<AccountViewModel> pageData;
-        if (name != null && !name.trim().isEmpty()) {
-            pageData = adminService.getAccountByName(name, page, size);
-            model.addAttribute("searchName", name);
-        } else {
-            pageData = adminService.getAllAccounts(page, size);
-        }
-        model.addAttribute("pageData", pageData);
-        return "admin/account/list";
-    }
-
-    @GetMapping("/accounts/create")
-    public String showCreateAccountForm(Model model) {
-        if (!model.containsAttribute("form")) {
-            model.addAttribute("form", new AdminCreateAccountForm());
-        }
-        return "admin/account/create";
+    public String accounts(@RequestParam(defaultValue = "0") int page,
+                           @RequestParam(required = false) String q,
+                           HttpSession session, Model model) {
+        AccountViewModel admin = verifyAdminAuth(session);
+        addCommon(model, admin);
+        PagedResponse<AccountViewModel> accounts = (q != null && !q.isBlank())
+                ? adminService.getAccountByName(q, page, 10)
+                : adminService.getAllAccounts(page, 10);
+        model.addAttribute("accounts", accounts);
+        model.addAttribute("q", q);
+        model.addAttribute("roles", Role.values());
+        model.addAttribute("statuses", Status.values());
+        return "admin/accounts";
     }
 
     @PostMapping("/accounts/create")
-    public String createAccount(@Valid @ModelAttribute("form") AdminCreateAccountForm form,
-                                BindingResult result, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            return "admin/account/create";
-        }
+    public String createAccount(@ModelAttribute AdminCreateAccountForm form, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
         adminService.createAccount(form);
-        redirectAttributes.addFlashAttribute("successMessage", "Tạo tài khoản thành công!");
+        ra.addFlashAttribute("successMessage", "Da tao tai khoan.");
         return "redirect:/admin/accounts";
     }
 
-    @GetMapping("/accounts/{id}/edit")
-    public String showEditAccountForm(@PathVariable UUID id, Model model) {
-        if (!model.containsAttribute("form")) {
-            AccountViewModel account = adminService.getAccountById(id);
-            model.addAttribute("form", account);
-        }
-        return "admin/account/edit";
-    }
-
-    @PostMapping("/accounts/{id}/edit")
-    public String updateAccount(@PathVariable UUID id,
-                                @Valid @ModelAttribute("form") AdminUpdateAccountForm form,
-                                BindingResult result, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            return "admin/account/edit";
-        }
+    @PostMapping("/accounts/{id}/update")
+    public String updateAccount(@PathVariable UUID id, @ModelAttribute AdminUpdateAccountForm form,
+                                RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
         adminService.updateAccount(form, id);
-        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật tài khoản thành công!");
+        ra.addFlashAttribute("successMessage", "Da cap nhat tai khoan.");
         return "redirect:/admin/accounts";
     }
 
     @PostMapping("/accounts/{id}/delete")
-    public String deleteAccount(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+    public String deleteAccount(@PathVariable UUID id, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
         adminService.deleteAccount(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Đã khóa/xóa tài khoản!");
+        ra.addFlashAttribute("successMessage", "Da xoa tai khoan.");
         return "redirect:/admin/accounts";
     }
 
-
-    // =========================================================================
-    // 5. QUẢN LÝ CHUYẾN ĐI (TRIP)
-    // =========================================================================
-
-    @GetMapping("/trips")
-    public String listTrips(@RequestParam(required = false) String routeName,
-                            @RequestParam(defaultValue = "0") int page,
-                            @RequestParam(defaultValue = "10") int size,
-                            Model model) {
-        PagedResponse<TripViewModel> pageData;
-        if (routeName != null && !routeName.trim().isEmpty()) {
-            pageData = adminService.getTripByRouteName(routeName, page, size);
-            model.addAttribute("searchName", routeName);
-        } else {
-            pageData = adminService.getAllTrips(page, size);
-        }
-        model.addAttribute("pageData", pageData);
-        return "admin/trip/list";
+    // ===================== ROUTE (B2 - CRUD day du) =====================
+    @GetMapping("/routes")
+    public String routes(@RequestParam(defaultValue = "0") int page, HttpSession session, Model model) {
+        AccountViewModel admin = verifyAdminAuth(session);
+        addCommon(model, admin);
+        model.addAttribute("routes", adminService.getAllRoutes(page, 10));
+        // Danh sach tram cho dropdown chon diem dung khi tao/sua tuyen
+        model.addAttribute("stations", adminService.getAllStations(0, 1000).getContent());
+        return "admin/routes";
     }
 
-    @GetMapping("/trips/create")
-    public String showCreateTripForm(Model model) {
-        if (!model.containsAttribute("form")) {
-            model.addAttribute("form", new AdminCreateTripForm());
-        }
+    @PostMapping("/routes/create")
+    public String createRoute(@ModelAttribute AdminCreateRouteForm form, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.createRoute(form);
+        ra.addFlashAttribute("successMessage", "Da them tuyen moi.");
+        return "redirect:/admin/routes";
+    }
 
-        model.addAttribute("allRoutes", adminService.getAllRoutes(0, 1000));
-        model.addAttribute("allBuses", adminService.getAllBuses(0, 1000));
+    @PostMapping("/routes/{id}/update")
+    public String updateRoute(@PathVariable UUID id, @ModelAttribute AdminUpdateRouteForm form,
+                              RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.updateRoute(form, id);
+        ra.addFlashAttribute("successMessage", "Da cap nhat tuyen.");
+        return "redirect:/admin/routes";
+    }
 
-        model.addAttribute("allDrivers", adminService.getAccountByRole(Role.DRIVER));
+    @PostMapping("/routes/{id}/delete")
+    public String deleteRoute(@PathVariable UUID id, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.deletedRoute(id);
+        ra.addFlashAttribute("successMessage", "Da xoa tuyen.");
+        return "redirect:/admin/routes";
+    }
 
-        return "admin/trip/create";
+    // ===================== STATION (B2 - Quan ly ben/tram) =====================
+    @GetMapping("/stations")
+    public String stations(@RequestParam(defaultValue = "0") int page,
+                           @RequestParam(required = false) String q,
+                           HttpSession session, Model model) {
+        AccountViewModel admin = verifyAdminAuth(session);
+        addCommon(model, admin);
+        model.addAttribute("stations", (q != null && !q.isBlank())
+                ? adminService.getStationByName(q, page, 10)
+                : adminService.getAllStations(page, 10));
+        model.addAttribute("q", q);
+        model.addAttribute("statuses", Status.values());
+        return "admin/stations";
+    }
+
+    @PostMapping("/stations/create")
+    public String createStation(@ModelAttribute AdminCreateStationForm form, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.createStation(form);
+        ra.addFlashAttribute("successMessage", "Da them tram.");
+        return "redirect:/admin/stations";
+    }
+
+    @PostMapping("/stations/{id}/update")
+    public String updateStation(@PathVariable UUID id, @ModelAttribute AdminUpdateStationForm form,
+                                RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.updateStation(form, id);
+        ra.addFlashAttribute("successMessage", "Da cap nhat tram.");
+        return "redirect:/admin/stations";
+    }
+
+    @PostMapping("/stations/{id}/delete")
+    public String deleteStation(@PathVariable UUID id, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        adminService.deletedStation(id);
+        ra.addFlashAttribute("successMessage", "Da xoa tram.");
+        return "redirect:/admin/stations";
+    }
+
+    // ===================== TRIP (B4 - CRUD) =====================
+    // Da mo lai sau khi hoan thien BE (getAllTrips/createTrip/updateTrip/deletedTrip).
+    @GetMapping("/trips")
+    public String trips(@RequestParam(defaultValue = "0") int page, HttpSession session, Model model) {
+        AccountViewModel admin = verifyAdminAuth(session);
+        addCommon(model, admin);
+        model.addAttribute("trips", adminService.getAllTrips(page, 10));
+        // Danh sach tuyen + xe cho dropdown trong modal them/sua
+        model.addAttribute("routes", adminService.getAllRoutes(0, 1000).getContent());
+        model.addAttribute("buses", adminService.getAllBuses(0, 1000).getContent());
+        model.addAttribute("tripStatuses", TripStatus.values());
+        return "admin/trips";
     }
 
     @PostMapping("/trips/create")
-    public String createTrip(@Valid @ModelAttribute("form") AdminCreateTripForm form,
-                             BindingResult result, Model model, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            // Lỗi form thì phải bơm lại danh sách dropdown trước khi trả về trang cũ
-            model.addAttribute("allRoutes", adminService.getAllRoutes(0, 1000));
-            model.addAttribute("allBuses", adminService.getAllBuses(0, 1000));
-            model.addAttribute("allDrivers", adminService.getAccountByRole(Role.DRIVER));
-            return "admin/trip/create";
-        }
+    public String createTrip(@ModelAttribute AdminCreateTripForm form, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
         adminService.createTrip(form);
-        redirectAttributes.addFlashAttribute("successMessage", "Đã lên lịch chuyến đi thành công!");
+        ra.addFlashAttribute("successMessage", "Da them chuyen moi.");
         return "redirect:/admin/trips";
     }
 
-    @GetMapping("/trips/{id}/edit")
-    public String showEditTripForm(@PathVariable UUID id, Model model) {
-        if (!model.containsAttribute("form")) {
-            TripViewModel trip = adminService.getTripById(id);
-            model.addAttribute("form", trip);
-        }
-        model.addAttribute("allRoutes", adminService.getAllRoutes(0, 1000));
-        model.addAttribute("allBuses", adminService.getAllBuses(0, 1000));
-        model.addAttribute("allDrivers", adminService.getAccountByRole(Role.DRIVER));
-        return "admin/trip/edit";
-    }
-
-    @PostMapping("/trips/{id}/edit")
-    public String updateTrip(@PathVariable UUID id,
-                             @Valid @ModelAttribute("form") AdminUpdateTripForm form,
-                             BindingResult result, Model model, RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            model.addAttribute("allRoutes", adminService.getAllRoutes(0, 1000));
-            model.addAttribute("allBuses", adminService.getAllBuses(0, 1000));
-            model.addAttribute("allDrivers", adminService.getAccountByRole(Role.DRIVER));
-            return "admin/trip/edit";
-        }
+    @PostMapping("/trips/{id}/update")
+    public String updateTrip(@PathVariable UUID id, @ModelAttribute AdminUpdateTripForm form,
+                             RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
         adminService.updateTrip(form, id);
-        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin chuyến đi thành công!");
+        ra.addFlashAttribute("successMessage", "Da cap nhat chuyen.");
         return "redirect:/admin/trips";
     }
 
     @PostMapping("/trips/{id}/delete")
-    public String deleteTrip(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+    public String deleteTrip(@PathVariable UUID id, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
         adminService.deletedTrip(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Đã hủy chuyến đi thành công!");
+        ra.addFlashAttribute("successMessage", "Da xoa chuyen.");
         return "redirect:/admin/trips";
     }
 }

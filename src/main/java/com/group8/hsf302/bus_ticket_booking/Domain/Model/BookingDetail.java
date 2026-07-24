@@ -31,6 +31,9 @@ public class BookingDetail {
     @Column(nullable = false)
     private Boolean isReturnTicket = false;
 
+    @Column(nullable = false)
+    private Boolean isCheckedIn = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id")
     private Booking booking;
@@ -102,6 +105,14 @@ public class BookingDetail {
 
     public void setReturnTicket(Boolean returnTicket) {
         isReturnTicket = returnTicket;
+    }
+
+    public Boolean getIsCheckedIn() {
+        return isCheckedIn;
+    }
+
+    public void setIsCheckedIn(Boolean checkedIn) {
+        isCheckedIn = checkedIn;
     }
 
     public Booking getBooking() {

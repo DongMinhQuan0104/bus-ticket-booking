@@ -5,7 +5,6 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.*;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.Paging.PagedResponse;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Role;
-import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.*;
@@ -363,6 +362,9 @@ public class AdminServiceImpl implements AdminService{
         return true;
     }
 
+    // ===================== TRIP (B4 - Admin quan ly chuyen) =====================
+    // Truoc day cac method nay tra ve null (chua cai). Da hoan thien de Admin FE dung duoc.
+
     @Override
     public TripViewModel createTrip(AdminCreateTripForm form) {
         Route route = findRouteById(form.getRouteId());
@@ -378,10 +380,10 @@ public class AdminServiceImpl implements AdminService{
     @Transactional
     public PagedResponse<TripViewModel> getAllTrips(int page, int size) {
 
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "departureTime"));
         Page<Trip> tripPage = tripRepo.findAll(pageRequest);
         List<TripViewModel> viewModels = tripPage.stream()
-                .map((tripMapper::toViewModel))
+                .map(tripMapper::toViewModel)
                 .toList();
         return new PagedResponse<>(
                 viewModels,
@@ -397,7 +399,7 @@ public class AdminServiceImpl implements AdminService{
     @Transactional
     public PagedResponse<TripViewModel> getTripByRouteName(String name, int page, int size) {
 
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "departureTime"));
         Page<Trip> tripPage = tripRepo.findByRouteNameContainingIgnoreCase(name, pageRequest);
 
         List<TripViewModel> viewModels = tripPage.stream()
@@ -423,11 +425,14 @@ public class AdminServiceImpl implements AdminService{
     @Override
     public boolean updateTrip(AdminUpdateTripForm form, UUID id) {
         Trip existingTrip = findTripById(id);
-        Trip newTrip = tripMapper.updateEntityFromForm(form,existingTrip);
-        Route newRoute = findRouteById(form.getRouteId());
-        Bus newBus = findBusById(form.getBusId());
-        newTrip.setRoute(newRoute);
-        newTrip.setBus(newBus);
+        Trip newTrip = tripMapper.updateEntityFromForm(form, existingTrip);
+        if (form.getRouteId() != null) {
+            newTrip.setRoute(findRouteById(form.getRouteId()));
+        }
+        if (form.getBusId() != null) {
+            newTrip.setBus(findBusById(form.getBusId()));
+        }
+        tripRepo.save(newTrip);
         return true;
     }
 

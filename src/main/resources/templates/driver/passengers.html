@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Danh sách Hành khách &amp; Check-in | BusTicketBooking</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#476080",
+                    "tertiary": "#006d38",
+                    "on-background": "#191c1e",
+                    "secondary-container": "#c0d9fe",
+                    "outline-variant": "#e0c0b3",
+                    "primary-container": "#f26a21",
+                    "tertiary-container": "#39a763",
+                    "on-tertiary-container": "#003418",
+                    "primary": "#a33e00",
+                    "background": "#f7f9fc",
+                    "deep-blue": "#0E2A47",
+                    "bus-orange": "#F26A21"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "headline-lg": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fc; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        @media (max-width: 768px) { .desktop-only { display: none; } }
+        @media (min-width: 769px) { .mobile-only { display: none; } }
+    </style>
+</head>
+<body class="bg-background text-on-background">
+
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-0 left-0 z-50 flex justify-between items-center px-6 h-[64px] bg-white border-b border-outline-variant shadow-sm">
+    <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">directions_bus</span>
+        <div class="flex flex-col">
+            <span class="text-xl font-bold text-primary leading-tight">BusTicketBooking</span>
+            <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">CỔNG THÔNG TIN TÀI XẾ</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-4">
+        <div class="hidden md:flex items-center gap-2 px-3 py-1">
+            <div class="flex flex-col items-end mr-2">
+                <span class="text-sm font-bold text-on-surface" th:text="${currentUser != null ? currentUser.fullName() : 'Nguyễn Văn A'}">Nguyễn Văn A</span>
+                <span class="text-[10px] bg-[#F26A21] text-white px-2 py-0.5 rounded-full font-bold">TÀI XẾ</span>
+            </div>
+            <img alt="Avatar" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASkOYzQfuAI1dVrD268PDQKBPsYpjG7sWbBBVJetCQhDNF2JHOMjbZQ4OkBlexkwuvOJ3uMXzO2RDWeumrEfJl2xuHglGmlUfqeIgls8v-SN_0j_S6oZaIjcn6pxIUepguJq4n6SKu6_ZPlAbEu6U9qK7Wl4QYEhINk9ZsiSpSnmV41k_A7l95d50mXzkDPI53anzN28y-7lMOvRq2WDk9vbwMkVV1JiRLFxTXAxw8SF6ZkvAUXIaXdgfE9vPrPoIUrFc">
+        </div>
+        <a th:href="@{/auth/logout}" class="material-symbols-outlined p-2 text-[#F26A21] hover:bg-surface-container-high rounded-full transition-colors">logout</a>
+    </div>
+</header>
+
+<!-- Side Navigation Bar -->
+<aside class="fixed left-0 top-0 bottom-0 w-[280px] z-40 pt-[80px] pb-4 hidden md:flex flex-col shadow-lg bg-[#0E2A47]">
+    <nav class="flex-1 space-y-1 px-2">
+        <a th:href="@{/driver/trips}" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/10 rounded-lg transition-all">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="text-sm font-medium">Dashboard</span>
+        </a>
+        <a th:href="@{/driver/trips}" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/10 rounded-lg transition-all">
+            <span class="material-symbols-outlined">calendar_today</span>
+            <span class="text-sm font-medium">Lịch trình</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 bg-[#F26A21] text-white rounded-lg transition-all shadow-md" href="#">
+            <span class="material-symbols-outlined">group</span>
+            <span class="text-sm font-medium">Hành khách</span>
+        </a>
+        <a th:href="@{/driver/profile}" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/10 rounded-lg transition-all">
+            <span class="material-symbols-outlined">account_circle</span>
+            <span class="text-sm font-medium">Hồ sơ cá nhân</span>
+        </a>
+    </nav>
+    <div class="px-4 mt-auto pb-4 border-t border-white/10 pt-4">
+        <a th:href="@{/auth/logout}" class="w-full flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/10 rounded-lg transition-all">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="text-sm font-medium">&nbsp;Đăng xuất</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Main Content Canvas -->
+<main class="md:ml-[280px] pt-[64px] min-h-screen px-4 md:px-8 pb-8">
+    <!-- Banner Tiêu đề -->
+    <div class="mt-8 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col gap-2">
+            <a th:href="@{/driver/trips}" class="flex items-center gap-2 text-secondary font-medium hover:text-primary transition-colors text-sm">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                Quay lại Danh sách Chuyến
+            </a>
+            <div class="flex items-center gap-3 mt-1">
+                <div class="p-2 bg-primary-container/10 rounded-lg">
+                    <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">directions_bus</span>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-secondary uppercase tracking-tight"
+                        th:text="${trip != null ? 'Chuyến: ' + trip.routeName : 'Chuyến: SÀI GÒN - ĐÀ LẠT'}">
+                        Chuyến: SÀI GÒN - ĐÀ LẠT
+                    </h1>
+                    <p class="text-sm text-on-surface-variant flex items-center gap-3">
+                        <span class="flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">schedule</span>
+                            <span th:text="${trip != null && trip.departureTime != null ? #temporals.format(trip.departureTime, 'HH:mm | dd/MM/yyyy') : '08:00 | 23/07/2026'}">08:00 | 23/07/2026</span>
+                        </span>
+                        <span class="text-outline-variant">|</span>
+                        <span class="flex items-center gap-1 font-semibold">
+                            <span class="material-symbols-outlined text-sm">directions_car</span>&nbsp;
+                            <span th:text="${trip != null ? trip.busLicensePlate : '51B-123.45'}">51B-123.45</span>
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Banner Success -->
+    <div th:if="${successMessage}" class="mb-6" id="alert-banner-success">
+        <div class="flex items-center justify-between bg-tertiary-container/20 border border-tertiary/30 p-4 rounded-xl text-on-tertiary-container">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-tertiary">check_circle</span>
+                <span class="font-medium text-sm" th:text="${successMessage}">Cập nhật trạng thái thành công!</span>
+            </div>
+            <button class="material-symbols-outlined text-tertiary/60 hover:text-tertiary" onclick="document.getElementById('alert-banner-success').style.display='none'">close</button>
+        </div>
+    </div>
+
+    <!-- Alert Banner Error -->
+    <div th:if="${errorMessage}" class="mb-6" id="alert-banner-error">
+        <div class="flex items-center justify-between bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-red-600">warning</span>
+                <span class="font-medium text-sm" th:text="${errorMessage}">Có lỗi xảy ra!</span>
+            </div>
+            <button class="material-symbols-outlined text-red-700" onclick="document.getElementById('alert-banner-error').style.display='none'">close</button>
+        </div>
+    </div>
+
+    <!-- KPI Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-outline-variant/30 flex items-center justify-between hover:shadow-md transition-shadow">
+            <div>
+                <p class="text-on-surface-variant text-xs font-bold uppercase tracking-wider mb-1">TỔNG SỐ VÉ</p>
+                <p class="text-3xl font-bold text-secondary" th:text="${manifest != null ? #lists.size(manifest) : 40}">40</p>
+            </div>
+            <div class="w-12 h-12 bg-secondary-container/20 flex items-center justify-center rounded-xl">
+                <span class="material-symbols-outlined text-secondary">confirmation_number</span>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-outline-variant/30 flex items-center justify-between hover:shadow-md transition-shadow">
+            <div>
+                <p class="text-on-surface-variant text-xs font-bold uppercase tracking-wider mb-1">ĐÃ LÊN XE</p>
+                <p class="text-3xl font-bold text-[#2E9E5B]"
+                   th:text="${manifest == null ? 0 : #lists.size(manifest.?[isCheckedIn])}">25</p>
+            </div>
+            <div class="w-12 h-12 bg-tertiary-container/10 flex items-center justify-center rounded-xl">
+                <span class="material-symbols-outlined text-tertiary">check_circle</span>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-outline-variant/30 flex items-center justify-between hover:shadow-md transition-shadow">
+            <div>
+                <p class="text-on-surface-variant text-xs font-bold uppercase tracking-wider mb-1">CHƯA LÊN XE</p>
+                <p class="text-3xl font-bold text-[#F59F00]"
+                   th:text="${manifest == null ? 0 : #lists.size(manifest.?[!isCheckedIn])}">15</p>
+            </div>
+            <div class="w-12 h-12 bg-primary-container/10 flex items-center justify-center rounded-xl">
+                <span class="material-symbols-outlined text-primary">pending</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="bg-surface-container-low p-4 border border-outline-variant/50 mb-6 flex flex-col md:flex-row gap-4 items-center rounded-2xl">
+        <div class="relative flex-1 w-full">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+            <input class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#FDE68A] focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm" placeholder="Tìm nhanh Tên khách, SĐT, Email hoặc Mã vé..." type="text">
+        </div>
+        <div class="flex gap-2 items-center w-full md:w-auto">
+            <select class="px-4 py-2.5 rounded-lg border border-outline-variant/50 text-sm font-medium bg-white focus:outline-none">
+                <option>Tất cả trạng thái ▾</option>
+                <option value="CHECKED_IN">Đã lên xe</option>
+                <option value="NOT_CHECKED_IN">Chưa check-in</option>
+            </select>
+            <button class="bg-[#0E2A47] text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-bold text-sm hover:opacity-90 transition-colors">
+                <span class="material-symbols-outlined text-sm">filter_list</span> Lọc dữ liệu
+            </button>
+        </div>
+    </div>
+
+    <!-- Data Display Table -->
+    <div class="bg-white rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                <tr class="bg-surface-container-highest/30 border-b border-outline-variant text-xs">
+                    <th class="px-6 py-4 font-bold text-secondary uppercase tracking-wider">Người Đặt Vé &amp; Liên Hệ</th>
+                    <th class="px-6 py-4 font-bold text-secondary uppercase tracking-wider">SỐ LƯỢNG VÉ &amp; SỐ GHẾ</th>
+                    <th class="px-6 py-4 font-bold text-secondary uppercase tracking-wider">Mã Vé Chi Tiết &amp; Status</th>
+                    <th class="px-6 py-4 font-bold text-secondary uppercase tracking-wider text-center">Thao Tác</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/30">
+                <!-- Loop manifest -->
+                <tr th:each="item : ${manifest}" class="hover:bg-surface-bright transition-colors">
+                    <td class="px-6 py-5">
+                        <div class="flex flex-col">
+                            <span class="text-[#0E2A47] font-bold text-base" th:text="${item.passengerName}">Trần Hoàng Minh</span>
+                            <span class="text-secondary text-xs flex items-center gap-1 mt-1">
+                                <span class="material-symbols-outlined text-xs">call</span>
+                                <span th:text="${item.phoneNumber}">0912 345 678</span>
+                            </span>
+                            <span class="text-secondary text-xs flex items-center gap-1 mt-1">
+                                <span class="material-symbols-outlined text-xs">mail</span>
+                                <span th:text="${item.email}">hoangminh@gmail.com</span>
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-sm font-bold text-secondary"
+                                  th:text="${'1 Vé' + (item.ticketPrice != null ? ' — ' + #numbers.formatDecimal(item.ticketPrice,0,'COMMA',0,'POINT') + ' đ' : '')}">1 Vé</span>
+                            <span th:if="${item.isReturnTicket}" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-secondary-container text-on-secondary-fixed-variant w-fit">Vé khứ hồi</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="flex items-center justify-between text-xs p-1.5 rounded border max-w-[200px]"
+                             th:classappend="${item.isCheckedIn ? 'bg-tertiary-container/10 border-tertiary/20' : 'bg-primary-container/5 border-primary/20'}">
+                            <span class="font-mono font-bold" th:classappend="${item.isCheckedIn ? 'text-tertiary' : 'text-primary'}" th:text="${'#VD' + item.bookingDetailId}">#VD001</span>
+                            <span class="font-bold" th:classappend="${item.isCheckedIn ? 'text-tertiary' : 'text-primary'}" th:text="${item.isCheckedIn ? '✓ ĐÃ LÊN XE' : 'CHƯA CHECK-IN'}">CHƯA CHECK-IN</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5 text-center">
+                        <div class="flex justify-center">
+                            <form th:action="@{/driver/tickets/{id}/checkin(id=${item.bookingDetailId})}" method="post">
+                                <input type="hidden" name="tripId" th:value="${trip.id}" />
+                                <button type="submit" th:disabled="${item.isCheckedIn}"
+                                        th:class="${item.isCheckedIn ? 'text-tertiary font-bold text-sm flex items-center gap-1 mx-auto opacity-50 cursor-not-allowed' : 'bg-[#2E9E5B] hover:bg-[#005a2e] text-white px-6 py-2 rounded-lg font-bold shadow-md active:scale-95 transition-all flex items-center gap-2'}">
+                                    <span class="material-symbols-outlined" th:text="${item.isCheckedIn ? 'task_alt' : 'check'}">check</span>
+                                    <span th:text="${item.isCheckedIn ? '✓ Hoàn thành' : 'Xác nhận'}">Xác nhận</span>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Pagination -->
+        <div class="py-4 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-4 px-6 text-on-surface-variant text-sm">
+            <p>Đang hiển thị <b th:text="${manifest != null ? #lists.size(manifest) : 0}">3</b> hành khách</p>
+            <div class="flex items-center gap-1">
+                <button class="w-8 h-8 flex items-center justify-center rounded bg-white border border-outline-variant text-secondary disabled:opacity-30" disabled="">
+                    <span class="material-symbols-outlined text-sm">chevron_left</span>
+                </button>
+                <button class="w-8 h-8 flex items-center justify-center rounded bg-[#F26A21] text-white font-bold">1</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded bg-white border border-outline-variant text-secondary hover:bg-surface-container">
+                    <span class="material-symbols-outlined text-sm">chevron_right</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

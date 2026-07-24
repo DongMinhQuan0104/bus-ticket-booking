@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Lịch trình Chuyến đi | BusTicketBooking</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#476080",
+                    "primary": "#a33e00",
+                    "on-surface": "#191c1e",
+                    "surface-container-high": "#e6e8eb",
+                    "surface-container-low": "#f2f4f7",
+                    "outline-variant": "#e0c0b3",
+                    "primary-container": "#f26a21",
+                    "tertiary": "#006d38",
+                    "tertiary-container": "#39a763",
+                    "on-tertiary-container": "#003418",
+                    "bus-orange": "#F26A21",
+                    "deep-blue": "#0E2A47"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "headline-lg": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .zebra-table tr:nth-child(even) {
+            background-color: #F8FAFC;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+        .status-chip {
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+<body class="bg-[#F5F7FA] text-on-surface font-body-md overflow-x-hidden">
+
+<!-- Header Cố định -->
+<header class="fixed top-0 right-0 left-0 z-50 flex justify-between items-center px-6 h-[64px] bg-white shadow-sm border-b border-outline-variant">
+    <div class="flex items-center gap-4">
+        <div class="text-bus-orange text-[32px]"><span class="material-symbols-outlined text-[32px]">directions_bus</span></div>
+        <div class="flex flex-col">
+            <span class="text-xl font-bold text-primary leading-tight">BusTicketBooking</span>
+            <span class="text-[10px] font-bold tracking-widest text-secondary uppercase">Cổng Thông Tin Tài Xế</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-4">
+        <div class="hidden md:flex flex-col items-end mr-2">
+            <span class="text-sm font-bold text-on-surface" th:text="${currentUser != null ? currentUser.fullName() : 'Nguyễn Văn A'}">Nguyễn Văn A</span>
+            <span class="bg-bus-orange text-white text-[10px] px-2 py-0.5 rounded-full font-bold">TÀI XẾ</span>
+        </div>
+        <div class="h-10 w-10 rounded-full overflow-hidden border-2 border-primary-container shadow-sm">
+            <img class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaA0f6P91IRGMI0Gd8smqtah6yvwfXbQR5PuJp-iW6Z3qrcPSxiQ1-cK6MeBEHhOKTlxgRkwVUSlyw5DRLfu3FRY4T0TdsM02G3OohJY2arD3Q7EJLYaXNxsTmbEDH0tcPW1gQeqmuRUFPgX4uSZcavcQwfdOLaTcFP3Oi7EthM3FlFPzYAOPyKz9C_XJv_ca21hX1U8UcGwfKgGpeXchjiDJyF9UA9G0N4YBEXL-uYQ-2BiptmTybGQ" alt="Avatar"/>
+        </div>
+        <a th:href="@{/auth/logout}" class="flex items-center justify-center p-2 rounded-lg text-secondary hover:bg-surface-container-high transition-colors active:scale-95 duration-150">
+            <span class="material-symbols-outlined">logout</span>
+        </a>
+    </div>
+</header>
+
+<!-- Sidebar & Main Content Wrapper -->
+<div class="flex pt-[64px] min-h-screen">
+    <!-- SideNavBar -->
+    <aside class="fixed left-0 top-0 bottom-0 w-[280px] z-40 flex flex-col pt-[80px] pb-4 bg-deep-blue shadow-lg hidden md:flex">
+        <nav class="flex-1 space-y-2">
+            <a th:href="@{/driver/trips}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-300 hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="text-sm">Dashboard</span>
+            </a>
+            <a th:href="@{/driver/trips}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-xl bg-bus-orange text-white font-bold shadow-md">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <span class="text-sm">Lịch trình</span>
+            </a>
+            <a th:href="@{/driver/trips}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-300 hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined">group</span>
+                <span class="text-sm">Hành khách</span>
+            </a>
+            <a th:href="@{/driver/profile}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-300 hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined">account_circle</span>
+                <span class="text-sm">Hồ sơ cá nhân</span>
+            </a>
+        </nav>
+        <div class="mt-auto px-2 border-t border-white/10 pt-4">
+            <a th:href="@{/auth/logout}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-300 hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="text-sm">Đăng xuất</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Content Canvas -->
+    <main class="flex-1 md:ml-[280px] p-4 md:p-8">
+        <!-- Banner Alert Success -->
+        <div th:if="${successMessage}" class="mb-6 flex items-center justify-between p-4 bg-tertiary-container/20 border border-tertiary rounded-xl" id="alert-banner-success">
+            <div class="flex items-center gap-3 text-on-tertiary-container">
+                <span class="material-symbols-outlined text-tertiary">check_circle</span>
+                <span class="font-medium" th:text="${successMessage}">Cập nhật trạng thái thành công!</span>
+            </div>
+            <button class="text-tertiary hover:scale-110 transition-transform" onclick="document.getElementById('alert-banner-success').remove()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <!-- Banner Alert Error -->
+        <div th:if="${errorMessage}" class="mb-6 flex items-center justify-between p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl" id="alert-banner-error">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-red-600">warning</span>
+                <span class="font-medium" th:text="${errorMessage}">Có lỗi xảy ra!</span>
+            </div>
+            <button class="text-red-700 hover:scale-110 transition-transform" onclick="document.getElementById('alert-banner-error').remove()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-deep-blue">Danh sách Chuyến đi</h1>
+            <p class="text-sm text-secondary">Quản lý các chuyến đi được phân công trong ngày hôm nay và các ngày tới.</p>
+        </div>
+
+        <!-- Thanh KPI -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="glass-card p-6 rounded-xl shadow-sm border-l-4 border-bus-orange flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-secondary font-medium uppercase tracking-wider">CHUYẾN XE ĐƯỢC GIAO</p>
+                    <p class="text-[32px] font-bold text-deep-blue" th:text="${trips != null ? #lists.size(trips) : 0}">03</p>
+                </div>
+                <div class="h-12 w-12 bg-bus-orange/10 rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined text-bus-orange text-[28px]">assignment</span>
+                </div>
+            </div>
+            <div class="glass-card p-6 rounded-xl shadow-sm border-l-4 border-tertiary flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-secondary font-medium uppercase tracking-wider">Sẵn sàng chạy</p>
+                    <p class="text-[32px] font-bold text-deep-blue"
+                       th:text="${trips == null ? 0 : #lists.size(trips.?[status != null and status.name() == 'READY'])}">02</p>
+                </div>
+                <div class="h-12 w-12 bg-tertiary/10 rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined text-tertiary text-[28px]">play_circle</span>
+                </div>
+            </div>
+            <div class="glass-card p-6 rounded-xl shadow-sm border-l-4 border-secondary flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-secondary font-medium uppercase tracking-wider">Tổng số khách</p>
+                    <p class="text-[32px] font-bold text-deep-blue"
+                       th:text="${trips == null or #lists.isEmpty(trips) ? 0 : #aggregates.sum(trips.![totalPassengers])}">45</p>
+                </div>
+                <div class="h-12 w-12 bg-secondary/10 rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined text-secondary text-[28px]">groups</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thanh công cụ -->
+        <div class="p-4 shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-center bg-[#F8FAFC] border border-outline-variant rounded-2xl">
+            <div class="relative w-full flex-1">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary">search</span>
+                <input class="w-full pl-10 pr-4 py-2 border focus:ring-2 focus:ring-bus-orange focus:border-bus-orange outline-none transition-all border-[#FDE68A] rounded-xl bg-white text-sm" placeholder="Tìm nhanh Tuyến đường, Bến xe, Biển số xe..." type="text"/>
+            </div>
+            <div class="flex gap-4 w-full md:w-auto">
+                <select class="border border-outline-variant rounded-lg px-4 py-2 text-secondary text-sm outline-none focus:ring-2 focus:ring-bus-orange bg-white min-w-[160px]">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="SCHEDULED">Chưa chạy</option>
+                    <option value="READY">Sẵn sàng</option>
+                    <option value="RUNNING">Đang chạy</option>
+                    <option value="COMPLETED">Hoàn thành</option>
+                </select>
+            </div>
+            <button class="md:ml-auto bg-deep-blue text-white px-6 py-2 rounded-lg font-bold hover:bg-opacity-90 transition-all flex items-center gap-2 text-sm">
+                <span class="material-symbols-outlined">filter_list</span>
+                Lọc dữ liệu
+            </button>
+        </div>
+
+        <!-- Data Table -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-outline-variant">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left zebra-table border-collapse">
+                    <thead class="bg-surface-container-high text-on-surface border-b border-outline-variant">
+                    <tr>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Tuyến đường &amp; Hành trình</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Giờ khởi hành</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Xe &amp; Biển số</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Trạng thái</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant">
+                    <!-- Loop over trips -->
+                    <tr th:each="trip : ${trips}" class="hover:bg-primary-container/5 transition-colors">
+                        <td class="px-6 py-5">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-deep-blue text-base" th:text="${trip.routeName}">Sài Gòn - Đà Lạt</span>
+                                <div class="flex items-center gap-1 text-secondary text-xs mt-1">
+                                    <span class="material-symbols-outlined text-[14px]">location_on</span>
+                                    <span th:text="${trip.destinationFrom}">Bến xe Miền Đông</span>
+                                    <span class="mx-1">→</span>
+                                    <span th:text="${trip.destinationTo}">Bến xe Đà Lạt</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-2 text-on-surface">
+                                <span class="material-symbols-outlined text-bus-orange">schedule</span>
+                                <div>
+                                    <p class="font-bold" th:text="${trip.departureTime != null ? #temporals.format(trip.departureTime, 'HH:mm') : ''}">08:00</p>
+                                    <p class="text-xs text-secondary" th:text="${trip.departureTime != null ? #temporals.format(trip.departureTime, 'dd/MM/yyyy') : ''}">23/07/2026</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-on-surface" th:text="${trip.busName}">Limousine 24 chỗ</span>
+                                <span class="text-bus-orange font-bold text-sm" th:text="${trip.busLicensePlate}">51B-123.45</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="relative inline-block">
+                                <form th:action="@{/driver/trips/{id}/status(id=${trip.id})}" method="post">
+                                    <select name="status" onchange="this.form.submit()"
+                                            class="status-chip rounded-full h-10 px-4 font-bold text-center appearance-none cursor-pointer outline-none min-w-[140px] transition-colors"
+                                            th:classappend="${trip.status.name() == 'READY' ? 'bg-[#E0F2FE] text-[#0284C7]' : (trip.status.name() == 'RUNNING' ? 'bg-[#DCFCE7] text-[#15803D]' : (trip.status.name() == 'COMPLETED' ? 'bg-[#EEF2FF] text-[#4338CA]' : 'bg-[#F1F5F9] text-[#475569]'))}">
+                                        <option value="" disabled th:selected="${trip.status.name() == 'SCHEDULED'}">-- Đổi trạng thái --</option>
+                                        <option value="READY" th:selected="${trip.status.name() == 'READY'}">Sẵn sàng</option>
+                                        <option value="RUNNING" th:selected="${trip.status.name() == 'RUNNING'}">Đang chạy</option>
+                                        <option value="COMPLETED" th:selected="${trip.status.name() == 'COMPLETED'}">Hoàn thành</option>
+                                    </select>
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none font-bold">▾</span>
+                                </form>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 text-center">
+                            <!-- When SCHEDULED: Disabled button -->
+                            <button th:if="${trip.status.name() == 'SCHEDULED'}" class="w-full bg-[#E2E8F0] text-[#64748B] py-2.5 px-4 rounded-lg font-bold text-sm cursor-not-allowed opacity-80" disabled="">Khóa xem khách</button>
+
+                            <!-- When READY or RUNNING: Active Orange Button -->
+                            <a th:if="${trip.status.name() == 'READY' || trip.status.name() == 'RUNNING'}" th:href="@{/driver/trips/{id}/manifest(id=${trip.id})}" class="w-full bg-bus-orange text-white py-2.5 px-4 rounded-lg font-bold text-sm shadow-sm hover:shadow-md hover:bg-[#d85a1a] transition-all inline-block text-center">Xem Danh sách Khách</a>
+
+                            <!-- When COMPLETED: Outline Button -->
+                            <a th:if="${trip.status.name() == 'COMPLETED'}" th:href="@{/driver/trips/{id}/manifest(id=${trip.id})}" class="w-full border-2 border-[#0284C7] text-[#0284C7] py-2 px-4 rounded-lg font-bold text-sm hover:bg-[#0284C7]/5 transition-all inline-block text-center">Xem lại lịch sử</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="bg-surface-container-low px-6 py-4 flex justify-between items-center border-t border-outline-variant">
+                <p class="text-xs text-secondary">Hiển thị 1 - <span th:text="${trips != null ? #lists.size(trips) : 0}">5</span> chuyến đi</p>
+                <div class="flex gap-2">
+                    <button class="h-10 w-10 rounded-lg bg-white border border-[#E2E8F0] flex items-center justify-center text-secondary disabled:opacity-30" disabled="">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <button class="h-10 w-10 rounded-lg bg-bus-orange text-white font-bold flex items-center justify-center shadow-sm">1</button>
+                    <button class="h-10 w-10 rounded-lg bg-white border border-[#E2E8F0] flex items-center justify-center text-secondary">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

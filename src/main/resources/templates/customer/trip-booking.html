@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="light" lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title th:text="'Chọn chỗ ngồi | ' + ${trip.destinationFrom()} + ' → ' + ${trip.destinationTo()}">Chọn chỗ ngồi
+    </title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#f8f9fa",
+                        "surface": "#f8f9fa",
+                        "surface-container": "#edeeef",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e7e8e9",
+                        "surface-container-highest": "#e1e3e4",
+                        "outline": "#727784",
+                        "outline-variant": "#c2c6d4",
+                        "primary": "#003f87",
+                        "primary-container": "#0056b3",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#191c1d",
+                        "on-surface-variant": "#424752",
+                        "brand-orange": "#F26A21",
+                        "brand-dark": "#0E2A47",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a"
+                    },
+                    "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                    "spacing": { "xs": "4px", "base": "8px", "container-max": "1200px", "sm": "12px", "gutter": "24px", "md": "24px", "lg": "48px", "xl": "80px" },
+                    "fontFamily": { "data-price": ["JetBrains Mono"], "body-main": ["Inter"] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        .seat-selected {
+            background-color: #F26A21 !important;
+            color: white !important;
+            border-color: #F26A21 !important;
+        }
+
+        .seat-occupied {
+            background-color: #e9ecef !important;
+            color: #adb5bd !important;
+            border-color: #dee2e6 !important;
+            cursor: not-allowed;
+        }
+
+        .seat-available:hover {
+            background-color: #f0f7ff;
+            border-color: #003f87;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface font-body-main">
+
+    <!-- Header -->
+    <header class="bg-surface border-b border-outline-variant sticky top-0 z-50">
+        <div class="flex justify-between items-center h-20 px-gutter max-w-container-max mx-auto">
+            <div class="flex items-center gap-8">
+                <a class="text-xl font-bold text-brand-dark" th:href="@{/home}">Bus Ticket Booking</a>
+                <nav class="hidden md:flex gap-6">
+                    <a class="text-on-surface-variant hover:text-primary transition-colors"
+                        th:href="@{/trips/search}">Tìm chuyến</a>
+                    <a class="text-on-surface-variant hover:text-primary transition-colors" th:href="@{/my-tickets}">Vé
+                        của tôi</a>
+                    <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Hỗ trợ</a>
+                </nav>
+            </div>
+            <div class="flex gap-4 items-center">
+                <span th:if="${currentUser != null}" class="font-medium"
+                    th:text="${'Xin chào, ' + (currentUser.fullName() ?: currentUser.email())}">Xin chào</span>
+                <a th:if="${currentUser != null}"
+                    class="px-5 py-2 text-primary border border-primary font-semibold rounded hover:bg-surface-container-low"
+                    th:href="@{/auth/logout}">Đăng xuất</a>
+                <a th:if="${currentUser == null}"
+                    class="px-5 py-2 bg-primary text-on-primary font-semibold rounded hover:opacity-90"
+                    th:href="@{/auth/login}">Đăng nhập</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Trip Summary Bar & Countdown -->
+    <div class="bg-brand-dark text-white py-sm shadow-md">
+        <div
+            class="max-w-container-max mx-auto px-gutter flex flex-col md:flex-row justify-between items-center gap-sm">
+            <div class="flex items-center gap-md">
+                <div class="flex flex-col">
+                    <span class="text-xs opacity-70">CHUYẾN ĐI</span>
+                    <span class="font-bold"
+                        th:text="${trip.destinationFrom()} + ' → ' + ${trip.destinationTo()}">Tuyến</span>
+                </div>
+                <div class="h-8 w-px bg-white/20"></div>
+                <div class="flex flex-col">
+                    <span class="text-xs opacity-70">NGÀY ĐI</span>
+                    <span class="font-bold"
+                        th:text="${#temporals.format(trip.departureTime(),'HH:mm · dd/MM/yyyy')}">Giờ đi</span>
+                </div>
+                <div class="h-8 w-px bg-white/20 hidden md:block"></div>
+                <div class="flex flex-col hidden md:flex">
+                    <span class="text-xs opacity-70">NHÀ XE</span>
+                    <span class="font-bold"
+                        th:text="${trip.busName() != null ? trip.busName() : 'Nhà xe'} + ' · ' + ${trip.busCapacity() != null ? trip.busCapacity().getSeats() + ' chỗ' : ''}">Nhà
+                        xe</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-md bg-white/10 px-4 py-2 rounded-lg border border-white/20">
+                <span class="material-symbols-outlined text-brand-orange">timer</span>
+                <div class="flex flex-col">
+                    <span class="text-[10px] leading-none">THỜI GIAN GIỮ GHẾ</span>
+                    <span class="font-data-price text-lg text-brand-orange" id="countdown">10:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-container-max mx-auto px-gutter py-md grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+
+        <!-- Left: Seat Map -->
+        <section class="lg:col-span-8 bg-white border border-outline-variant p-md rounded-xl">
+            <div class="flex justify-between items-center mb-gutter">
+                <h2 class="text-lg font-bold">Sơ đồ ghế ngồi</h2>
+                <span class="text-sm text-on-surface-variant">Còn <span class="font-bold text-brand-orange"
+                        th:text="${trip.availableSeats()}">0</span>/<span th:text="${trip.totalSeats()}">16</span>
+                    ghế</span>
+            </div>
+
+            <div class="flex flex-col items-center">
+                <!-- Bus Frame -->
+                <div
+                    class="relative bg-surface-container rounded-t-[60px] rounded-b-xl border-2 border-outline-variant w-full max-w-[340px] p-6 pt-16">
+                    <div class="absolute top-4 left-1/2 -translate-x-1/2 text-xs text-outline flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">directions_bus</span> PHÍA TRƯỚC
+                    </div>
+                    <!-- Driver row -->
+                    <div class="flex justify-between mb-6 px-1">
+                        <div class="flex flex-col items-center gap-1">
+                            <div
+                                class="w-12 h-12 rounded-lg border border-outline flex items-center justify-center bg-surface-container-high">
+                                <span class="material-symbols-outlined text-outline">airline_seat_recline_normal</span>
+                            </div>
+                            <span class="text-[10px]">TÀI XẾ</span>
+                        </div>
+                        <span class="text-[10px] text-outline self-end">CỬA</span>
+                    </div>
+                    <!-- Seats grid: dong theo suc chua (16 -> 4x4, 32 -> 8x4) -->
+                    <div class="grid grid-cols-4 gap-3">
+                        <button th:each="code : ${seatCodes}" type="button" th:text="${code}"
+                            th:classappend="${occupiedSeatCodes.contains(code)} ? ' seat-occupied' : ' seat-available bg-white'"
+                            th:disabled="${occupiedSeatCodes.contains(code)}" th:attr="data-seat=${code}"
+                            class="seat w-full aspect-square rounded-lg border border-outline-variant transition-all flex items-center justify-center font-data-price text-sm">01</button>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="mt-8 flex justify-center gap-8">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded border border-outline-variant bg-white"></div>
+                        <span class="text-xs text-on-surface-variant">Trống</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded bg-brand-orange"></div>
+                        <span class="text-xs text-on-surface-variant">Đang chọn</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded bg-[#e9ecef] border border-[#dee2e6]"></div>
+                        <span class="text-xs text-on-surface-variant">Hết chỗ</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right: Passenger + Summary -->
+        <aside class="lg:col-span-4 space-y-gutter lg:sticky lg:top-[120px]">
+
+            <form th:action="@{/bookings/checkout}" method="get" id="checkout-form">
+                <input type="hidden" name="tripId" th:value="${trip.id()}" />
+                <input type="hidden" name="seats" id="seats-input" />
+
+                <!-- Passenger info -->
+                <div class="bg-white border border-outline-variant p-md rounded-xl mb-gutter">
+                    <h2 class="text-lg font-bold mb-4">Thông tin hành khách</h2>
+                    <div class="flex flex-col items-center justify-center py-6 text-center text-on-surface-variant"
+                        id="no-selection-msg">
+                        <span class="material-symbols-outlined text-4xl mb-2">event_seat</span>
+                        <p class="text-sm">Chọn ít nhất một chỗ ngồi để nhập thông tin.</p>
+                    </div>
+                    <div class="hidden space-y-4 max-h-[300px] overflow-y-auto pr-2" id="passenger-forms-container">
+                    </div>
+                </div>
+
+                <!-- Contact info -->
+                <div class="bg-white border border-outline-variant p-md rounded-xl mb-gutter">
+                    <h2 class="text-lg font-bold mb-4">Thông tin liên hệ</h2>
+                    <div class="space-y-4">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-[10px] uppercase text-on-surface-variant">Số điện thoại</label>
+                            <input name="contactPhone" type="tel" placeholder="0xxx xxx xxx"
+                                th:value="${currentUser != null ? currentUser.phoneNumber() : ''}"
+                                class="w-full bg-white border border-outline-variant rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none" />
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="text-[10px] uppercase text-on-surface-variant">Email</label>
+                            <input name="contactEmail" type="email" placeholder="example@gmail.com"
+                                th:value="${currentUser != null ? currentUser.email() : ''}"
+                                class="w-full bg-white border border-outline-variant rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none" />
+                        </div>
+                        <div class="flex items-start gap-2 pt-2">
+                            <input class="mt-1 rounded border-outline-variant text-brand-orange focus:ring-brand-orange"
+                                id="terms" type="checkbox" />
+                            <label class="text-[12px] text-on-surface-variant" for="terms">Tôi đồng ý với <a
+                                    class="text-primary underline" href="#">Điều khoản &amp; Chính sách</a>.</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="bg-white border border-outline-variant p-md rounded-xl">
+                    <h2 class="text-lg font-bold mb-4">Chi tiết thanh toán</h2>
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex flex-col">
+                            <span class="font-medium">Giá vé</span>
+                            <span class="text-sm text-on-surface-variant" id="selected-seats-label">Chưa chọn ghế</span>
+                        </div>
+                        <span class="font-data-price text-on-surface"
+                            th:text="${trip.price() != null ? #numbers.formatInteger(trip.price(),0,'POINT') + 'đ' : '—'}">250.000đ</span>
+                    </div>
+                    <div
+                        class="border-t border-dashed border-outline-variant pt-3 mt-3 flex justify-between items-center mb-gutter">
+                        <span class="font-bold">TỔNG CỘNG</span>
+                        <span class="font-data-price text-brand-orange text-2xl" id="total-price">0đ</span>
+                    </div>
+                    <div class="bg-surface-container-low p-4 rounded-lg mb-gutter">
+                        <p class="text-[12px] text-on-surface-variant leading-relaxed">
+                            <span class="material-symbols-outlined text-[14px] mr-1">info</span>
+                            Bạn có 10 phút để hoàn tất. Chọn tối đa
+                            <span th:text="${maxSeatsPerBooking}">4</span> ghế mỗi lần đặt.
+                        </p>
+                    </div>
+                    <button type="submit" id="continue-btn" disabled
+                        class="w-full bg-brand-orange hover:brightness-90 disabled:bg-outline-variant disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg transition-all active:translate-y-px">
+                        TIẾP TỤC THANH TOÁN
+                    </button>
+                </div>
+            </form>
+        </aside>
+    </main>
+
+    <footer class="bg-surface-container-highest mt-xl border-t border-outline-variant">
+        <div class="max-w-container-max mx-auto px-lg py-6 text-center text-sm text-on-surface-variant">
+            © 2026 Bus Ticket Booking. All rights reserved.
+        </div>
+    </footer>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const MAX_SEATS = [[${ maxSeatsPerBooking }]];
+        const SEAT_PRICE = [[${ trip.price() != null ? trip.price() : 0 }]];
+        /*]]>*/
+
+        function formatVnd(n) {
+            return new Intl.NumberFormat('vi-VN').format(n) + 'đ';
+        }
+
+        let selectedSeats = [];
+
+        document.querySelectorAll('.seat').forEach(btn => {
+            if (btn.classList.contains('seat-occupied')) return;
+            btn.addEventListener('click', () => toggleSeat(btn, btn.dataset.seat));
+        });
+
+        function toggleSeat(btn, code) {
+            if (selectedSeats.includes(code)) {
+                selectedSeats = selectedSeats.filter(s => s !== code);
+                btn.classList.remove('seat-selected');
+            } else {
+                if (selectedSeats.length >= MAX_SEATS) {
+                    alert('Bạn chỉ được đặt tối đa ' + MAX_SEATS + ' ghế mỗi lần.');
+                    return;
+                }
+                selectedSeats.push(code);
+                btn.classList.add('seat-selected');
+            }
+            updateSummary();
+            renderPassengerForms();
+        }
+
+        function updateSummary() {
+            const label = document.getElementById('selected-seats-label');
+            const total = document.getElementById('total-price');
+            document.getElementById('seats-input').value = selectedSeats.join(',');
+            if (selectedSeats.length > 0) {
+                label.innerText = 'Ghế ' + selectedSeats.join(', ') + ' (x' + selectedSeats.length + ')';
+                total.innerText = formatVnd(selectedSeats.length * SEAT_PRICE);
+            } else {
+                label.innerText = 'Chưa chọn ghế';
+                total.innerText = '0đ';
+            }
+            refreshContinueState();
+        }
+
+        function renderPassengerForms() {
+            const container = document.getElementById('passenger-forms-container');
+            const noMsg = document.getElementById('no-selection-msg');
+            if (selectedSeats.length === 0) {
+                container.classList.add('hidden');
+                noMsg.classList.remove('hidden');
+                container.innerHTML = '';
+                return;
+            }
+            container.classList.remove('hidden');
+            noMsg.classList.add('hidden');
+            container.innerHTML = selectedSeats.map(code => `
+            <div class="p-4 border border-outline-variant rounded-lg bg-surface-container-low">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="bg-brand-orange text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold">${code}</span>
+                    <h3 class="font-bold">Hành khách ghế ${code}</h3>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] uppercase text-on-surface-variant">Họ và tên</label>
+                    <input type="text" name="passengerName" placeholder="Nhập tên hành khách"
+                           class="bg-white border border-outline-variant rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none">
+                </div>
+            </div>`).join('');
+        }
+
+        function refreshContinueState() {
+            const terms = document.getElementById('terms').checked;
+            document.getElementById('continue-btn').disabled = !(selectedSeats.length > 0 && terms);
+        }
+
+        document.getElementById('terms').addEventListener('change', refreshContinueState);
+
+        // Countdown giu ghe 10 phut
+        let timeLeft = 600;
+        const countdownEl = document.getElementById('countdown');
+        const timer = setInterval(() => {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            countdownEl.innerText = m + ':' + (s < 10 ? '0' : '') + s;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                alert('Đã hết thời gian giữ ghế. Vui lòng tìm lại chuyến.');
+                window.location.href = /*[[@{/trips/search}]]*/ '/trips/search';
+            }
+            timeLeft--;
+        }, 1000);
+    </script>
+</body>
+
+</html>

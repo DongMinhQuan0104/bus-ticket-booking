@@ -1,0 +1,140 @@
+package com.group8.hsf302.bus_ticket_booking.Presentation.Controller;
+
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.CreateReviewForm;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.AccountViewModel;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.BookingViewModel;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.RefundViewModel;
+import com.group8.hsf302.bus_ticket_booking.Application.Service.Customer.CustomerService;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Controller quan ly ve cua khach hang (tang Presentation) - gom E4, E5, E6:
+ * <ul>
+ *   <li>E4: GET /my-tickets - danh sach ve cua toi</li>
+ *   <li>E5: GET/POST /my-tickets/{id}/cancel - huy ve + hoan tien</li>
+ *   <li>E6: GET/POST /my-tickets/{id}/review - danh gia chuyen di</li>
+ * </ul>
+ * Moi endpoint deu yeu cau dang nhap; quyen so huu ve duoc kiem tra o tang service.
+ */
+@Controller
+public class MyTicketController {
+
+    private final CustomerService customerService;
+
+    public MyTicketController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
+
+    /** E4 - Danh sach tat ca ve cua khach hang dang dang nhap. */
+    @GetMapping("/my-tickets")
+    public String myTickets(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
+        if (currentUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập để xem vé");
+            return "redirect:/auth/login";
+        }
+        List<BookingViewModel> bookings = customerService.getMyBookings(currentUser.id());
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("bookings", bookings);
+        return "customer/my-tickets";
+    }
+
+    /**
+     * E5 - Trang xac nhan huy ve. Hien truoc so tien duoc hoan theo chinh sach cua tang service:
+     * >=24h hoan 100%, 12-24h hoan 50%, <12h khong hoan.
+     */
+    @GetMapping("/my-tickets/{id}/cancel")
+    public String cancelForm(@PathVariable UUID id, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
+        if (currentUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập");
+            return "redirect:/auth/login";
+        }
+        BookingViewModel booking = customerService.getMyBooking(id, currentUser.id());
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("booking", booking);
+
+        // Chinh sach hoan tien do TANG SERVICE quyet dinh (BE la nguon chan ly),
+        // FE chi hien thi lai - tranh viec FE tinh mot kieu, BE tinh mot kieu.
+        RefundViewModel refund = customerService.previewRefund(id, currentUser.id());
+        long hoursLeft = booking.departureTime() != null
+                ? Duration.between(LocalDateTime.now(), booking.departureTime()).toHours() : 0;
+        model.addAttribute("hoursLeft", hoursLeft);
+        model.addAttribute("refund", refund);
+        model.addAttribute("refundPercent", refund.refundPercent());
+        model.addAttribute("refundAmount", refund.refundAmount());
+        return "customer/booking-cancel";
+    }
+
+    /** E5 - Thuc hien huy ve: goi service giai phong ghe va xoa don, roi quay ve danh sach ve. */
+    @PostMapping("/my-tickets/{id}/cancel")
+    public String doCancel(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
+        AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
+        if (currentUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập");
+            return "redirect:/auth/login";
+        }
+        RefundViewModel refund = customerService.cancelBooking(id, currentUser.id());
+        String money = String.format("%,.0f", refund.refundAmount());
+        redirectAttributes.addFlashAttribute("successMessage",
+                refund.refundAmount() > 0
+                        ? "Đã hủy vé. Ghế đã được giải phóng. Số tiền hoàn: " + money + " đ (" + refund.refundPercent() + "%)."
+                        : "Đã hủy vé. Ghế đã được giải phóng. " + refund.policyNote());
+        return "redirect:/my-tickets";
+    }
+
+    /**
+     * E6 - Trang danh gia chuyen di. Neu ve da danh gia (alreadyReviewed) thi hien thong bao thay vi form.
+     */
+    @GetMapping("/my-tickets/{id}/review")
+    public String reviewForm(@PathVariable UUID id, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
+        if (currentUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập");
+            return "redirect:/auth/login";
+        }
+        BookingViewModel booking = customerService.getMyBooking(id, currentUser.id());
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("booking", booking);
+        model.addAttribute("alreadyReviewed", customerService.hasReviewed(id));
+        if (!model.containsAttribute("reviewForm")) {
+            model.addAttribute("reviewForm", new CreateReviewForm());
+        }
+        return "customer/booking-review";
+    }
+
+    /** E6 - Gui danh gia: validate so sao (1-5) roi goi service luu Review (chan neu chua di / da danh gia). */
+    @PostMapping("/my-tickets/{id}/review")
+    public String doReview(@PathVariable UUID id,
+                           @Valid @ModelAttribute("reviewForm") CreateReviewForm reviewForm,
+                           BindingResult bindingResult,
+                           HttpSession session,
+                           RedirectAttributes redirectAttributes) {
+        AccountViewModel currentUser = (AccountViewModel) session.getAttribute("LOGGED_IN_USER");
+        if (currentUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập");
+            return "redirect:/auth/login";
+        }
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng chọn số sao đánh giá (1-5)");
+            return "redirect:/my-tickets/" + id + "/review";
+        }
+        customerService.reviewBooking(id, currentUser.id(), reviewForm);
+        redirectAttributes.addFlashAttribute("successMessage", "Cảm ơn đánh giá của bạn!");
+        return "redirect:/my-tickets";
+    }
+}

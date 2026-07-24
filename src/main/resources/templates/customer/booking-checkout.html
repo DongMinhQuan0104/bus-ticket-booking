@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="light" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Thanh toán | Bus Ticket Booking</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: { extend: {
+                "colors": {
+                    "background": "#f8f9fa", "surface": "#f8f9fa",
+                    "surface-container-low": "#f3f4f5", "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#e1e3e4",
+                    "outline": "#727784", "outline-variant": "#c2c6d4",
+                    "primary": "#003f87", "on-primary": "#ffffff",
+                    "on-surface": "#191c1d", "on-surface-variant": "#424752",
+                    "brand-orange": "#F26A21", "brand-dark": "#0E2A47",
+                    "error": "#ba1a1a"
+                },
+                "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                "spacing": { "gutter": "24px", "md": "24px", "lg": "48px", "sm": "12px", "xl": "80px", "container-max": "1200px" },
+                "fontFamily": { "data-price": ["JetBrains Mono"], "body-main": ["Inter"] }
+            }}
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400; vertical-align: middle; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-main">
+
+<header class="bg-surface border-b border-outline-variant sticky top-0 z-50">
+    <div class="flex justify-between items-center h-20 px-gutter max-w-container-max mx-auto">
+        <a class="text-xl font-bold text-brand-dark" th:href="@{/home}">Bus Ticket Booking</a>
+        <span th:if="${currentUser != null}" class="font-medium" th:text="${'Xin chào, ' + (currentUser.fullName() ?: currentUser.email())}">Xin chào</span>
+    </div>
+</header>
+
+<!-- Stepper -->
+<div class="bg-brand-dark text-white py-sm">
+    <div class="max-w-container-max mx-auto px-gutter flex items-center gap-4 text-sm">
+        <span class="opacity-60">① Chọn ghế</span>
+        <span class="material-symbols-outlined text-[16px] opacity-60">chevron_right</span>
+        <span class="font-bold text-brand-orange">② Thanh toán</span>
+        <span class="material-symbols-outlined text-[16px] opacity-60">chevron_right</span>
+        <span class="opacity-60">③ Hoàn tất</span>
+    </div>
+</div>
+
+<form th:action="@{/bookings/confirm}" method="post">
+    <input type="hidden" name="tripId" th:value="${trip.id()}"/>
+    <input type="hidden" name="bookingType" value="ONEWAY"/>
+    <input type="hidden" name="seatCodes" th:each="code : ${seatCodes}" th:value="${code}"/>
+    <input type="hidden" name="passengerNames" th:each="p : ${passengers}" th:value="${p.passengerName()}"/>
+
+    <!-- GIU GHE TAM: dem nguoc thoi gian con lai truoc khi ghe tu dong duoc giai phong -->
+    <div class="max-w-container-max mx-auto px-gutter pt-md" th:if="${holdSecondsLeft != null}">
+        <div id="holdBanner" class="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900">
+            <span class="material-symbols-outlined">timer</span>
+            <span>Ghế của bạn đang được giữ trong <b id="holdCountdown">--:--</b>. Vui lòng hoàn tất thanh toán trước khi hết giờ.</span>
+        </div>
+    </div>
+
+    <main class="max-w-container-max mx-auto px-gutter py-md grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+
+        <!-- Left: payment + contact -->
+        <section class="lg:col-span-7 space-y-gutter">
+            <div class="bg-white border border-outline-variant p-md rounded-xl">
+                <h2 class="text-lg font-bold mb-4">Phương thức thanh toán</h2>
+                <div class="space-y-3">
+                    <label th:each="pm, it : ${paymentMethods}"
+                           class="flex items-center gap-3 border border-outline-variant rounded-lg p-4 cursor-pointer hover:border-primary">
+                        <input type="radio" name="paymentMethod" th:value="${pm}" th:checked="${it.index == 0}"
+                               class="text-brand-orange focus:ring-brand-orange"/>
+                        <div>
+                            <p class="font-medium">Chuyển khoản trực tiếp</p>
+                            <p class="text-xs text-on-surface-variant">Chuyển khoản qua ngân hàng để hoàn tất đặt vé</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="bg-white border border-outline-variant p-md rounded-xl">
+                <h2 class="text-lg font-bold mb-4">Thông tin liên hệ</h2>
+                <div class="space-y-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] uppercase text-on-surface-variant">Số điện thoại</label>
+                        <input name="contactPhone" type="tel" th:value="${contactPhone}"
+                               class="w-full border border-outline-variant rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none"/>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] uppercase text-on-surface-variant">Email</label>
+                        <input name="contactEmail" type="email" th:value="${contactEmail}"
+                               class="w-full border border-outline-variant rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none"/>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] uppercase text-on-surface-variant">Ghi chú (tuỳ chọn)</label>
+                        <textarea name="note" rows="2"
+                                  class="w-full border border-outline-variant rounded p-2 text-sm focus:ring-2 focus:ring-primary outline-none"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right: order summary -->
+        <aside class="lg:col-span-5 space-y-gutter lg:sticky lg:top-[120px]">
+            <div class="bg-white border border-outline-variant p-md rounded-xl">
+                <h2 class="text-lg font-bold mb-4">Tóm tắt đơn hàng</h2>
+                <div class="space-y-2 text-sm border-b border-dashed border-outline-variant pb-4 mb-4">
+                    <div class="flex justify-between"><span class="text-on-surface-variant">Tuyến</span>
+                        <span class="font-medium" th:text="${trip.destinationFrom()} + ' → ' + ${trip.destinationTo()}">Tuyến</span></div>
+                    <div class="flex justify-between"><span class="text-on-surface-variant">Giờ đi</span>
+                        <span class="font-medium" th:text="${#temporals.format(trip.departureTime(),'HH:mm · dd/MM/yyyy')}">Giờ</span></div>
+                    <div class="flex justify-between"><span class="text-on-surface-variant">Nhà xe</span>
+                        <span class="font-medium" th:text="${trip.busName()}">Nhà xe</span></div>
+                </div>
+                <div class="space-y-2 mb-4">
+                    <p class="text-xs uppercase text-on-surface-variant">Hành khách</p>
+                    <div th:each="p : ${passengers}" class="flex justify-between text-sm">
+                        <span><span class="font-data-price text-brand-orange" th:text="${p.seatCode()}">A01</span>
+                            · <span th:text="${p.passengerName()}">Tên</span></span>
+                        <span class="font-data-price" th:text="${#numbers.formatInteger(unitPrice,0,'POINT')} + 'đ'">0đ</span>
+                    </div>
+                </div>
+                <div class="border-t border-dashed border-outline-variant pt-4 flex justify-between items-center mb-gutter">
+                    <span class="font-bold">TỔNG CỘNG</span>
+                    <span class="font-data-price text-brand-orange text-2xl"
+                          th:text="${#numbers.formatInteger(totalPrice,0,'POINT')} + 'đ'">0đ</span>
+                </div>
+                <button type="submit"
+                        class="w-full bg-brand-orange hover:brightness-90 text-white font-bold py-4 rounded-lg transition-all active:translate-y-px">
+                    XÁC NHẬN &amp; ĐẶT VÉ
+                </button>
+                <a th:href="@{/trips/{id}/booking(id=${trip.id()})}"
+                   class="block text-center text-sm text-primary mt-3 hover:underline">← Quay lại chọn ghế</a>
+            </div>
+        </aside>
+    </main>
+</form>
+
+<footer class="bg-surface-container-highest mt-xl border-t border-outline-variant">
+    <div class="max-w-container-max mx-auto px-lg py-6 text-center text-sm text-on-surface-variant">
+        © 2026 Bus Ticket Booking. All rights reserved.
+    </div>
+</footer>
+
+<!-- Dem nguoc thoi gian giu ghe. Het gio -> khoa nut xac nhan va bao quay lai chon ghe. -->
+<script th:inline="javascript" th:if="${holdSecondsLeft != null}">
+    let secondsLeft = /*[[${holdSecondsLeft}]]*/ 600;
+    const el = document.getElementById('holdCountdown');
+    const banner = document.getElementById('holdBanner');
+
+    function tick() {
+        if (secondsLeft <= 0) {
+            banner.className = 'flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-300 text-red-800';
+            banner.innerHTML = '<span class="material-symbols-outlined">error</span>' +
+                '<span>Đã hết thời gian giữ ghế. Vui lòng quay lại chọn ghế.</span>';
+            document.querySelectorAll('button[type="submit"]').forEach(b => {
+                b.disabled = true;
+                b.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+            return;
+        }
+        const m = Math.floor(secondsLeft / 60);
+        const s = secondsLeft % 60;
+        el.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+        secondsLeft--;
+        setTimeout(tick, 1000);
+    }
+    tick();
+</script>
+</body>
+</html>

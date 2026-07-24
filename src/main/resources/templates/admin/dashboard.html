@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Dashboard')}"></head>
+<body class="bg-surface-bright text-on-surface font-body-main text-body-main antialiased">
+<nav th:replace="~{admin/layout :: sidebar('dashboard')}"></nav>
+<header th:replace="~{admin/layout :: topbar}"></header>
+
+<main class="ml-64 pt-16 min-h-screen">
+    <div class="max-w-[1200px] mx-auto px-12 py-12">
+        <div th:replace="~{admin/layout :: flash}"></div>
+
+        <div class="mb-8">
+            <h1 class="font-headline-md text-headline-md text-on-surface mb-2">Bảng điều khiển</h1>
+            <p class="font-body-main text-body-main text-on-surface-variant">Tổng quan hệ thống quản trị.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <a th:href="@{/admin/accounts}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:border-primary transition-colors">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">group</span>
+                </div>
+                <div class="font-display-lg text-display-lg text-on-surface" th:text="${totalAccounts}">0</div>
+                <div class="font-body-main text-on-surface-variant">Tài khoản</div>
+            </a>
+            <a th:href="@{/admin/trips}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:border-primary transition-colors">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">directions_bus</span>
+                </div>
+                <div class="font-display-lg text-display-lg text-on-surface" th:text="${totalTrips}">0</div>
+                <div class="font-body-main text-on-surface-variant">Chuyến xe</div>
+            </a>
+            <a th:href="@{/admin/buses}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:border-primary transition-colors">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">local_shipping</span>
+                </div>
+                <div class="font-display-lg text-display-lg text-on-surface" th:text="${totalBuses}">0</div>
+                <div class="font-body-main text-on-surface-variant">Phương tiện</div>
+            </a>
+            <a th:href="@{/admin/routes}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:border-primary transition-colors">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">route</span>
+                </div>
+                <div class="font-display-lg text-display-lg text-on-surface" th:text="${totalRoutes}">0</div>
+                <div class="font-body-main text-on-surface-variant">Tuyến đường</div>
+            </a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

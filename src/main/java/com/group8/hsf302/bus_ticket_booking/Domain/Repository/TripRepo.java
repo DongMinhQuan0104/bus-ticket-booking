@@ -3,20 +3,38 @@ package com.group8.hsf302.bus_ticket_booking.Domain.Repository;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Trip;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
-public interface TripRepo{
-    void save(Trip trip);
+/**
+ * Repository (interface o tang Domain) cho Trip. Cai dat that o Infrastructure (TripRepoImpl).
+ * searchAvailable: E1 (tim chuyen con dat duoc). findById: E2/E3.
+ * findByDriverName/save: nghiep vu Driver (An). findAll/delete/findByRouteName...: Admin (B4 - Quan).
+ */
+public interface TripRepo {
+    // ===== Customer (Viet) =====
+    List<Trip> searchAvailable(String destinationFrom, String destinationTo,
+                               LocalDateTime startOfDay, LocalDateTime endOfDay);
 
     Optional<Trip> findById(UUID id);
 
-    void delete(Trip trip);
+    // ===== Driver (An) =====
+    List<Trip> findByDriverName(String driverName);
 
+    Trip save(Trip trip);
+
+    // ===== Admin (B4 - quan ly chuyen) =====
     Page<Trip> findAll(Pageable pageable);
 
     Page<Trip> findByRouteNameContainingIgnoreCase(String name, Pageable pageable);
+
+    void delete(Trip trip);
+
+    // ===== Goi y thanh pho cho o tim kiem (E1) =====
+    List<String> findDistinctDepartureCities();
+
+    List<String> findDistinctArrivalCities();
 }

@@ -1,7 +1,8 @@
 package com.group8.hsf302.bus_ticket_booking.Domain.Model;
 
-import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
@@ -27,8 +28,12 @@ public class Trip {
     @NotBlank(message = "driver name can not blank")
     private String driverName;
 
+    // Gia ve co ban cua chuyen (them khi lam E3). Dung de tinh tong tien khi dat ve.
+    @Min(value = 0, message = "price can not be negative")
+    private Double price;
+
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private TripStatus status = TripStatus.SCHEDULED;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id",nullable = false)
@@ -41,7 +46,7 @@ public class Trip {
     public Trip() {
     }
 
-    public Trip(String destinationFrom, String destinationTo, LocalDateTime departureTime, String driverName, Status status, Route route, Bus bus) {
+    public Trip(String destinationFrom, String destinationTo, LocalDateTime departureTime, String driverName, TripStatus status, Route route, Bus bus) {
         this.destinationFrom = destinationFrom;
         this.destinationTo = destinationTo;
         this.departureTime = departureTime;
@@ -49,6 +54,14 @@ public class Trip {
         this.status = status;
         this.route = route;
         this.bus = bus;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
     }
 
     public UUID getId() {
@@ -91,12 +104,22 @@ public class Trip {
         this.driverName = driverName;
     }
 
-    public Status getStatus() {
+    public TripStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(TripStatus status) {
         this.status = status;
+    }
+
+    /**
+     * Chuyen con dat ve duoc khong? (dung chung 1 truong trang thai TripStatus)
+     * "Con dat duoc" = chuyen moi len lich (SCHEDULED). Cac trang thai READY/RUNNING/COMPLETED
+     * la do tai xe dieu khien (nghiep vu Driver) va khong cho khach dat nua.
+     * Thay cho enum Status.AVAILABLE cu ben Customer (E1/E2/E3).
+     */
+    public boolean isBookable() {
+        return status == TripStatus.SCHEDULED;
     }
 
     public Route getRoute() {

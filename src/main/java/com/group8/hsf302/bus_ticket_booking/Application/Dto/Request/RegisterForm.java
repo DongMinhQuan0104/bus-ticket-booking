@@ -5,6 +5,13 @@ import jakarta.validation.constraints.NotBlank;
 
 public class RegisterForm {
 
+    // Ho ten + SDT: theo thiet ke trang Register (truoc day thieu nen dang ky xong fullName bi null).
+    // AccountMapper.toEntity(RegisterForm) map theo ten -> tu dong gan vao Account.
+    @NotBlank(message = "full name can not blank")
+    private String fullName;
+
+    private String phoneNumber;
+
     @NotBlank(message = "email can not blank")
     @Email(message = "email not in the right format")
     private String email;
@@ -16,6 +23,22 @@ public class RegisterForm {
     private String confirmPassword;
 
     public RegisterForm() {
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getEmail() {
