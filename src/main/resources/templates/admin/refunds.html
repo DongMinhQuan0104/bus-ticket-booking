@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Duyệt hoàn tiền')}"></head>
+<body class="bg-surface-bright text-on-surface font-body-main text-body-main antialiased">
+<nav th:replace="~{admin/layout :: sidebar('refunds')}"></nav>
+<header th:replace="~{admin/layout :: topbar}"></header>
+
+<main class="ml-64 pt-16 min-h-screen">
+    <div class="max-w-[1200px] mx-auto px-12 py-12">
+        <div th:replace="~{admin/layout :: flash}"></div>
+
+        <div class="mb-8">
+            <h1 class="font-headline-md text-headline-md text-on-surface mb-2">Duyệt hoàn tiền</h1>
+            <p class="font-body-main text-body-main text-on-surface-variant">Các yêu cầu hoàn tiền phát sinh khi khách hủy vé, đang chờ duyệt.</p>
+        </div>
+
+        <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-surface-container-low">
+                    <tr class="font-label-caps text-label-caps text-on-surface-variant uppercase">
+                        <th class="px-6 py-3">Khách hàng</th>
+                        <th class="px-6 py-3">Email</th>
+                        <th class="px-6 py-3 text-right">Số tiền hoàn</th>
+                        <th class="px-6 py-3">Thời điểm yêu cầu</th>
+                        <th class="px-6 py-3 text-center">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant">
+                    <tr th:if="${refunds.content.isEmpty()}">
+                        <td colspan="5" class="px-6 py-10 text-center text-on-surface-variant">Không có yêu cầu hoàn tiền nào đang chờ.</td>
+                    </tr>
+                    <tr th:each="r : ${refunds.content}" class="hover:bg-surface-container-low/50">
+                        <td class="px-6 py-4 font-body-main text-on-surface" th:text="${r.customerName()}">Khách</td>
+                        <td class="px-6 py-4 text-on-surface-variant" th:text="${r.customerEmail()}">email</td>
+                        <td class="px-6 py-4 text-right font-data-mono text-body-sm text-secondary font-bold"
+                            th:text="${r.amount() != null} ? ${#numbers.formatDecimal(r.amount(),0,'COMMA',0,'POINT')} + ' đ' : '-'">-</td>
+                        <td class="px-6 py-4 text-on-surface-variant"
+                            th:text="${r.createdAt() != null} ? ${#temporals.format(r.createdAt(),'HH:mm dd/MM/yyyy')} : '-'">-</td>
+                        <td class="px-6 py-4 text-center">
+                            <form method="post" th:action="@{'/admin/refunds/' + ${r.id()} + '/approve'}" class="inline"
+                                  onsubmit="return confirm('Xác nhận đã hoàn tiền cho khách hàng này?');">
+                                <button type="submit"
+                                        class="bg-tertiary text-on-tertiary px-4 py-2 rounded-lg font-title-sm text-body-sm hover:brightness-110 transition-all inline-flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">check</span> Duyệt
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${refunds.totalPages > 1}" class="flex items-center justify-between px-6 py-4 border-t border-outline-variant">
+                <span class="text-body-sm text-on-surface-variant"
+                      th:text="|Trang ${refunds.page + 1} / ${refunds.totalPages}|">Trang</span>
+                <div class="flex gap-2">
+                    <a th:if="${refunds.page > 0}" th:href="@{/admin/refunds(page=${refunds.page - 1})}"
+                       class="px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-low">← Trước</a>
+                    <a th:unless="${refunds.last}" th:href="@{/admin/refunds(page=${refunds.page + 1})}"
+                       class="px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-low">Sau →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -451,13 +451,13 @@ public class CustomerServiceImpl implements CustomerService{
         // (1) Tinh tien hoan theo chinh sach TRUOC khi xoa du lieu
         RefundViewModel refund = calculateRefund(booking, trip);
 
-        // (2) Ghi nhan giao dich hoan tien (chi ghi khi thuc su co tien hoan).
-        //     Khong gan payment vi ban ghi payment se bi xoa ngay sau day.
+        // (2) Ghi nhan YEU CAU hoan tien o trang thai PENDING (cho Admin duyet -> PAID).
+        //     Chi ghi khi thuc su co tien hoan. Khong gan payment vi ban ghi payment se bi xoa ngay sau day.
         if (refund.refundAmount() > 0) {
             Transaction refundTx = new Transaction();
             refundTx.setTo(booking.getAccount());
             refundTx.setAmount(refund.refundAmount());
-            refundTx.setStatus(TransactionStatus.PAID);
+            refundTx.setStatus(TransactionStatus.PENDING);
             refundTx.setCreatedAt(LocalDateTime.now());
             transactionRepo.save(refundTx);
         }

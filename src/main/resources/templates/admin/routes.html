@@ -32,7 +32,7 @@
                     </div>
                     <div class="flex items-center">
                         <button type="button" class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Chỉnh sửa"
-                                th:attr="onclick=|openEdit('${route.id()}','${route.name()}')|">
+                                th:attr="onclick=|openEdit('${route.id()}')|">
                             <span class="material-symbols-outlined">edit</span>
                         </button>
                         <form method="post" th:action="@{'/admin/routes/' + ${route.id()} + '/delete'}" class="inline" onsubmit="return confirm('Xóa tuyến này?');">
@@ -83,7 +83,7 @@
                     </button>
                 </div>
                 <p id="editHint" class="hidden text-body-sm text-on-surface-variant italic mb-2">
-                    * Để trống nếu không muốn thay đổi các điểm dừng hiện tại.
+                    * Các điểm dừng hiện tại đã được nạp sẵn. Sửa/xóa/thêm rồi bấm Lưu để cập nhật.
                 </p>
                 <div id="stopRows" class="flex flex-col gap-2"></div>
             </div>
@@ -99,6 +99,8 @@
 <script th:inline="javascript">
     // Danh sach tram de chon lam diem dung (lay tu BE)
     const STATIONS = /*[[${stations}]]*/ [];
+    // Danh sach tuyen (kem diem dung hien tai) de nap san khi chinh sua
+    const ROUTES = /*[[${routes.content}]]*/ [];
     const modal = document.getElementById('routeModal');
     const form = document.getElementById('routeForm');
     const rows = document.getElementById('stopRows');
@@ -108,23 +110,26 @@
     function show(){ modal.classList.remove('hidden'); modal.classList.add('flex'); }
     function closeModal(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
-    function stationOptions(){
-        return STATIONS.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    function stationOptions(selectedId){
+        return STATIONS.map(s =>
+            `<option value="${s.id}"${s.id === selectedId ? ' selected' : ''}>${s.name}</option>`
+        ).join('');
     }
 
     // Moi dong = 1 diem dung: stations[i].stationId / stationOrder / priceFromStart
-    function addStopRow(){
+    // Co the truyen gia tri co san (stationId/order/price) de nap khi chinh sua.
+    function addStopRow(stationId, order, price){
         const i = idx++;
         const div = document.createElement('div');
         div.className = 'flex gap-2 items-center';
         div.innerHTML = `
             <select name="stations[${i}].stationId" required
                     class="flex-1 border border-outline-variant rounded-lg py-2 px-3 bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none">
-                <option value="">-- Chọn trạm --</option>${stationOptions()}
+                <option value="">-- Chọn trạm --</option>${stationOptions(stationId)}
             </select>
-            <input name="stations[${i}].stationOrder" type="number" min="0" placeholder="Thứ tự" value="${i + 1}" required
+            <input name="stations[${i}].stationOrder" type="number" min="0" placeholder="Thứ tự" value="${order != null ? order : i + 1}" required
                    class="w-24 border border-outline-variant rounded-lg py-2 px-3 bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"/>
-            <input name="stations[${i}].priceFromStart" type="number" min="0" step="1000" placeholder="Giá từ đầu" value="0"
+            <input name="stations[${i}].priceFromStart" type="number" min="0" step="1000" placeholder="Giá từ đầu" value="${price != null ? price : 0}"
                    class="w-36 border border-outline-variant rounded-lg py-2 px-3 bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"/>
             <button type="button" class="text-on-surface-variant hover:text-error p-1" title="Xóa dòng"
                     onclick="this.parentElement.remove()"><span class="material-symbols-outlined">close</span></button>`;
@@ -142,13 +147,21 @@
         show();
     }
 
-    function openEdit(id, name){
+    function openEdit(id){
+        const route = ROUTES.find(r => r.id === id);
         document.getElementById('modalTitle').textContent = 'Chỉnh sửa tuyến';
         form.action = '/admin/routes/' + id + '/update';
         form.reset(); resetRows();
-        document.getElementById('f_name').value = name;
-        // Khong nap san diem dung: de trong = giu nguyen (BE chi ghi de khi form co stations)
+        document.getElementById('f_name').value = route ? route.name : '';
         document.getElementById('editHint').classList.remove('hidden');
+        // Nap san cac diem dung hien tai (sap theo thu tu) de Admin sua/xoa/them
+        const stops = (route && route.stations) ? route.stations.slice() : [];
+        stops.sort((a, b) => (a.stationOrder || 0) - (b.stationOrder || 0));
+        if (stops.length === 0) {
+            addStopRow(); addStopRow();
+        } else {
+            stops.forEach(s => addStopRow(s.stationId, s.stationOrder, s.priceFromStar));
+        }
         show();
     }
 </script>

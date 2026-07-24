@@ -65,16 +65,51 @@ public class AdminController {
         return "redirect:/admin/dashboard";
     }
 
-    // ===== Dashboard: vai so lieu tong quan =====
+    // ===== Dashboard: so lieu tong quan + chuyen dang hoat dong + feedback gan day =====
     @GetMapping("/dashboard")
-    public String dashboard(HttpSession session, Model model) {
+    public String dashboard(@RequestParam(name = "tripPage", defaultValue = "0") int tripPage,
+                            HttpSession session, Model model) {
         AccountViewModel admin = verifyAdminAuth(session);
         addCommon(model, admin);
+        // The so lieu tong quan
         model.addAttribute("totalAccounts", adminService.getAllAccounts(0, 1).getTotalElements());
         model.addAttribute("totalBuses", adminService.getAllBuses(0, 1).getTotalElements());
         model.addAttribute("totalRoutes", adminService.getAllRoutes(0, 1).getTotalElements());
         model.addAttribute("totalTrips", adminService.getAllTrips(0, 1).getTotalElements());
+        model.addAttribute("totalActiveTrips", adminService.countActiveTrips());
+        model.addAttribute("totalPendingRefunds", adminService.countPendingRefunds());
+        model.addAttribute("totalReviews", adminService.countReviews());
+        // Chuyen dang hoat dong (phan trang) + 5 danh gia moi nhat
+        model.addAttribute("activeTrips", adminService.getActiveTrips(tripPage, 5));
+        model.addAttribute("recentReviews", adminService.getAllReviews(0, 5).getContent());
         return "admin/dashboard";
+    }
+
+    // ===================== DUYET HOAN TIEN =====================
+    @GetMapping("/refunds")
+    public String refunds(@RequestParam(defaultValue = "0") int page, HttpSession session, Model model) {
+        AccountViewModel admin = verifyAdminAuth(session);
+        addCommon(model, admin);
+        model.addAttribute("refunds", adminService.getPendingRefunds(page, 10));
+        return "admin/refunds";
+    }
+
+    @PostMapping("/refunds/{id}/approve")
+    public String approveRefund(@PathVariable UUID id, RedirectAttributes ra, HttpSession session) {
+        verifyAdminAuth(session);
+        boolean ok = adminService.approveRefund(id);
+        ra.addFlashAttribute(ok ? "successMessage" : "errorMessage",
+                ok ? "Đã duyệt hoàn tiền cho khách hàng." : "Không tìm thấy yêu cầu hoàn tiền.");
+        return "redirect:/admin/refunds";
+    }
+
+    // ===================== FEEDBACK KHACH HANG =====================
+    @GetMapping("/reviews")
+    public String reviews(@RequestParam(defaultValue = "0") int page, HttpSession session, Model model) {
+        AccountViewModel admin = verifyAdminAuth(session);
+        addCommon(model, admin);
+        model.addAttribute("reviews", adminService.getAllReviews(page, 10));
+        return "admin/reviews";
     }
 
     // ===================== BUS (CRUD day du) =====================

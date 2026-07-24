@@ -100,6 +100,16 @@
            class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
             <span class="material-symbols-outlined">location_on</span><span>Quản lý bến</span>
         </a>
+        <a th:href="@{/admin/refunds}"
+           th:classappend="${active == 'refunds'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
+            <span class="material-symbols-outlined">payments</span><span>Duyệt hoàn tiền</span>
+        </a>
+        <a th:href="@{/admin/reviews}"
+           th:classappend="${active == 'reviews'} ? 'bg-primary-container text-on-primary-container font-bold' : 'text-primary-fixed-dim hover:bg-white/10'"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg mx-2 transition-colors">
+            <span class="material-symbols-outlined">reviews</span><span>Đánh giá</span>
+        </a>
     </div>
     <div class="mt-auto border-t border-white/10 pt-4 pb-6 flex flex-col gap-1">
         <a th:href="@{/auth/logout}" class="flex items-center gap-3 px-4 py-3 text-primary-fixed-dim hover:bg-white/10 rounded-lg mx-2 transition-colors">

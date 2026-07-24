@@ -7,6 +7,8 @@ import com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.Booking.B
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.BookingDetail.BookingDetailJpaRepo;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.Bus.BusJpaRepo;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.Payment.PaymentJpaRepo;
+import com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.Review.ReviewJpaRepo;
+import com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.Transaction.TransactionJpaRepo;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.Route.RouteJpaRepo;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.RouteStation.RouteStationJpaRepo;
 import com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.SeatAvailability.SeatAvailabilityJpaRepo;
@@ -48,12 +50,15 @@ public class DataSeeder implements CommandLineRunner {
     private final BookingDetailJpaRepo bookingDetailRepo;
     private final SeatAvailabilityJpaRepo seatRepo;
     private final PaymentJpaRepo paymentRepo;
+    private final ReviewJpaRepo reviewRepo;
+    private final TransactionJpaRepo transactionRepo;
     private final PasswordHasher passwordHasher;
 
     public DataSeeder(AccountJpaRepo accountRepo, BusJpaRepo busRepo, StationJpaRepo stationRepo,
                       RouteJpaRepo routeRepo, RouteStationJpaRepo routeStationRepo, TripJpaRepo tripRepo,
                       BookingJpaRepo bookingRepo, BookingDetailJpaRepo bookingDetailRepo,
-                      SeatAvailabilityJpaRepo seatRepo, PaymentJpaRepo paymentRepo, PasswordHasher passwordHasher) {
+                      SeatAvailabilityJpaRepo seatRepo, PaymentJpaRepo paymentRepo,
+                      ReviewJpaRepo reviewRepo, TransactionJpaRepo transactionRepo, PasswordHasher passwordHasher) {
         this.accountRepo = accountRepo;
         this.busRepo = busRepo;
         this.stationRepo = stationRepo;
@@ -64,6 +69,8 @@ public class DataSeeder implements CommandLineRunner {
         this.bookingDetailRepo = bookingDetailRepo;
         this.seatRepo = seatRepo;
         this.paymentRepo = paymentRepo;
+        this.reviewRepo = reviewRepo;
+        this.transactionRepo = transactionRepo;
         this.passwordHasher = passwordHasher;
     }
 
@@ -174,6 +181,36 @@ public class DataSeeder implements CommandLineRunner {
         // minh@bus.com: khach tren chuyen DANG CHAY -> tai xe check-in duoc
         createBooking(minh, running, List.of("A10", "A11"),
                 List.of("Hoàng Đức Minh", "Vũ Phương Thảo"), PaymentMethod.BANK_TRANSFER);
+
+        // ===== 7. Feedback mau (danh gia chuyen da hoan thanh) =====
+        review(khach, done1, 5, "Xe sạch sẽ, tài xế thân thiện, đúng giờ. Rất hài lòng!");
+        review(lan, done2, 4, "Chuyến đi thoải mái, ghế rộng. Chỉ hơi trễ 15 phút.");
+        review(minh, done2, 3, "Bình thường, điều hòa hơi yếu ở hàng ghế cuối.");
+
+        // ===== 8. Yeu cau hoan tien CHO DUYET mau (khach da huy ve) =====
+        pendingRefund(khach, 250000.0);
+        pendingRefund(lan, 480000.0);
+    }
+
+    /** Tao 1 danh gia mau cho chuyen da hoan thanh. */
+    private void review(Account account, Trip trip, int rating, String comment) {
+        Review r = new Review();
+        r.setAccount(account);
+        r.setTrip(trip);
+        r.setRating(rating);
+        r.setComment(comment);
+        r.setCreatedAt(LocalDateTime.now().minusHours(rating));
+        reviewRepo.save(r);
+    }
+
+    /** Tao 1 yeu cau hoan tien o trang thai PENDING (cho Admin duyet). */
+    private void pendingRefund(Account customer, double amount) {
+        Transaction tx = new Transaction();
+        tx.setTo(customer);
+        tx.setAmount(amount);
+        tx.setStatus(TransactionStatus.PENDING);
+        tx.setCreatedAt(LocalDateTime.now().minusMinutes((long) amount % 120));
+        transactionRepo.save(tx);
     }
 
     /** Tao tuyen kem cac diem dung. */

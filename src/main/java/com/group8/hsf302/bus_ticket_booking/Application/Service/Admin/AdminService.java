@@ -50,4 +50,17 @@ public interface AdminService {
     public SeatAvailabilityViewModel createSeatAvailability(AdminCreateSeatAvailabilityForm form);
     public boolean updateSeatAvailability(AdminUpdateSeatAvailabilityForm form, UUID id);
     public boolean deletedSeat(UUID id);
+
+    // ===== Dashboard: chuyen dang hoat dong (phan trang) =====
+    public PagedResponse<TripViewModel> getActiveTrips(int page, int size);
+    public long countActiveTrips();
+
+    // ===== Duyet hoan tien (PENDING -> PAID) =====
+    public PagedResponse<RefundRequestViewModel> getPendingRefunds(int page, int size);
+    public long countPendingRefunds();
+    public boolean approveRefund(UUID transactionId);
+
+    // ===== Feedback cua khach hang =====
+    public PagedResponse<ReviewViewModel> getAllReviews(int page, int size);
+    public long countReviews();
 }

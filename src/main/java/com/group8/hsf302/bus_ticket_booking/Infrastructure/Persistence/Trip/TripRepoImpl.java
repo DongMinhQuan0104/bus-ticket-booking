@@ -58,6 +58,20 @@ public class TripRepoImpl implements TripRepo {
         return tripJpaRepo.findByRouteNameContainingIgnoreCase(name, pageable);
     }
 
+    // "Dang hoat dong" = chuyen chua hoan thanh (SCHEDULED = sap chay, RUNNING = dang chay).
+    private static final java.util.List<TripStatus> ACTIVE_STATUSES =
+            java.util.List.of(TripStatus.SCHEDULED, TripStatus.RUNNING);
+
+    @Override
+    public Page<Trip> findActiveTrips(Pageable pageable) {
+        return tripJpaRepo.findByStatusInOrderByDepartureTimeAsc(ACTIVE_STATUSES, pageable);
+    }
+
+    @Override
+    public long countActiveTrips() {
+        return tripJpaRepo.countByStatusIn(ACTIVE_STATUSES);
+    }
+
     @Override
     public void delete(Trip trip) {
         tripJpaRepo.delete(trip);

@@ -14,6 +14,7 @@
             <p class="font-body-main text-body-main text-on-surface-variant">Tổng quan hệ thống quản trị.</p>
         </div>
 
+        <!-- Hàng thẻ số liệu chính -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <a th:href="@{/admin/accounts}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:border-primary transition-colors">
                 <div class="flex items-center justify-between mb-4">
@@ -43,6 +44,110 @@
                 <div class="font-display-lg text-display-lg text-on-surface" th:text="${totalRoutes}">0</div>
                 <div class="font-body-main text-on-surface-variant">Tuyến đường</div>
             </a>
+        </div>
+
+        <!-- Hàng thẻ nghiệp vụ: đang hoạt động / chờ hoàn tiền / đánh giá -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="material-symbols-outlined text-tertiary text-3xl">trip_origin</span>
+                </div>
+                <div class="font-display-lg text-display-lg text-on-surface" th:text="${totalActiveTrips}">0</div>
+                <div class="font-body-main text-on-surface-variant">Chuyến đang hoạt động</div>
+            </div>
+            <a th:href="@{/admin/refunds}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:border-secondary-container transition-colors">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="material-symbols-outlined text-secondary-container text-3xl">payments</span>
+                    <span th:if="${totalPendingRefunds > 0}" class="bg-error text-on-error text-body-sm font-bold px-2 py-0.5 rounded-full" th:text="${totalPendingRefunds}">0</span>
+                </div>
+                <div class="font-display-lg text-display-lg text-on-surface" th:text="${totalPendingRefunds}">0</div>
+                <div class="font-body-main text-on-surface-variant">Hoàn tiền chờ duyệt</div>
+            </a>
+            <a th:href="@{/admin/reviews}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:border-primary transition-colors">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">reviews</span>
+                </div>
+                <div class="font-display-lg text-display-lg text-on-surface" th:text="${totalReviews}">0</div>
+                <div class="font-body-main text-on-surface-variant">Đánh giá của khách</div>
+            </a>
+        </div>
+
+        <!-- Bảng chuyến đang hoạt động (phân trang) -->
+        <div class="mt-10 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
+                <h2 class="font-title-sm text-title-sm text-on-surface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tertiary">directions_bus</span> Các tuyến đang hoạt động
+                </h2>
+                <a th:href="@{/admin/trips}" class="text-primary hover:underline text-body-sm">Xem tất cả</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-surface-container-low">
+                    <tr class="font-label-caps text-label-caps text-on-surface-variant uppercase">
+                        <th class="px-6 py-3">Tuyến</th>
+                        <th class="px-6 py-3">Giờ đi</th>
+                        <th class="px-6 py-3">Tài xế</th>
+                        <th class="px-6 py-3">Xe</th>
+                        <th class="px-6 py-3 text-right">Giá</th>
+                        <th class="px-6 py-3">Trạng thái</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant">
+                    <tr th:if="${activeTrips.content.isEmpty()}">
+                        <td colspan="6" class="px-6 py-8 text-center text-on-surface-variant">Không có chuyến nào đang hoạt động.</td>
+                    </tr>
+                    <tr th:each="t : ${activeTrips.content}" class="hover:bg-surface-container-low/50">
+                        <td class="px-6 py-4 font-body-main text-on-surface" th:text="${t.destinationFrom()} + ' → ' + ${t.destinationTo()}">Tuyến</td>
+                        <td class="px-6 py-4 text-on-surface-variant" th:text="${t.departureTime() != null} ? ${#temporals.format(t.departureTime(),'HH:mm dd/MM/yyyy')} : '-'">-</td>
+                        <td class="px-6 py-4 text-on-surface-variant" th:text="${t.driverName()}">-</td>
+                        <td class="px-6 py-4 text-on-surface-variant" th:text="${t.busName()}">-</td>
+                        <td class="px-6 py-4 text-right font-data-mono text-body-sm text-on-surface"
+                            th:text="${t.price() != null} ? ${#numbers.formatDecimal(t.price(),0,'COMMA',0,'POINT')} + ' đ' : '-'">-</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded-full text-body-sm font-bold"
+                                  th:classappend="${t.status() != null and t.status().name() == 'RUNNING'} ? 'bg-tertiary-fixed text-on-tertiary-fixed' : 'bg-primary-fixed text-on-primary-fixed'"
+                                  th:text="${t.status()}">SCHEDULED</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Phân trang -->
+            <div th:if="${activeTrips.totalPages > 1}" class="flex items-center justify-between px-6 py-4 border-t border-outline-variant">
+                <span class="text-body-sm text-on-surface-variant"
+                      th:text="|Trang ${activeTrips.page + 1} / ${activeTrips.totalPages}|">Trang</span>
+                <div class="flex gap-2">
+                    <a th:if="${activeTrips.page > 0}" th:href="@{/admin/dashboard(tripPage=${activeTrips.page - 1})}"
+                       class="px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-low">← Trước</a>
+                    <a th:unless="${activeTrips.last}" th:href="@{/admin/dashboard(tripPage=${activeTrips.page + 1})}"
+                       class="px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-low">Sau →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback gần đây -->
+        <div class="mt-10 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
+                <h2 class="font-title-sm text-title-sm text-on-surface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">reviews</span> Đánh giá gần đây
+                </h2>
+                <a th:href="@{/admin/reviews}" class="text-primary hover:underline text-body-sm">Xem tất cả</a>
+            </div>
+            <div class="p-6 flex flex-col gap-4">
+                <p th:if="${recentReviews.isEmpty()}" class="text-center text-on-surface-variant py-4">Chưa có đánh giá nào.</p>
+                <div th:each="r : ${recentReviews}" class="border border-outline-variant rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-title-sm text-title-sm text-on-surface" th:text="${r.customerName()}">Khách</span>
+                            <span class="text-secondary-container" th:text="${'★'.repeat(r.rating() != null ? r.rating() : 0)}">★★★★★</span>
+                        </div>
+                        <span class="text-body-sm text-on-surface-variant"
+                              th:text="${r.createdAt() != null} ? ${#temporals.format(r.createdAt(),'HH:mm dd/MM/yyyy')} : ''"></span>
+                    </div>
+                    <div class="text-body-sm text-on-surface-variant mb-1" th:text="${r.tripName()}">Tuyến</div>
+                    <div class="font-body-main text-on-surface" th:text="${r.comment()}">Nội dung</div>
+                </div>
+            </div>
         </div>
     </div>
 </main>

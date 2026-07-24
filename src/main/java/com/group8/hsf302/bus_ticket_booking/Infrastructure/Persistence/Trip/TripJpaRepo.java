@@ -27,6 +27,11 @@ public interface TripJpaRepo extends JpaRepository<Trip, UUID> {
     // ===== Admin (B4 - Quan): tim chuyen theo ten tuyen =====
     Page<Trip> findByRouteNameContainingIgnoreCase(String name, Pageable pageable);
 
+    // ===== Dashboard: chuyen dang hoat dong (SCHEDULED hoac RUNNING) =====
+    Page<Trip> findByStatusInOrderByDepartureTimeAsc(java.util.Collection<TripStatus> statuses, Pageable pageable);
+
+    long countByStatusIn(java.util.Collection<TripStatus> statuses);
+
     // ===== Goi y thanh pho cho o tim kiem (FE hien datalist de khoi go tay) =====
     @Query("select distinct t.destinationFrom from Trip t order by t.destinationFrom")
     List<String> findDistinctDepartureCities();

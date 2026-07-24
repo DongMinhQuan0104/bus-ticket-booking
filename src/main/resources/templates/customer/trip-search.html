@@ -118,9 +118,11 @@
                             <div class="flex items-center border rounded p-3"
                                 th:classappend="${#fields.hasErrors('destinationFrom')} ? ' border-error' : ' border-outline-variant'">
                                 <span class="material-symbols-outlined text-outline mr-2">location_on</span>
-                                <input class="w-full border-none p-0 focus:ring-0 bg-transparent font-medium"
-                                    type="text" placeholder="VD: Hà Nội" list="fromCities" th:field="*{destinationFrom}" />
-                                <datalist id="fromCities"><option th:each="c : ${departureCities}" th:value="${c}"></option></datalist>
+                                <select class="w-full border-none p-0 focus:ring-0 bg-transparent font-medium appearance-none cursor-pointer"
+                                    th:field="*{destinationFrom}">
+                                    <option value="" disabled>-- Chọn điểm đi --</option>
+                                    <option th:each="c : ${departureCities}" th:value="${c}" th:text="${c}"></option>
+                                </select>
                             </div>
                         </div>
                         <!-- Điểm đến -->
@@ -129,9 +131,11 @@
                             <div class="flex items-center border rounded p-3"
                                 th:classappend="${#fields.hasErrors('destinationTo')} ? ' border-error' : ' border-outline-variant'">
                                 <span class="material-symbols-outlined text-outline mr-2">location_on</span>
-                                <input class="w-full border-none p-0 focus:ring-0 bg-transparent font-medium"
-                                    type="text" placeholder="VD: Vinh" list="toCities" th:field="*{destinationTo}" />
-                                <datalist id="toCities"><option th:each="c : ${arrivalCities}" th:value="${c}"></option></datalist>
+                                <select class="w-full border-none p-0 focus:ring-0 bg-transparent font-medium appearance-none cursor-pointer"
+                                    th:field="*{destinationTo}">
+                                    <option value="" disabled>-- Chọn điểm đến --</option>
+                                    <option th:each="c : ${arrivalCities}" th:value="${c}" th:text="${c}"></option>
+                                </select>
                             </div>
                         </div>
                         <!-- Ngày đi -->
