@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Dashboard Tổng quan Tài xế | BusTicketBooking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        try {
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        "colors": {
+                            "surface-variant": "#f6ddd4",
+                            "on-primary-container": "#511b00",
+                            "surface-bright": "#fff8f6",
+                            "inverse-primary": "#ffb596",
+                            "on-error": "#ffffff",
+                            "on-primary": "#ffffff",
+                            "tertiary-fixed-dim": "#8ccdff",
+                            "surface-container-highest": "#f6ddd4",
+                            "tertiary-fixed": "#cae6ff",
+                            "error-container": "#ffdad6",
+                            "secondary": "#476080",
+                            "on-surface": "#191c1e",
+                            "tertiary-container": "#39a763",
+                            "surface-container-high": "#e6e8eb",
+                            "surface-container-low": "#f2f4f7",
+                            "surface-container": "#eceef1",
+                            "secondary-fixed": "#d2e4ff",
+                            "surface-container-lowest": "#ffffff",
+                            "on-secondary-container": "#465f7f",
+                            "primary-fixed": "#ffdbcd",
+                            "primary-container": "#f26a21",
+                            "surface-dim": "#d8dadd",
+                            "on-surface-variant": "#594238",
+                            "primary": "#a33e00",
+                            "inverse-on-surface": "#eff1f4",
+                            "on-secondary-fixed": "#001c38",
+                            "secondary-container": "#c0d9fe",
+                            "tertiary": "#006d38",
+                            "on-tertiary-fixed-variant": "#005229",
+                            "on-secondary": "#ffffff",
+                            "surface-tint": "#a33e00",
+                            "on-secondary-fixed-variant": "#2f4867",
+                            "surface": "#f7f9fc",
+                            "on-error-container": "#93000a",
+                            "on-tertiary-container": "#003418",
+                            "on-background": "#191c1e",
+                            "on-primary-fixed-variant": "#7c2e00",
+                            "inverse-surface": "#2d3133",
+                            "outline": "#8c7166",
+                            "background": "#f7f9fc",
+                            "primary-fixed-dim": "#ffb596",
+                            "on-primary-fixed": "#360f00",
+                            "on-tertiary": "#ffffff",
+                            "error": "#ba1a1a",
+                            "outline-variant": "#e0c0b3",
+                            "on-tertiary-fixed": "#00210d",
+                            "secondary-fixed-dim": "#afc8ed",
+                            "bus-orange": "#F26A21",
+                            "deep-blue": "#0E2A47"
+                        },
+                        "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                        },
+                        "spacing": {
+                            "md": "16px",
+                            "base": "4px",
+                            "xl": "32px",
+                            "sm": "8px",
+                            "gutter": "20px",
+                            "container-max": "1280px",
+                            "xs": "4px",
+                            "lg": "24px",
+                            "2xl": "48px"
+                        },
+                        "fontFamily": {
+                            "metric-display": ["Inter"],
+                            "headline-md": ["Inter"],
+                            "body-sm": ["Inter"],
+                            "headline-lg": ["Inter"],
+                            "body-lg": ["Inter"],
+                            "label-caps": ["Inter"]
+                        },
+                        "fontSize": {
+                            "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                            "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                            "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                            "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                            "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                            "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                        }
+                    }
+                }
+            }
+        } catch (_e) {}
+    </script>
+</head>
+<body class="bg-[#f7f9fc] text-on-surface overflow-x-hidden antialiased">
+<!-- Header Cố định (Synced with SCREEN_19) -->
+<header class="fixed top-0 right-0 left-0 z-50 flex justify-between items-center px-lg h-[64px] bg-white shadow-sm border-b border-outline-variant">
+    <div class="flex items-center gap-4">
+        <div class="text-bus-orange text-[32px]"><span class="material-symbols-outlined text-[32px]">directions_bus</span></div>
+        <div class="flex flex-col">
+            <span class="text-[20px] font-bold text-primary leading-tight">BusTicketBooking</span>
+            <span class="text-[10px] font-bold tracking-widest text-secondary uppercase">Cổng Thông Tin Tài Xế</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-md">
+        <div class="hidden md:flex flex-col items-end mr-2">
+            <span class="text-[14px] font-bold text-on-surface" th:text="${currentUser != null ? currentUser.fullName() : 'Nguyễn Văn A'}">Nguyễn Văn A</span>
+            <span class="bg-bus-orange text-white text-[10px] px-2 py-0.5 rounded-full font-bold">TÀI XẾ</span>
+        </div>
+        <div class="h-10 w-10 rounded-full overflow-hidden border-2 border-primary-container shadow-sm">
+            <img class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaA0f6P91IRGMI0Gd8smqtah6yvwfXbQR5PuJp-iW6Z3qrcPSxiQ1-cK6MeBEHhOKTlxgRkwVUSlyw5DRLfu3FRY4T0TdsM02G3OohJY2arD3Q7EJLYaXNxsTmbEDH0tcPW1gQeqmuRUFPgX4uSZcavcQwfdOLaTcFP3Oi7EthM3FlFPzYAOPyKz9C_XJv_ca21hX1U8UcGwfKgGpeXchjiDJyF9UA9G0N4YBEXL-uYQ-2BiptmTybGQ" alt="Avatar"/>
+        </div>
+        <a th:href="@{/auth/logout}" class="flex items-center justify-center p-2 rounded-lg text-secondary hover:bg-surface-container-high transition-colors active:scale-95 duration-150">
+            <span class="material-symbols-outlined">logout</span>
+        </a>
+    </div>
+</header>
+
+<!-- Sidebar & Main Content Wrapper -->
+<div class="flex min-h-screen pt-[80px]">
+    <!-- SideNavBar (Synced with SCREEN_19) -->
+    <aside class="fixed left-0 top-0 bottom-0 w-[280px] z-40 flex flex-col pt-28 pb-md bg-deep-blue shadow-lg hidden md:flex">
+        <nav class="flex-1 space-y-2 mt-4">
+            <a th:href="@{/driver/dashboard}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-xl bg-bus-orange text-white font-bold shadow-md">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="text-[14px]">Dashboard</span>
+            </a>
+            <a th:href="@{/driver/trips}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-secondary-fixed hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <span class="text-[14px]">Lịch trình</span>
+            </a>
+            <a th:href="@{/driver/trips}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-secondary-fixed hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined">group</span>
+                <span class="text-[14px]">Hành khách</span>
+            </a>
+            <a th:href="@{/driver/profile}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-secondary-fixed hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined">account_circle</span>
+                <span class="text-[14px]">Hồ sơ cá nhân</span>
+            </a>
+        </nav>
+        <div class="mt-auto px-2 border-t border-white/10 pt-4">
+            <a th:href="@{/auth/logout}" class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-secondary-fixed hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="text-[14px]">Đăng xuất</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area (Synced padding with SCREEN_19) -->
+    <main class="flex-1 md:ml-[280px] p-6 md:p-8 pt-[80px] bg-[#F2F5F8] min-h-screen">
+        <div class="max-w-container-max mx-auto space-y-8 mt-4">
+            <!-- KHỐI 1: HERO BANNER -->
+            <section class="relative overflow-hidden rounded-3xl min-h-[220px] shadow-xl flex items-center">
+                <!-- Background Image -->
+                <div class="absolute inset-0 z-0">
+                    <img src="https://lh3.googleusercontent.com/aida/AP1WRLu28p9FAJmYrGtOBmKJdNL-Yp-vzC4gG9xow_EdkykcbySTiL5sufvCgLul9huC6-v3NmF3uK0BpJHYNAtzMFscXsk00n8b5MTEKbAFRWKxzogH12-Nrn6-hj_ScuKKGdJjhmZCG4K6i8cGmHb-UJrSQMJr4-fAsurPDSQky0u0PpG08fq9cyZzUCof1TX_y4Y6KgHdDH_UXf3fuHQTCX1CUB7pn5akWtFobQVsK6gBEPmGdW3d4BYnh0z1" class="absolute inset-0 w-full h-full object-cover" alt="Bus background"/>
+                    <div class="absolute inset-0 bg-black/40"></div>
+                </div>
+                <!-- Content Container -->
+                <div class="relative z-10 w-full p-8 md:p-10 flex flex-col gap-4 justify-center">
+                    <!-- Badge -->
+                    <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-white">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span th:text="${activeTrip != null ? (activeTrip.status == T(com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus).RUNNING ? 'CHUYẾN XE ĐANG VẬN HÀNH' : 'CHUYẾN XE SẴN SÀNG XUẤT BẾN') : 'CHUYẾN XE SẮP KHỞI HÀNH'}">CHUYẾN XE ĐANG VẬN HÀNH</span>
+                    </div>
+                    <!-- Title -->
+                    <h2 class="text-3xl md:text-4xl font-black text-white drop-shadow-md tracking-tight" th:text="${activeTrip != null ? activeTrip.routeName : 'Sài Gòn — Đà Lạt'}">
+                        Sài Gòn — Đà Lạt
+                    </h2>
+                    <!-- Stats Row -->
+                    <div class="flex flex-wrap items-center gap-6 text-white/90 mt-2">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] uppercase opacity-70 font-bold">GIỜ CHẠY</span>
+                            <span class="font-bold text-[20px] text-white" th:text="${activeTrip != null ? #temporals.format(activeTrip.departureTime, 'HH:mm') : '08:00'}">08:00</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] uppercase opacity-70 font-bold mb-1">BIỂN SỐ XE</span>
+                            <span class="bg-[#F59F00] text-black font-black px-3 py-1 rounded-lg shadow-md text-[16px] font-mono" th:text="${activeTrip != null ? activeTrip.licensePlate : '51B-123.45'}">51B-123.45</span>
+                        </div>
+                        <div class="flex flex-col border-l border-white/20 pl-6">
+                            <span class="text-[10px] uppercase opacity-70 font-bold">TRẠNG THÁI</span>
+                            <span class="font-bold text-[14px] text-white" th:text="${activeTrip != null ? (activeTrip.status == T(com.group8.hsf302.bus_ticket_booking.Domain.Enum.TripStatus).RUNNING ? 'Đang chạy nhanh' : 'Sẵn sàng') : 'Chưa chạy'}">Đang chạy nhanh</span>
+                        </div>
+                    </div>
+                    <!-- Action Button -->
+                    <div class="mt-4">
+                        <a th:href="${activeTrip != null ? '/driver/trips/' + activeTrip.id + '/passengers' : '/driver/trips'}" class="inline-flex px-8 py-4 bg-bus-orange text-white rounded-xl font-bold text-[16px] items-center gap-3 hover:brightness-110 transform hover:translate-y-[-2px] transition-all shadow-lg active:scale-95 group">
+                            Vào Xem Danh Sách Khách <span class="material-symbols-outlined group-hover:translate-x-2 transition-transform">arrow_forward</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KHỐI 2: BENTO KPI CARDS (Synced layout with SCREEN_19) -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <!-- Card 1: CHUYẾN ĐƯỢC GIAO -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-outline-variant border-l-4 border-bus-orange flex items-center justify-between transition-all hover:translate-y-[-4px] hover:shadow-md">
+                    <div>
+                        <p class="text-[14px] text-secondary font-medium uppercase tracking-wider">CHUYẾN ĐƯỢC GIAO</p>
+                        <p class="text-[32px] font-bold text-deep-blue" th:text="${trips != null ? #lists.size(trips) : 3}">03</p>
+                    </div>
+                    <div class="h-12 w-12 bg-bus-orange/10 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-bus-orange text-[28px]">assignment</span>
+                    </div>
+                </div>
+                <!-- Card 2: TỔNG SỐ KHÁCH -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-outline-variant border-l-4 border-tertiary flex items-center justify-between transition-all hover:translate-y-[-4px] hover:shadow-md">
+                    <div>
+                        <p class="text-[14px] text-secondary font-medium uppercase tracking-wider">TỔNG SỐ KHÁCH</p>
+                        <p class="text-[32px] font-bold text-deep-blue" th:text="${totalPassengers != null ? totalPassengers : 45}">45</p>
+                    </div>
+                    <div class="h-12 w-12 bg-tertiary/10 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-tertiary text-[28px]">groups</span>
+                    </div>
+                </div>
+                <!-- Card 3: ĐÁNH GIÁ -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-outline-variant border-l-4 border-[#F59F00] flex items-center justify-between transition-all hover:translate-y-[-4px] hover:shadow-md">
+                    <div>
+                        <p class="text-[14px] text-secondary font-medium uppercase tracking-wider">ĐÁNH GIÁ</p>
+                        <p class="text-[32px] font-bold text-deep-blue">4.9/5.0</p>
+                    </div>
+                    <div class="h-12 w-12 bg-[#F59F00]/10 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[#F59F00] text-[28px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KHỐI 3: LỊCH CHẠY TIẾP THEO -->
+            <section class="space-y-6 mt-12">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-[20px] font-bold text-deep-blue flex items-center gap-2">
+                        <span class="material-symbols-outlined">event_note</span>
+                        Lịch chạy tiếp theo trong ngày
+                    </h3>
+                    <a th:href="@{/driver/trips}" class="text-bus-orange font-bold flex items-center gap-1 hover:underline decoration-2 underline-offset-4">
+                        Xem toàn bộ Lịch trình
+                        <span class="material-symbols-outlined text-[18px]">arrow_right_alt</span>
+                    </a>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Dynamic iteration if trips exists, else mock cards -->
+                    <th:block th:if="${trips != null and !trips.isEmpty()}">
+                        <div th:each="t : ${trips}" class="bg-white rounded-xl shadow-sm border border-outline-variant p-6 flex items-center gap-6 group hover:border-bus-orange/30 transition-colors">
+                            <div class="w-20 h-20 bg-surface-container-low rounded-lg flex flex-col items-center justify-center text-deep-blue border border-outline-variant">
+                                <span class="text-[20px] font-bold leading-tight" th:text="${#temporals.format(t.departureTime, 'HH:mm')}">13:30</span>
+                                <span class="text-[10px] font-bold opacity-60 uppercase" th:text="${#temporals.format(t.departureTime, 'dd/MM')}">23/07</span>
+                            </div>
+                            <div class="flex-1 grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-[10px] font-bold text-secondary uppercase tracking-wider">TUYẾN</p>
+                                    <p class="font-bold text-deep-blue text-[16px]" th:text="${t.routeName}">Sài Gòn ➔ Nha Trang</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-secondary uppercase tracking-wider">BIỂN SỐ</p>
+                                    <p class="font-bold text-deep-blue text-[16px]" th:text="${t.licensePlate}">51B-999.88</p>
+                                </div>
+                            </div>
+                            <a th:href="@{/driver/trips/{id}/passengers(id=${t.id})}" class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-deep-blue hover:bg-bus-orange hover:text-white transition-colors">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </a>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${trips == null or trips.isEmpty()}">
+                        <!-- Card 1 Mock -->
+                        <div class="bg-white rounded-xl shadow-sm border border-outline-variant p-6 flex items-center gap-6 group hover:border-bus-orange/30 transition-colors">
+                            <div class="w-20 h-20 bg-surface-container-low rounded-lg flex flex-col items-center justify-center text-deep-blue border border-outline-variant">
+                                <span class="text-[20px] font-bold leading-tight">13:30</span>
+                                <span class="text-[10px] font-bold opacity-60 uppercase">CHIỀU</span>
+                            </div>
+                            <div class="flex-1 grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-[10px] font-bold text-secondary uppercase tracking-wider">TUYẾN</p>
+                                    <p class="font-bold text-deep-blue text-[16px]">Sài Gòn ➔ Nha Trang</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-secondary uppercase tracking-wider">BIỂN SỐ</p>
+                                    <p class="font-bold text-deep-blue text-[16px]">51B-999.88</p>
+                                </div>
+                            </div>
+                            <a th:href="@{/driver/trips}" class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-deep-blue hover:bg-bus-orange hover:text-white transition-colors">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </a>
+                        </div>
+                        <!-- Card 2 Mock -->
+                        <div class="bg-white rounded-xl shadow-sm border border-outline-variant p-6 flex items-center gap-6 group hover:border-bus-orange/30 transition-colors">
+                            <div class="w-20 h-20 bg-surface-container-low rounded-lg flex flex-col items-center justify-center text-deep-blue border border-outline-variant">
+                                <span class="text-[20px] font-bold leading-tight">19:00</span>
+                                <span class="text-[10px] font-bold opacity-60 uppercase">TỐI</span>
+                            </div>
+                            <div class="flex-1 grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-[10px] font-bold text-secondary uppercase tracking-wider">TUYẾN</p>
+                                    <p class="font-bold text-deep-blue text-[16px]">Sài Gòn ➔ Cần Thơ</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-secondary uppercase tracking-wider">BIỂN SỐ</p>
+                                    <p class="font-bold text-deep-blue text-[16px]">51B-123.45</p>
+                                </div>
+                            </div>
+                            <a th:href="@{/driver/trips}" class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-deep-blue hover:bg-bus-orange hover:text-white transition-colors">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </a>
+                        </div>
+                    </th:block>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+</body>
+</html>
