@@ -161,19 +161,19 @@ public class DataSeeder implements CommandLineRunner {
         Trip firstHaNoiVinh = trips.get(0);
         // khach@bus.com: 1 ve sap di (huy duoc, hoan 100%), 1 ve da di (danh gia duoc)
         createBooking(khach, firstHaNoiVinh, List.of("A01", "A02"),
-                List.of("Nguyễn Văn Khách", "Lê Thị Hoa"), PaymentMethod.COD);
-        createBooking(khach, done1, List.of("A03"), List.of("Nguyễn Văn Khách"), PaymentMethod.CASH);
+                List.of("Nguyễn Văn Khách", "Lê Thị Hoa"), PaymentMethod.BANK_TRANSFER);
+        createBooking(khach, done1, List.of("A03"), List.of("Nguyễn Văn Khách"), PaymentMethod.BANK_TRANSFER);
         // ve chuyen sap chay trong 5h -> test huy khong duoc hoan tien
-        createBooking(khach, soon, List.of("A05"), List.of("Nguyễn Văn Khách"), PaymentMethod.COD);
+        createBooking(khach, soon, List.of("A05"), List.of("Nguyễn Văn Khách"), PaymentMethod.BANK_TRANSFER);
 
         // lan@bus.com: giu san vai ghe de thay ghe da co nguoi dat tren so do
-        createBooking(lan, firstHaNoiVinh, List.of("A04"), List.of("Trần Thị Lan"), PaymentMethod.COD);
+        createBooking(lan, firstHaNoiVinh, List.of("A04"), List.of("Trần Thị Lan"), PaymentMethod.BANK_TRANSFER);
         createBooking(lan, done2, List.of("A07", "A08"),
-                List.of("Trần Thị Lan", "Hoàng Đức Minh"), PaymentMethod.CASH);
+                List.of("Trần Thị Lan", "Hoàng Đức Minh"), PaymentMethod.BANK_TRANSFER);
 
         // minh@bus.com: khach tren chuyen DANG CHAY -> tai xe check-in duoc
         createBooking(minh, running, List.of("A10", "A11"),
-                List.of("Hoàng Đức Minh", "Vũ Phương Thảo"), PaymentMethod.COD);
+                List.of("Hoàng Đức Minh", "Vũ Phương Thảo"), PaymentMethod.BANK_TRANSFER);
     }
 
     /** Tao tuyen kem cac diem dung. */

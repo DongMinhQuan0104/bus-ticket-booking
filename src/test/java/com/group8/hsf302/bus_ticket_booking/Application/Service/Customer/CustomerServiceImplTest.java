@@ -148,7 +148,7 @@ class CustomerServiceImplTest {
         CreateBookingForm form = new CreateBookingForm();
         form.setTripId(tripId);
         form.setSeatCodes(List.of("A01", "A02"));
-        form.setPaymentMethod(PaymentMethod.COD);
+        form.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
 
         when(accountRepo.findActiveById(accountId)).thenReturn(Optional.of(account));
         when(tripRepo.findById(tripId)).thenReturn(Optional.of(tripWith(LocalDateTime.now().plusDays(1))));
@@ -164,7 +164,7 @@ class CustomerServiceImplTest {
         form.setTripId(tripId);
         form.setSeatCodes(List.of("A01", "A02"));
         form.setPassengerNames(List.of("Khach 1", "Khach 2"));
-        form.setPaymentMethod(PaymentMethod.COD);
+        form.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
 
         when(accountRepo.findActiveById(accountId)).thenReturn(Optional.of(account));
         when(tripRepo.findById(tripId)).thenReturn(Optional.of(tripWith(LocalDateTime.now().plusDays(1))));

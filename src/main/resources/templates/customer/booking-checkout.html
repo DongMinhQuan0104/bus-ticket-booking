@@ -76,8 +76,8 @@
                         <input type="radio" name="paymentMethod" th:value="${pm}" th:checked="${it.index == 0}"
                                class="text-brand-orange focus:ring-brand-orange"/>
                         <div>
-                            <p class="font-medium" th:text="${pm.name() == 'COD'} ? 'Thanh toán khi lên xe (COD)' : 'Tiền mặt tại quầy'">PTTT</p>
-                            <p class="text-xs text-on-surface-variant" th:text="${pm.name() == 'COD'} ? 'Trả tiền khi nhận vé / lên xe' : 'Ra quầy thanh toán trực tiếp'">Mô tả</p>
+                            <p class="font-medium">Chuyển khoản trực tiếp</p>
+                            <p class="text-xs text-on-surface-variant">Chuyển khoản qua ngân hàng để hoàn tất đặt vé</p>
                         </div>
                     </label>
                 </div>
