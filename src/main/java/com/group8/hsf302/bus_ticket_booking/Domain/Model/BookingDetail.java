@@ -1,8 +1,10 @@
 package com.group8.hsf302.bus_ticket_booking.Domain.Model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -16,36 +18,52 @@ public class BookingDetail {
     private UUID id;
 
     @NotBlank(message = "passenger name can not blank")
+    @Column(nullable = false)
     private String passengerName;
 
+    @NotBlank(message = "seat code can not blank")
+    @Column(nullable = false, length = 10)
+    private String seatCode;
+
     @Min(value = 0, message = "ticket price can not negative")
+    @Column(nullable = false)
     private Double ticketPrice;
 
-    @Min(value = 0, message = "luggage weight can not blank")
+    @Min(value = 0, message = "luggage weight can not negative")
     private Double luggageWeightKg;
 
+    @Min(value = 0, message = "luggage fee can not negative")
     private Double luggageFee;
 
+    @Min(value = 0, message = "sub total can not negative")
+    @Column(nullable = false)
     private Double subTotal;
 
     @Column(nullable = false)
     private Boolean isReturnTicket = false;
 
+    @NotNull(message = "pickup station order can not null")
+    @Min(value = 0)
+    @Column(nullable = false)
+    private Integer pickupStationOrder;
+
+    @NotNull(message = "dropoff station order can not null")
+    @Min(value = 0)
+    @Column(nullable = false)
+    private Integer dropoffStationOrder;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id")
+    @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
 
     public BookingDetail() {
     }
 
-    public BookingDetail(String passengerName, Double ticketPrice, Double luggageWeightKg, Double luggageFee, Double subTotal, Boolean isReturnTicket, Booking booking) {
-        this.passengerName = passengerName;
-        this.ticketPrice = ticketPrice;
-        this.luggageWeightKg = luggageWeightKg;
-        this.luggageFee = luggageFee;
-        this.subTotal = subTotal;
-        this.isReturnTicket = isReturnTicket;
-        this.booking = booking;
+    @AssertTrue(message = "dropoff station must be after pickup station")
+    public boolean isStationOrderValid() {
+        return pickupStationOrder == null
+                || dropoffStationOrder == null
+                || pickupStationOrder < dropoffStationOrder;
     }
 
     public UUID getId() {
@@ -62,6 +80,14 @@ public class BookingDetail {
 
     public void setPassengerName(String passengerName) {
         this.passengerName = passengerName;
+    }
+
+    public String getSeatCode() {
+        return seatCode;
+    }
+
+    public void setSeatCode(String seatCode) {
+        this.seatCode = seatCode;
     }
 
     public Double getTicketPrice() {
@@ -104,6 +130,22 @@ public class BookingDetail {
         isReturnTicket = returnTicket;
     }
 
+    public Integer getPickupStationOrder() {
+        return pickupStationOrder;
+    }
+
+    public void setPickupStationOrder(Integer pickupStationOrder) {
+        this.pickupStationOrder = pickupStationOrder;
+    }
+
+    public Integer getDropoffStationOrder() {
+        return dropoffStationOrder;
+    }
+
+    public void setDropoffStationOrder(Integer dropoffStationOrder) {
+        this.dropoffStationOrder = dropoffStationOrder;
+    }
+
     public Booking getBooking() {
         return booking;
     }
@@ -122,19 +164,5 @@ public class BookingDetail {
     @Override
     public int hashCode() {
         return getClass().hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "BookingDetail{" +
-                "id=" + id +
-                ", passengerName='" + passengerName + '\'' +
-                ", ticketPrice=" + ticketPrice +
-                ", luggageWeightKg=" + luggageWeightKg +
-                ", luggageFee=" + luggageFee +
-                ", subTotal=" + subTotal +
-                ", isReturnTicket=" + isReturnTicket +
-                ", booking=" + booking +
-                '}';
     }
 }

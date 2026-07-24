@@ -1,11 +1,14 @@
 package com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.Trip;
 
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Trip;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.TripRepo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,7 +42,29 @@ public class TripRepoImpl implements TripRepo {
     }
 
     @Override
-    public Page<Trip> findByRouteNameContainingIgnoreCase(String name, Pageable pageable) {
-        return tripJpaRepo.findByRouteNameContainingIgnoreCase(name,pageable);
+    public Page<Trip> findByRouteNameContainingIgnoreCase(
+            String name,
+            Pageable pageable
+    ) {
+        return tripJpaRepo.findByRouteNameContainingIgnoreCase(
+                name,
+                pageable
+        );
+    }
+
+    @Override
+    public List<Trip> searchAvailableTrips(
+            String from,
+            String to,
+            LocalDateTime start,
+            LocalDateTime end
+    ) {
+        return tripJpaRepo.searchAvailableTrips(
+                from,
+                to,
+                start,
+                end,
+                Status.AVAILABLE
+        );
     }
 }

@@ -1,46 +1,105 @@
 package com.group8.hsf302.bus_ticket_booking.Domain.Model;
 
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.SeatStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "seat_availability")
+@Table(
+        name = "seat_availability",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_trip_seat_segment",
+                columnNames = {
+                        "trip_id",
+                        "seat_code",
+                        "start_station_order",
+                        "end_station_order"
+                }
+        )
+)
 public class SeatAvailability {
 
     @Id
-    @GeneratedValue(strategy =  GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Pattern(regexp = "^[A-Z]\\d{2}$", message = "seat code not in right format")
+    @NotBlank
+    @Pattern(
+            regexp = "^[A-Z]\\d{2}$",
+            message = "seat code not in right format"
+    )
+    @Column(name = "seat_code", nullable = false, length = 10)
     private String seatCode;
 
-    @Min(value = 0, message = "start station order can not negative")
+    @NotNull
+    @Min(0)
+    @Column(name = "start_station_order", nullable = false)
     private Integer startStationOrder;
 
-    @Min(value = 0, message = "end station order can not negative")
+    @NotNull
+    @Min(0)
+    @Column(name = "end_station_order", nullable = false)
     private Integer endStationOrder;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SeatStatus status = SeatStatus.AVAILABLE;
+
+    private LocalDateTime holdExpiredAt;
+
+    @Version
+    private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_detail_id")
     private BookingDetail bookingDetail;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trip_id")
+    @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 
     public SeatAvailability() {
     }
 
-    public SeatAvailability(String seatCode, Integer startStationOrder, Integer endStationOrder, BookingDetail bookingDetail, Trip trip) {
-        this.seatCode = seatCode;
-        this.startStationOrder = startStationOrder;
-        this.endStationOrder = endStationOrder;
-        this.bookingDetail = bookingDetail;
-        this.trip = trip;
+    @AssertTrue
+    public boolean isStationOrderValid() {
+        return startStationOrder == null
+                || endStationOrder == null
+                || startStationOrder < endStationOrder;
+    }
+
+    public boolean isHoldExpired(LocalDateTime now) {
+        return status == SeatStatus.HELD
+                && holdExpiredAt != null
+                && !holdExpiredAt.isAfter(now);
+    }
+
+    public void hold(
+            BookingDetail detail,
+            LocalDateTime expiredAt
+    ) {
+        status = SeatStatus.HELD;
+        bookingDetail = detail;
+        holdExpiredAt = expiredAt;
+    }
+
+    public void markAsBooked() {
+        status = SeatStatus.BOOKED;
+        holdExpiredAt = null;
+    }
+
+    public void release() {
+        status = SeatStatus.AVAILABLE;
+        holdExpiredAt = null;
+        bookingDetail = null;
     }
 
     public UUID getId() {
@@ -75,6 +134,26 @@ public class SeatAvailability {
         this.endStationOrder = endStationOrder;
     }
 
+    public SeatStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(SeatStatus status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getHoldExpiredAt() {
+        return holdExpiredAt;
+    }
+
+    public void setHoldExpiredAt(LocalDateTime holdExpiredAt) {
+        this.holdExpiredAt = holdExpiredAt;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
     public BookingDetail getBookingDetail() {
         return bookingDetail;
     }
@@ -101,15 +180,5 @@ public class SeatAvailability {
     @Override
     public int hashCode() {
         return getClass().hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "SeatAvailability{" +
-                "id=" + id +
-                ", seatCode='" + seatCode + '\'' +
-                ", startStationOrder=" + startStationOrder +
-                ", endStationOrder=" + endStationOrder +
-                '}';
     }
 }

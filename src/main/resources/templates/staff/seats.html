@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BusTicketBooking - Chọn ghế</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#9d4300",
+                        "outline": "#8c7164",
+                        "secondary-container": "#d6e0f3",
+                        "on-secondary-container": "#596373",
+                        "on-tertiary-fixed-variant": "#005320",
+                        "on-error-container": "#93000a",
+                        "on-background": "#151c27",
+                        "on-primary-fixed": "#341100",
+                        "surface-variant": "#dce2f3",
+                        "surface-container": "#e7eefe",
+                        "secondary-fixed": "#d9e3f6",
+                        "on-tertiary-container": "#003b15",
+                        "on-tertiary-fixed": "#002109",
+                        "on-surface-variant": "#584237",
+                        "inverse-primary": "#ffb690",
+                        "surface-dim": "#d3daea",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#783200",
+                        "secondary": "#555f6f",
+                        "on-secondary-fixed-variant": "#3d4756",
+                        "error-container": "#ffdad6",
+                        "background": "#f9f9ff",
+                        "outline-variant": "#e0c0b1",
+                        "surface": "#f9f9ff",
+                        "primary-fixed": "#ffdbca",
+                        "tertiary": "#006e2d",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f9f9ff",
+                        "on-surface": "#151c27",
+                        "primary-container": "#f97316",
+                        "primary": "#9d4300",
+                        "tertiary-fixed-dim": "#62df7d",
+                        "inverse-surface": "#2a313d",
+                        "surface-container-highest": "#dce2f3",
+                        "secondary-fixed-dim": "#bdc7d9",
+                        "tertiary-fixed": "#7ffc97",
+                        "on-secondary-fixed": "#121c2a",
+                        "tertiary-container": "#2cb055",
+                        "surface-container-low": "#f0f3ff",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#ffb690",
+                        "surface-container-high": "#e2e8f8",
+                        "on-primary-container": "#582200",
+                        "inverse-on-surface": "#ebf1ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "12px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "xs": "8px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "display-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #F5F7FA; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1; }
+
+        /* Sơ đồ ghế chuẩn: 2 ghế bên trái, lối đi, 2 ghế bên phải. */
+        .seat-map-grid {
+            display: grid;
+            grid-template-columns:
+                minmax(56px, 72px)
+                minmax(56px, 72px)
+                44px
+                minmax(56px, 72px)
+                minmax(56px, 72px);
+            column-gap: 12px;
+            row-gap: 16px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .seat-map-grid > label {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .seat-map-grid > label:nth-child(4n + 1) { grid-column: 1; }
+        .seat-map-grid > label:nth-child(4n + 2) { grid-column: 2; }
+        .seat-map-grid > label:nth-child(4n + 3) { grid-column: 4; }
+        .seat-map-grid > label:nth-child(4n + 4) { grid-column: 5; }
+
+        @media (max-width: 480px) {
+            .seat-map-grid {
+                grid-template-columns:
+                    minmax(46px, 60px)
+                    minmax(46px, 60px)
+                    24px
+                    minmax(46px, 60px)
+                    minmax(46px, 60px);
+                column-gap: 8px;
+                row-gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body class="flex bg-surface text-on-surface">
+<!-- SideNavBar -->
+<nav class="bg-surface-container-low dark:bg-inverse-surface border-r border-outline-variant dark:border-outline fixed left-0 top-0 h-full w-64 hidden lg:flex flex-col flex-col h-screen p-lg z-40">
+<div class="mb-xl">
+<h1 class="font-display-lg text-display-lg font-black text-primary dark:text-inverse-primary truncate">BusTicketBooking</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Staff Portal</p>
+</div>
+<div class="flex-1 overflow-y-auto space-y-2">
+<a class="flex items-center gap-sm px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-primary-container dark:hover:bg-primary hover:text-on-primary-container transition-colors duration-200 ease-in-out" th:href="@{/staff/dashboard}">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Tổng quan</span>
+</a>
+<a class="flex items-center gap-sm px-4 py-3 rounded-lg text-primary dark:text-inverse-primary font-bold border-r-4 border-primary bg-primary-container/10 transition-colors duration-200 ease-in-out" th:href="@{/staff/trips}">
+<span class="material-symbols-outlined">confirmation_number</span>
+<span class="font-body-md text-body-md">Bán vé tại quầy</span>
+</a>
+<a class="flex items-center gap-sm px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-primary-container dark:hover:bg-primary hover:text-on-primary-container transition-colors duration-200 ease-in-out" th:href="@{/staff/bookings}">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-body-md text-body-md">Quản lý đặt vé</span>
+</a>
+<a class="flex items-center gap-sm px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-primary-container dark:hover:bg-primary hover:text-on-primary-container transition-colors duration-200 ease-in-out" th:href="@{/staff/check-in}">
+<span class="material-symbols-outlined">how_to_reg</span>
+<span class="font-body-md text-body-md">Check-in hành khách</span>
+</a>
+<a class="flex items-center gap-sm px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-primary-container dark:hover:bg-primary hover:text-on-primary-container transition-colors duration-200 ease-in-out" th:href="@{/staff/support-requests}">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-body-md text-body-md">Hỗ trợ khách hàng</span>
+</a>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-4">
+<div class="flex items-center gap-sm px-4 py-3 mb-2">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined fill">person</span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-bold text-on-surface" th:text="${currentUser.fullName()}">Staff</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Nhân viên</p>
+</div>
+</div>
+<a class="flex items-center gap-sm px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-primary-container dark:hover:bg-primary hover:text-on-primary-container transition-colors duration-200 ease-in-out" th:href="@{/auth/logout}">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-body-md text-body-md">Đăng xuất</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 lg:pl-64 flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface-container-highest sticky top-0 w-full z-40 flex justify-between items-center px-margin-desktop py-md border-b border-outline-variant dark:border-outline shadow-sm dark:shadow-none">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="font-body-md text-body-md">Staff</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="font-body-md text-body-md">Bán vé tại quầy</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Chọn ghế</span>
+</div>
+<div class="flex items-center gap-lg">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold" th:text="${#strings.toUpperCase(#strings.substring(currentUser.fullName(),0,1))}">
+                        S
+                    </div>
+</div>
+</div>
+</header>
+<div class="p-margin-desktop flex-1"><div class="space-y-sm" th:if="${errorMessage != null or successMessage != null}">
+<div class="rounded-xl border border-red-200 bg-red-50 px-md py-sm text-red-700 font-body-md text-body-md" th:if="${errorMessage != null}" th:text="${errorMessage}">Có lỗi xảy ra.</div>
+<div class="rounded-xl border border-green-200 bg-green-50 px-md py-sm text-green-700 font-body-md text-body-md" th:if="${successMessage != null}" th:text="${successMessage}">Thao tác thành công.</div>
+</div>
+<!-- Page Header & Stepper -->
+<div class="mb-8">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface mb-2">Bán vé tại quầy</h2>
+<h3 class="font-headline-md text-headline-md text-on-surface">Chọn ghế</h3>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Chọn điểm đón, điểm trả và ghế phù hợp cho hành khách.</p>
+</div>
+<a class="flex items-center gap-xs px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors" th:href="@{/staff/trips}">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+<span class="font-body-md text-body-md font-semibold">Quay lại tìm chuyến</span>
+</a>
+</div>
+<!-- Stepper -->
+<div class="flex items-center justify-between w-full max-w-4xl mx-auto mb-8 relative">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-outline-variant -z-10"></div>
+<div class="flex flex-col items-center gap-2 bg-surface px-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface">1. Tìm chuyến</span>
+</div>
+<div class="flex flex-col items-center gap-2 bg-surface px-2">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container border-2 border-primary flex items-center justify-center font-bold">
+                            2
+                        </div>
+<span class="font-label-sm text-label-sm text-primary font-bold">2. Chọn ghế</span>
+</div>
+<div class="flex flex-col items-center gap-2 bg-surface px-2">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-bold">
+                            3
+                        </div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3. Thông tin khách</span>
+</div>
+<div class="flex flex-col items-center gap-2 bg-surface px-2">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-bold">
+                            4
+                        </div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">4. Thanh toán</span>
+</div>
+<div class="flex flex-col items-center gap-2 bg-surface px-2">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-bold">
+                            5
+                        </div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">5. Phát hành vé</span>
+</div>
+</div>
+</div>
+<!-- Main Two-Column Layout -->
+<form class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm" method="get" th:action="@{/staff/trips/{id}/seats(id=${tripId})}">
+<h4 class="font-headline-md text-headline-md text-on-surface mb-4">Điểm đón và điểm trả</h4>
+<div class="flex flex-col md:flex-row gap-4 items-end">
+<div class="flex-1 w-full">
+<label class="block font-label-sm text-label-sm text-on-surface mb-1">Điểm đón</label>
+<select class="w-full border-outline-variant rounded-lg p-3 font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" id="pickupOrder" name="pickupOrder" required>
+<option th:each="station : ${routeStations}"
+        th:selected="${pickupOrder == station.stationOrder()}"
+        th:text="${station.stationName() + (station.address() != null ? ' — ' + station.address() : '')}"
+        th:value="${station.stationOrder()}">Điểm đón</option>
+</select>
+</div>
+<div class="hidden md:flex items-center justify-center pb-3 px-2 text-on-surface-variant">
+<span class="material-symbols-outlined">arrow_right_alt</span>
+</div>
+<div class="flex-1 w-full">
+<label class="block font-label-sm text-label-sm text-on-surface mb-1">Điểm trả</label>
+<select class="w-full border-outline-variant rounded-lg p-3 font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" id="dropoffOrder" name="dropoffOrder" required>
+<option th:each="station : ${routeStations}"
+        th:selected="${dropoffOrder == station.stationOrder()}"
+        th:text="${station.stationName() + (station.address() != null ? ' — ' + station.address() : '')}"
+        th:value="${station.stationOrder()}">Điểm trả</option>
+</select>
+</div>
+<button class="px-6 py-3 border border-primary text-primary rounded-lg hover:bg-primary-container font-body-md text-body-md font-semibold whitespace-nowrap" type="submit">
+                                Xem ghế trống
+                            </button>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-3 italic text-sm">Điểm trả phải nằm sau điểm đón trên hành trình.</p>
+</form><div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm text-on-surface-variant" th:if="${loaded != true}">Chọn điểm đón và điểm trả, sau đó nhấn <strong>Xem ghế trống</strong>.</div><form class="flex flex-col lg:flex-row gap-lg items-start" method="get" th:action="@{/staff/bookings/new}" th:if="${loaded == true}"><input name="dropoffOrder" th:value="${dropoffOrder}" type="hidden"/><input name="pickupOrder" th:value="${pickupOrder}" type="hidden"/><input name="tripId" th:value="${tripId}" type="hidden"/>
+<!-- Left Column (72%) -->
+<div class="w-full lg:w-[72%] space-y-6">
+<!-- Chuyến xe đã chọn Card -->
+<div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm">
+<h4 class="font-headline-md text-headline-md text-on-surface mb-4">Chuyến xe đã chọn</h4>
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div>
+<div class="font-headline-md text-headline-md text-on-surface font-bold mb-1"
+     th:text="${trip.destinationFrom() + ' → ' + trip.destinationTo()}">Điểm đi → Điểm đến</div>
+<div class="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span th:text="${#temporals.format(trip.departureTime(), 'dd/MM/yyyy HH:mm')}">20/10/2026 08:00</span>
+<span class="w-1 h-1 rounded-full bg-on-surface-variant"></span>
+<span class="material-symbols-outlined text-sm">directions_bus</span>
+<span th:text="${(trip.busName() != null ? trip.busName() : 'Chưa có tên xe') + (trip.licensePlate() != null ? ' (' + trip.licensePlate() + ')' : '')}">Tên xe</span>
+                                </div>
+</div>
+<div class="flex items-center gap-4">
+<span class="bg-surface-container-low text-on-surface px-3 py-1.5 rounded-full font-label-sm text-label-sm border border-outline-variant"
+      th:text="${trip.availableSeatCount() + ' ghế còn trống'}">0 ghế còn trống</span>
+<a class="text-primary font-label-sm text-label-sm hover:underline" th:href="@{/staff/trips}">Đổi chuyến</a>
+</div>
+</div>
+</div>
+<!-- Điểm đón và điểm trả Card -->
+
+<!-- Sơ đồ ghế Card -->
+<div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface">Sơ đồ ghế</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Chọn một hoặc nhiều ghế còn trống.</p>
+</div>
+<div class="flex flex-wrap gap-4 font-label-sm text-label-sm">
+<div class="flex items-center gap-1.5"><div class="w-4 h-4 border-2 border-[#16A34A] rounded bg-white"></div> Còn trống</div>
+<div class="flex items-center gap-1.5"><div class="w-4 h-4 bg-primary rounded"></div> Đang chọn</div>
+<div class="flex items-center gap-1.5"><div class="w-4 h-4 bg-amber-500 rounded"></div> Đang được giữ</div>
+<div class="flex items-center gap-1.5"><div class="w-4 h-4 bg-gray-400 rounded"></div> Đã đặt</div>
+</div>
+</div>
+<div class="flex flex-col items-center border border-outline-variant/50 rounded-xl p-8 bg-surface-container-low max-w-2xl mx-auto">
+<div class="flex items-center gap-2 mb-8 text-on-surface-variant border-b border-outline-variant pb-4 w-full justify-center">
+<span class="material-symbols-outlined">directions_bus</span>
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">Đầu xe</span>
+</div>
+<div class="seat-map-grid max-w-md mx-auto"><label th:class="${seat.status().name() == 'AVAILABLE' ? 'h-12 border-2 border-[#16A34A] text-[#16A34A] rounded-lg font-body-md font-semibold hover:bg-green-50 transition-colors flex items-center justify-center cursor-pointer seat-choice' : (seat.status().name() == 'HELD' ? 'h-12 bg-amber-500 text-white rounded-lg font-body-md font-semibold cursor-not-allowed flex items-center justify-center' : 'h-12 bg-gray-400 text-white rounded-lg font-body-md font-semibold cursor-not-allowed flex items-center justify-center')}" th:each="seat : ${seats}">
+<input class="sr-only" name="selectedSeats" onchange="updateSelectedSeats()" th:disabled="${seat.status().name() != 'AVAILABLE'}" th:value="${seat.seatCode()}" type="checkbox"/>
+<span th:text="${seat.seatCode()}">A01</span>
+</label></div>
+</div>
+</div>
+</div>
+<!-- Right Column (28%) Sticky Summary -->
+<div class="w-full lg:w-[28%] lg:sticky lg:top-[100px]">
+<div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm flex flex-col min-h-[400px]">
+<h4 class="font-headline-md text-headline-md text-on-surface mb-4">Ghế đã chọn</h4>
+<div class="flex-1">
+<div class="flex flex-wrap gap-2 mb-4" id="selectedSeatChips"><span class="text-on-surface-variant text-body-md">Chưa chọn ghế</span></div>
+<div class="font-body-md text-body-md text-on-surface font-semibold mb-6" id="selectedSeatCount">Số lượng ghế: 0</div>
+<div class="bg-surface-container-low p-4 rounded-lg flex gap-3 text-on-surface-variant border border-outline-variant/50">
+<span class="material-symbols-outlined text-primary mt-0.5">info</span>
+<p class="font-body-md text-sm">Trạng thái ghế có thể thay đổi trước khi hoàn tất đặt vé.</p>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-outline-variant space-y-3">
+<button class="w-full py-3 bg-primary text-on-primary rounded-lg font-body-lg text-body-lg font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled="" id="continueSeatButton" type="submit">
+                                Tiếp tục nhập thông tin
+                                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<a class="w-full py-3 border border-outline-variant text-on-surface rounded-lg font-body-lg text-body-lg hover:bg-surface-variant transition-colors" th:href="@{/staff/trips}">
+                                Quay lại
+                            </a>
+</div>
+</div>
+</div>
+</form>
+</div>
+</main>
+<script>
+function syncStationOptions() {
+ const pickup = document.getElementById('pickupOrder');
+ const dropoff = document.getElementById('dropoffOrder');
+ if (!pickup || !dropoff) return;
+
+ const pickupValue = Number(pickup.value);
+ [...dropoff.options].forEach(option => {
+   option.disabled = Number(option.value) <= pickupValue;
+ });
+
+ if (Number(dropoff.value) <= pickupValue) {
+   const firstValid = [...dropoff.options].find(option => !option.disabled);
+   if (firstValid) dropoff.value = firstValid.value;
+ }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+ const pickup = document.getElementById('pickupOrder');
+ if (pickup) pickup.addEventListener('change', syncStationOptions);
+ syncStationOptions();
+});
+
+function updateSelectedSeats(){
+ const selected=[...document.querySelectorAll('input[name="selectedSeats"]:checked')];
+ document.querySelectorAll('.seat-choice').forEach(l=>{const i=l.querySelector('input'); if(i&&i.checked){l.classList.add('bg-primary','text-on-primary','border-primary');l.classList.remove('text-[#16A34A]','border-[#16A34A]');}else{l.classList.remove('bg-primary','text-on-primary','border-primary');l.classList.add('text-[#16A34A]','border-[#16A34A]');}});
+ const chips=document.getElementById('selectedSeatChips'); const count=document.getElementById('selectedSeatCount'); const btn=document.getElementById('continueSeatButton');
+ if(chips){chips.innerHTML=selected.length?selected.map(i=>`<span class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg font-semibold">${i.value}</span>`).join(''):'<span class="text-on-surface-variant text-body-md">Chưa chọn ghế</span>';}
+ if(count)count.textContent='Số lượng ghế: '+selected.length; if(btn)btn.disabled=selected.length===0;
+}
+</script></body></html>

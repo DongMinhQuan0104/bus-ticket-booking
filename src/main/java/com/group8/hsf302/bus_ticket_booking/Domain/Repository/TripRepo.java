@@ -5,11 +5,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface TripRepo{
+public interface TripRepo {
+
     void save(Trip trip);
 
     Optional<Trip> findById(UUID id);
@@ -18,5 +21,15 @@ public interface TripRepo{
 
     Page<Trip> findAll(Pageable pageable);
 
-    Page<Trip> findByRouteNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<Trip> findByRouteNameContainingIgnoreCase(
+            String name,
+            Pageable pageable
+    );
+
+    List<Trip> searchAvailableTrips(
+            String from,
+            String to,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 }

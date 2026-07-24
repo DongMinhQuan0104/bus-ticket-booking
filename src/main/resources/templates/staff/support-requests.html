@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Staff Support Request - BusTick Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#341100",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#ffb690",
+                        "tertiary-fixed": "#7ffc97",
+                        "secondary": "#555f6f",
+                        "on-surface": "#151c27",
+                        "on-primary": "#ffffff",
+                        "outline": "#8c7164",
+                        "on-tertiary-fixed-variant": "#005320",
+                        "on-primary-fixed-variant": "#783200",
+                        "secondary-container": "#d6e0f3",
+                        "on-surface-variant": "#584237",
+                        "on-secondary-container": "#596373",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#3d4756",
+                        "surface-container-highest": "#dce2f3",
+                        "surface-container-high": "#e2e8f8",
+                        "tertiary-container": "#2cb055",
+                        "inverse-surface": "#2a313d",
+                        "inverse-on-surface": "#ebf1ff",
+                        "surface-container-low": "#f0f3ff",
+                        "primary": "#9d4300",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#f9f9ff",
+                        "on-tertiary-fixed": "#002109",
+                        "surface-variant": "#dce2f3",
+                        "background": "#f9f9ff",
+                        "on-background": "#151c27",
+                        "tertiary-fixed-dim": "#62df7d",
+                        "outline-variant": "#e0c0b1",
+                        "tertiary": "#006e2d",
+                        "primary-fixed": "#ffdbca",
+                        "surface-tint": "#9d4300",
+                        "on-primary-container": "#582200",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#d3daea",
+                        "on-error-container": "#93000a",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#003b15",
+                        "primary-container": "#f97316",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#f9f9ff",
+                        "secondary-fixed-dim": "#bdc7d9",
+                        "surface-container": "#e7eefe",
+                        "on-secondary-fixed": "#121c2a",
+                        "secondary-fixed": "#d9e3f6",
+                        "primary-fixed-dim": "#ffb690"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "gutter": "16px",
+                        "xl": "32px",
+                        "sm": "12px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "margin-desktop": "32px",
+                        "base": "4px",
+                        "xs": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f9f9ff; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .active-nav { background-color: #f97316; color: white !important; font-weight: 700; border-radius: 0 9999px 9999px 0; margin-right: 1rem; }
+        .custom-shadow { box-shadow: 0px 1px 3px rgba(0,0,0,0.05); }
+        .transition-interaction { transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+        .transition-interaction:active { transform: scale(0.98); }
+    </style>
+</head>
+<body class="text-on-background">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 border-r border-outline-variant bg-surface-container-lowest flex flex-col py-lg z-50">
+<div class="px-lg mb-xl">
+<div class="flex items-center gap-xs">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">directions_bus</span>
+</div>
+<div>
+<h1 class="text-headline-md font-headline-md font-bold text-primary leading-tight">BusTick Manager</h1>
+<p class="text-label-sm font-label-sm text-secondary opacity-70">Transit Hub Portal</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-base overflow-y-auto">
+<a class="text-on-secondary-fixed-variant hover:bg-surface-container-high p-3 rounded-r-full mr-4 flex items-center gap-3 transition-colors duration-200" th:href="@{/staff/dashboard}">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Tổng quan</span>
+</a>
+<a class="text-on-secondary-fixed-variant hover:bg-surface-container-high p-3 rounded-r-full mr-4 flex items-center gap-3 transition-colors duration-200" th:href="@{/staff/trips}">
+<span class="material-symbols-outlined">confirmation_number</span>
+<span class="font-body-md text-body-md">Bán vé tại quầy</span>
+</a>
+<a class="text-on-secondary-fixed-variant hover:bg-surface-container-high p-3 rounded-r-full mr-4 flex items-center gap-3 transition-colors duration-200" th:href="@{/staff/bookings}">
+<span class="material-symbols-outlined">book_online</span>
+<span class="font-body-md text-body-md">Quản lý đặt vé</span>
+</a>
+<a class="text-on-secondary-fixed-variant hover:bg-surface-container-high p-3 rounded-r-full mr-4 flex items-center gap-3 transition-colors duration-200" th:href="@{/staff/check-in}">
+<span class="material-symbols-outlined">how_to_reg</span>
+<span class="font-body-md text-body-md">Check-in hành khách</span>
+</a>
+<a class="bg-primary-container text-on-primary-container font-bold rounded-r-full mr-4 p-3 flex items-center gap-3" th:href="@{/staff/support-requests}">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+<span class="font-body-md text-body-md">Hỗ trợ khách hàng</span>
+</a>
+</nav>
+<div class="mt-auto px-lg pt-lg border-t border-outline-variant space-y-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a transit staff member for the BusTick Manager portal, wearing a clean uniform, high-quality corporate lighting, soft background blur, modern aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAy1s34qQEm1giCHfLEyxDfVqozvThBb6znxts8KkJNeoCq6JzO-2gw56vDqAfWHNq2blFv0zcXeaz89RFaKNlv_L6GPolZZEJ1bPI65t3sk9BWs_FshFd2ixrOJydLm0Qb64b_TIvMF2v7emuDkQmawX2pxk1tDLAGtE_YVqFXM5-7nQDUB3zHrwtf9uh3NXqJRQJPiQ11uDPstOuUsE8X96LhontpdpfFmzq1mQmUgo2_xoIrRHU"/>
+</div>
+<div>
+<p class="font-bold text-body-md" th:text="${currentUser.fullName()}">Staff</p>
+<p class="text-label-sm text-secondary">Nhân viên</p>
+</div>
+</div>
+<a class="w-full text-left text-error flex items-center gap-3 p-3 rounded-xl hover:bg-error-container transition-colors duration-200" th:href="@{/auth/logout}">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-body-md text-body-md font-bold">Đăng xuất</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-64 min-h-screen"><div class="space-y-sm" th:if="${errorMessage != null or successMessage != null}">
+<div class="rounded-xl border border-red-200 bg-red-50 px-md py-sm text-red-700 font-body-md text-body-md" th:if="${errorMessage != null}" th:text="${errorMessage}">Có lỗi xảy ra.</div>
+<div class="rounded-xl border border-green-200 bg-green-50 px-md py-sm text-green-700 font-body-md text-body-md" th:if="${successMessage != null}" th:text="${successMessage}">Thao tác thành công.</div>
+</div>
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-lg py-sm w-full bg-surface border-b border-outline-variant sticky top-0 z-40">
+<div class="flex items-center gap-xs">
+<nav class="flex items-center gap-xs text-label-sm font-label-sm text-secondary">
+<span>Staff</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary font-bold">Hỗ trợ khách hàng</span>
+</nav>
+</div>
+<div class="flex items-center gap-lg">
+<button class="p-2 rounded-full hover:bg-surface-container-high transition-colors text-secondary relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="Close-up of a digital ID badge for staff member, minimalist design, orange accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN8_ERd7qq8SMSVSFnk7PHAcK3n8D026YBurgORO5CvoYui_cWc7-TaE0ubSIgD6RIJ738pln6_KmBQ4_MU6332B3bIgJNONU1UTOXyWXZYHTJu2KfjS6cuTv9TdLCQav9S4qsKqpb3O9r1nH_u5ZSPh57LWMaXgXYTDxwPFL6oQskIejKMOKj5FBphaUpeRv65DW_AdVy32QzlA8zcDOJnd1DYfkr5MQ_-Wyc98_Swn6W54oBYsQ"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-lg max-w-[1440px] mx-auto">
+<!-- Title & Description -->
+<div class="mb-xl">
+<h2 class="text-headline-md font-headline-md text-on-surface">Tạo yêu cầu hỗ trợ</h2>
+<p class="text-body-md text-secondary mt-1">Ghi nhận vấn đề của khách hoặc chuyển yêu cầu vượt quyền cho Admin.</p>
+</div>
+<div class="grid grid-cols-12 gap-lg">
+<!-- Left Column -->
+<div class="col-span-12 lg:col-span-8 space-y-lg">
+<!-- Liên kết booking Card -->
+<form class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg custom-shadow" method="get" th:action="@{/staff/support-requests}">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-primary">link</span>
+<h3 class="font-bold text-lg text-on-surface">Liên kết booking</h3>
+</div>
+<div class="flex gap-md mb-lg">
+<div class="flex-1 relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary">search</span>
+<input class="w-full pl-10 pr-4 py-3 bg-white border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md" id="bookingSearchInput" name="bookingKeyword" placeholder="Nhập mã booking, tên khách hoặc số điện thoại" th:value="${bookingKeyword}" type="text"/>
+</div>
+<button class="bg-primary-container text-white px-lg py-3 rounded-xl font-bold transition-interaction hover:brightness-110 flex items-center gap-2" type="submit">
+<span class="material-symbols-outlined">search</span>
+                                Tra cứu
+                            </button>
+</div>
+<!-- Results Table (Hidden by default) -->
+<div class="overflow-hidden border border-outline-variant rounded-lg" id="searchResults" th:if="${bookingResults != null}">
+<div class="p-md text-center text-secondary" th:if="${#lists.isEmpty(bookingResults)}">Không tìm thấy booking phù hợp.</div><table class="w-full text-left" th:unless="${#lists.isEmpty(bookingResults)}">
+<thead class="bg-surface-container-low border-b border-outline-variant text-label-sm text-secondary">
+<tr>
+<th class="px-md py-3">Mã booking</th>
+<th class="px-md py-3">Người liên hệ</th>
+<th class="px-md py-3">Trạng thái</th>
+<th class="px-md py-3 text-right">Hành động</th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr class="hover:bg-surface-container-low border-b border-outline-variant last:border-0 transition-colors" th:each="booking : ${bookingResults}">
+<td class="px-md py-4 font-bold text-primary" th:text="${booking.bookingCode()}">BT102948</td>
+<td class="px-md py-4" th:text="${booking.contactName()}">Nguyễn Văn An</td>
+<td class="px-md py-4">
+<span class="px-3 py-1 bg-tertiary-container/20 text-tertiary font-bold text-[12px] rounded-full" th:text="${booking.status()}">Đã thanh toán</span>
+</td>
+<td class="px-md py-4 text-right">
+<a class="text-primary font-bold hover:underline" th:href="@{/staff/support-requests(bookingId=${booking.bookingId()})}">Chọn booking</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</form>
+<!-- Thông tin yêu cầu Card -->
+<form method="post" th:action="@{/staff/support-requests/create}"><input name="bookingId" th:if="${selectedBooking != null}" th:value="${selectedBooking.bookingId()}" type="hidden"/><section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg custom-shadow">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-primary">description</span>
+<h3 class="font-bold text-lg text-on-surface">Thông tin yêu cầu</h3>
+</div>
+<div class="space-y-lg">
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-2">Chủ đề *</label>
+<input class="w-full px-4 py-3 bg-white border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md" name="subject" placeholder="Nhập chủ đề yêu cầu hỗ trợ" required="" type="text"/>
+</div>
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-2">Nội dung chi tiết *</label>
+<textarea class="w-full px-4 py-3 bg-white border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md resize-none" name="description" placeholder="Mô tả chi tiết vấn đề khách hàng đang gặp phải..." required="" rows="6"></textarea>
+</div>
+<div class="bg-surface-container-low p-md rounded-xl flex items-start gap-md">
+<div class="flex items-center h-6">
+<input class="w-5 h-5 text-primary border-outline focus:ring-primary rounded" id="escalate" name="escalateToAdmin" type="checkbox"/>
+</div>
+<div class="flex flex-col">
+<label class="font-bold text-body-md cursor-pointer" for="escalate">Chuyển yêu cầu cho Admin</label>
+<p class="text-label-sm text-secondary">Sử dụng khi yêu cầu vượt quyền xử lý của Staff, ví dụ hoàn tiền cần phê duyệt.</p>
+</div>
+</div>
+</div>
+</section><div class="flex items-center justify-end gap-md">
+<button class="px-lg py-3 rounded-xl border border-outline font-bold text-secondary hover:bg-surface-container-high transition-interaction" type="reset">
+                            Xóa thông tin
+                        </button>
+<button class="px-lg py-3 rounded-xl bg-primary-container text-white font-bold transition-interaction hover:brightness-110 shadow-lg shadow-primary-container/20" type="submit">
+                            Tạo yêu cầu
+                        </button>
+</div></form>
+<!-- Form Actions -->
+</div>
+<!-- Right Column -->
+<div class="col-span-12 lg:col-span-4 space-y-lg">
+<!-- Booking đã chọn (Conditional) -->
+<section class="bg-surface-container-lowest border-2 border-primary border-dashed rounded-xl p-lg custom-shadow animate-in fade-in duration-300" id="selectedBookingCard" th:if="${selectedBooking != null}">
+<div class="flex justify-between items-start mb-md">
+<span class="px-3 py-1 bg-primary text-white text-[12px] font-bold rounded-full">Booking đã chọn</span>
+<a class="text-error font-bold text-label-sm hover:underline flex items-center gap-1" th:href="@{/staff/support-requests}">
+<span class="material-symbols-outlined text-sm">link_off</span>
+                                Bỏ liên kết booking
+                            </a>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between">
+<span class="text-secondary text-body-md">Mã booking</span>
+<span class="font-bold text-primary" th:text="${selectedBooking.bookingCode()}">BT102948</span>
+</div>
+<div class="flex justify-between">
+<span class="text-secondary text-body-md">Người liên hệ</span>
+<span class="font-bold" th:text="${selectedBooking.contactName()}">Nguyễn Văn An</span>
+</div>
+<div class="flex justify-between">
+<span class="text-secondary text-body-md">Số điện thoại</span>
+<span class="font-bold" th:text="${selectedBooking.contactPhone()}">0987 654 321</span>
+</div>
+<div class="flex justify-between">
+<span class="text-secondary text-body-md">Chuyến xe</span>
+<span class="font-bold text-right">Hà Nội - Đà Nẵng</span>
+</div>
+<div class="flex justify-between items-center pt-2 border-t border-outline-variant">
+<span class="text-secondary text-body-md">Trạng thái</span>
+<span class="px-3 py-1 bg-tertiary-container/20 text-tertiary font-bold text-[12px] rounded-full" th:text="${selectedBooking.status()}">Đã thanh toán</span>
+</div>
+</div>
+</section>
+<!-- Hướng dẫn Card (when no booking selected) -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg custom-shadow" id="guidanceCard" th:if="${selectedBooking == null}">
+<div class="flex items-center gap-sm mb-md text-primary">
+<span class="material-symbols-outlined">help_center</span>
+<h3 class="font-bold text-on-surface">Khi nào cần liên kết booking?</h3>
+</div>
+<ul class="space-y-md list-disc pl-5 text-body-md text-secondary">
+<li>Liên kết booking khi yêu cầu liên quan đến đổi ghế, hủy vé, hoàn tiền hoặc thông tin chuyến.</li>
+<li>Có thể bỏ qua khi yêu cầu chỉ là tư vấn chung.</li>
+</ul>
+</section>
+<!-- Khi nào chuyển Admin? Card -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg custom-shadow">
+<div class="flex items-center gap-sm mb-md text-on-secondary-fixed-variant">
+<span class="material-symbols-outlined">admin_panel_settings</span>
+<h3 class="font-bold text-on-surface">Khi nào chuyển Admin?</h3>
+</div>
+<p class="text-body-md text-secondary">Chuyển Admin khi yêu cầu vượt quyền xử lý của Staff hoặc cần phê duyệt đặc biệt.</p>
+<div class="mt-lg p-md bg-error-container/20 border border-error/10 rounded-lg flex gap-md">
+<span class="material-symbols-outlined text-error">warning</span>
+<p class="text-[13px] text-error">Yêu cầu Escalated sẽ không thể chỉnh sửa bởi Staff sau khi gửi.</p>
+</div>
+</section>
+</div>
+</div>
+</div>
+</main>
+<!-- Success Modal (Hidden) -->
+<div class="fixed inset-0 bg-on-surface/50 backdrop-blur-sm z-[100] flex items-center justify-center" id="successModal" th:if="${supportResult != null}">
+<div class="bg-white rounded-2xl p-xl max-w-md w-full mx-4 shadow-2xl scale-95 transition-transform duration-300" id="modalContainer">
+<div class="w-20 h-20 bg-tertiary-container/20 text-tertiary rounded-full flex items-center justify-center mx-auto mb-lg">
+<span class="material-symbols-outlined text-[48px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h2 class="text-center text-headline-md font-headline-md text-on-surface mb-xs">Tạo yêu cầu thành công</h2>
+<p class="text-center text-secondary text-body-md mb-xl" th:text="|Mã yêu cầu: ${supportResult.id()} • Trạng thái: ${supportResult.status()}|">Yêu cầu hỗ trợ của bạn đã được ghi nhận vào hệ thống.</p>
+<div class="bg-surface-container-low rounded-xl p-lg space-y-md mb-xl border border-outline-variant">
+<div class="flex justify-between">
+<span class="text-secondary text-body-md">ID yêu cầu:</span>
+<span class="font-bold" th:text="${supportResult.id()}">#REQ-8829-22</span>
+</div>
+<div class="flex justify-between">
+<span class="text-secondary text-body-md">Chủ đề:</span>
+<span class="font-bold" id="modalSubject" th:text="${supportResult.subject()}">Hoàn tiền vé khách hủy</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-secondary text-body-md">Trạng thái:</span>
+<span class="px-3 py-1 bg-primary-container text-white font-bold text-[12px] rounded-full uppercase tracking-wider" id="modalStatus" th:text="${supportResult.status()}">ESCALATED</span>
+</div>
+</div>
+<a class="w-full bg-primary text-white py-3 rounded-xl font-bold transition-interaction" th:href="@{/staff/support-requests}">
+                Đã hiểu
+            </a>
+</div>
+</div>
+</body></html>

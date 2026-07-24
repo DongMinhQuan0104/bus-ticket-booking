@@ -1,0 +1,12 @@
+package com.group8.hsf302.bus_ticket_booking.Domain.Enum;
+
+public enum StaffActionType {
+    COUNTER_BOOKING_CREATED,
+    PAYMENT_CONFIRMED,
+    SEAT_CHANGED,
+    BOOKING_CANCELLED,
+    REFUND_PROCESSED,
+    TICKET_CHECKED_IN,
+    SUPPORT_REQUEST_CREATED,
+    SUPPORT_REQUEST_ESCALATED
+}

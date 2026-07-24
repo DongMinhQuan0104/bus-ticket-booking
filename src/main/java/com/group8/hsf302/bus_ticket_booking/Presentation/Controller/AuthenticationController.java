@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Role;
 @Controller
 @RequestMapping("/auth")
 public class AuthenticationController {
@@ -59,6 +59,11 @@ public class AuthenticationController {
         }
         AccountViewModel accountLogin = authService.login(form);
         session.setAttribute("LOGGED_IN_USER", accountLogin);
+
+        if (accountLogin.role() == Role.STAFF) {
+            return "redirect:/staff/dashboard";
+        }
+
         return "redirect:/home";
     }
 
