@@ -4,6 +4,8 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.*;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.*;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.Paging.PagedResponse;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.*;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Role;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.*;
@@ -25,22 +27,26 @@ public class AdminServiceImpl implements AdminService{
     private final BusRepo busRepo;
     private final RouteRepo routeRepo;
     private final StationRepo stationRepo;
+    private final TripRepo tripRepo;
     private final PasswordHasher passwordHasher;
     private final AccountMapper accountMapper;
     private final BusMapper busMapper;
     private final RouteMapper routeMapper;
     private final StationMapper stationMapper;
+    private final TripMapper tripMapper;
 
-    public AdminServiceImpl(AccountRepo accountRepo, BusRepo busRepo, RouteRepo routeRepo, StationRepo stationRepo, PasswordHasher passwordHasher, AccountMapper accountMapper, BusMapper busMapper, RouteMapper routeMapper, StationMapper stationMapper) {
+    public AdminServiceImpl(AccountRepo accountRepo, BusRepo busRepo, RouteRepo routeRepo, StationRepo stationRepo, TripRepo tripRepo, PasswordHasher passwordHasher, AccountMapper accountMapper, BusMapper busMapper, RouteMapper routeMapper, StationMapper stationMapper, TripMapper tripMapper) {
         this.accountRepo = accountRepo;
         this.busRepo = busRepo;
         this.routeRepo = routeRepo;
         this.stationRepo = stationRepo;
+        this.tripRepo = tripRepo;
         this.passwordHasher = passwordHasher;
         this.accountMapper = accountMapper;
         this.busMapper = busMapper;
         this.routeMapper = routeMapper;
         this.stationMapper = stationMapper;
+        this.tripMapper = tripMapper;
     }
 
     @Override
@@ -100,6 +106,15 @@ public class AdminServiceImpl implements AdminService{
     public AccountViewModel getAccountById(UUID id) {
         Account account = findAccountById(id);
         return accountMapper.toViewModel(account);
+    }
+
+    @Override
+    public List<AccountViewModel> getAccountByRole(Role role) {
+        List<Account> accounts = accountRepo.findByRole(role);
+
+        return accounts.stream()
+                .map(accountMapper::toViewModel)
+                .toList();
     }
 
     @Override
@@ -350,32 +365,77 @@ public class AdminServiceImpl implements AdminService{
 
     @Override
     public TripViewModel createTrip(AdminCreateTripForm form) {
-        return null;
+        Route route = findRouteById(form.getRouteId());
+        Bus bus = findBusById(form.getBusId());
+        Trip trip = tripMapper.toEntity(form);
+        trip.setRoute(route);
+        trip.setBus(bus);
+        tripRepo.save(trip);
+        return tripMapper.toViewModel(trip);
     }
 
     @Override
+    @Transactional
     public PagedResponse<TripViewModel> getAllTrips(int page, int size) {
-        return null;
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Trip> tripPage = tripRepo.findAll(pageRequest);
+        List<TripViewModel> viewModels = tripPage.stream()
+                .map((tripMapper::toViewModel))
+                .toList();
+        return new PagedResponse<>(
+                viewModels,
+                tripPage.getNumber(),
+                tripPage.getSize(),
+                tripPage.getTotalElements(),
+                tripPage.getTotalPages(),
+                tripPage.isLast()
+        );
     }
 
     @Override
-    public PagedResponse<TripViewModel> getTripByName(String name, int page, int size) {
-        return null;
+    @Transactional
+    public PagedResponse<TripViewModel> getTripByRouteName(String name, int page, int size) {
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Trip> tripPage = tripRepo.findByRouteNameContainingIgnoreCase(name, pageRequest);
+
+        List<TripViewModel> viewModels = tripPage.stream()
+                .map(tripMapper::toViewModel)
+                .toList();
+
+        return new PagedResponse<>(
+                viewModels,
+                tripPage.getNumber(),
+                tripPage.getSize(),
+                tripPage.getTotalElements(),
+                tripPage.getTotalPages(),
+                tripPage.isLast()
+        );
     }
 
     @Override
-    public PagedResponse<TripViewModel> getTripById(UUID id, int page, int size) {
-        return null;
+    public TripViewModel getTripById(UUID id) {
+        Trip trip = findTripById(id);
+        return tripMapper.toViewModel(trip);
     }
 
     @Override
     public boolean updateTrip(AdminUpdateTripForm form, UUID id) {
-        return false;
+        Trip existingTrip = findTripById(id);
+        Trip newTrip = tripMapper.updateEntityFromForm(form,existingTrip);
+        Route newRoute = findRouteById(form.getRouteId());
+        Bus newBus = findBusById(form.getBusId());
+        newTrip.setRoute(newRoute);
+        newTrip.setBus(newBus);
+        return true;
     }
 
     @Override
     public boolean deletedTrip(UUID id) {
-        return false;
+        Trip trip = findTripById(id);
+        tripRepo.delete(trip);
+        return true;
     }
 
 
@@ -406,6 +466,10 @@ public class AdminServiceImpl implements AdminService{
 
     private Station findStationById(UUID id){
         return stationRepo.findById(id).orElseThrow(StationNotFoundException::new);
+    }
+
+    private Trip findTripById(UUID id){
+        return tripRepo.findById(id).orElseThrow(TripNotFoundException::new);
     }
 
     private void processRouteStations(List<AdminRouteStationForm> stationForms, Route parentRoute) {
