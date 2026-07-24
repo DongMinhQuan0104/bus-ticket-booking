@@ -86,4 +86,11 @@ public class GlobalExceptionHandler {
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : ".....");
     }
+
+    @ExceptionHandler(TripNotFoundException.class)
+    public String handleTripNotFound(TripNotFoundException e, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : ".....");
+    }
 }
