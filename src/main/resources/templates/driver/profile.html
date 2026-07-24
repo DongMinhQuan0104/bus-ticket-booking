@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Hồ sơ Tài xế &amp; Thông tin Xe bus | Bus Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e0e3e6",
+                        "outline": "#8c7166",
+                        "surface-variant": "#e0e3e6",
+                        "on-secondary-fixed": "#001c38",
+                        "secondary-fixed": "#d2e4ff",
+                        "inverse-primary": "#ffb596",
+                        "outline-variant": "#e0c0b3",
+                        "secondary-fixed-dim": "#afc8ed",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "on-primary": "#ffffff",
+                        "primary": "#a33e00",
+                        "background": "#f7f9fc",
+                        "surface-container-high": "#e6e8eb",
+                        "primary-fixed": "#ffdbcd",
+                        "surface-dim": "#d8dadd",
+                        "on-primary-fixed-variant": "#7c2e00",
+                        "primary-container": "#f26a21",
+                        "on-surface": "#191c1e",
+                        "inverse-on-surface": "#eff1f4",
+                        "secondary-container": "#c0d9fe",
+                        "surface-bright": "#f7f9fc",
+                        "secondary": "#476080",
+                        "primary-fixed-dim": "#ffb596",
+                        "on-tertiary-container": "#003418",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#eceef1",
+                        "on-tertiary-fixed": "#00210d",
+                        "on-secondary-container": "#465f7f",
+                        "on-primary-fixed": "#360f00",
+                        "on-background": "#191c1e",
+                        "on-secondary-fixed-variant": "#2f4867",
+                        "surface": "#f7f9fc",
+                        "surface-container-low": "#f2f4f7",
+                        "tertiary-container": "#39a763",
+                        "on-primary-container": "#511b00",
+                        "tertiary-fixed-dim": "#71dc92",
+                        "tertiary-fixed": "#8df9ac",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#594238",
+                        "on-tertiary-fixed-variant": "#005229",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#006d38",
+                        "error-container": "#ffdad6",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#a33e00",
+                        "brand-deep-blue": "#0E2A47",
+                        "brand-bus-orange": "#F26A21",
+                        "brand-success": "#2E9E5B"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "16px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "margin-desktop": "40px",
+                        "md": "16px",
+                        "gutter": "20px",
+                        "xs": "4px",
+                        "base": "4px"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bento-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bento-card:hover {
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface" style="background-color: #F5F7FA;">
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 right-0 left-0 z-50 flex justify-between items-center px-lg h-[64px] bg-white dark:bg-surface-dim shadow-sm border-b border-outline-variant">
+<div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">directions_bus</span><div class="flex flex-col"><span class="text-title-md font-bold text-primary leading-tight">BusTicketBooking</span><span class="text-[10px] font-bold text-secondary uppercase tracking-wider">CỔNG THÔNG TIN TÀI XẾ</span></div></div>
+<div class="flex items-center gap-4"><div class="hidden md:flex items-center gap-2 px-3 py-1"><div class="flex flex-col items-end mr-2"><span class="text-label-md font-bold text-on-surface" th:text="${currentUser != null ? currentUser.fullName() : 'Nguyễn Văn A'}">Nguyễn Văn A</span><span class="text-[10px] bg-[#F26A21] text-white px-2 py-0.5 rounded-full font-bold">TÀI XẾ</span></div><img alt="Avatar" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKxRShi5R7VBeIXVVp0vvJ5dV2NumSDQvjOg0W-0CPHzjHkOOMyu1ox03svGIYCRmS1BcAvNLdi_8Gs_i3yWu2kNMDVZsRS8TUZ3CmINVhkTW0hPx4F8A-3si8W6S77QEAJAGc-zP2mtGyl0aB3mS7Oq1NhaY6w6RlIPvpHAcDboEz92q413099L-O-OAJnLRAdhf3qdUCmPOS88xR332Mp1egd1bYal4aEZquh_PVvP8il4kMWlcbTw"></div><a th:href="@{/auth/logout}" class="material-symbols-outlined p-2 text-[#F26A21] hover:bg-surface-container-high rounded-full transition-colors">logout</a></div>
+</header>
+<!-- SideNavBar (Shared Component - Desktop Only) -->
+<aside class="fixed left-0 top-0 bottom-0 w-[280px] z-40 hidden md:flex flex-col pt-[80px] pb-md bg-[#0E2A47] shadow-lg bg-brand-deep-blue">
+<div class="px-lg mb-xl"></div>
+<nav class="flex-1 space-y-1"><a class="flex items-center gap-3 px-4 py-3 text-secondary-fixed hover:bg-white/10 rounded-lg transition-all mx-2" th:href="@{/driver/dashboard}"><span class="material-symbols-outlined">dashboard</span><span class="text-label-md font-medium">Dashboard</span></a><a class="flex items-center gap-3 px-4 py-3 text-secondary-fixed hover:bg-white/10 rounded-lg transition-all mx-2" th:href="@{/driver/trips}"><span class="material-symbols-outlined">calendar_today</span><span class="text-label-md font-medium">Lịch trình</span></a><a class="flex items-center gap-3 px-4 py-3 text-secondary-fixed hover:bg-white/10 rounded-lg transition-all mx-2" th:href="@{/driver/trips}"><span class="material-symbols-outlined">group</span><span class="text-label-md font-medium">Hành khách</span></a><a class="flex items-center gap-3 px-4 py-3 bg-[#F26A21] text-white rounded-lg transition-all shadow-md mx-2" th:href="@{/driver/profile}"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_circle</span><span class="text-label-md font-medium">Hồ sơ cá nhân</span></a></nav>
+<div class="mt-auto px-2 border-t border-white/10">
+<a th:href="@{/auth/logout}" class="text-secondary-fixed hover:bg-secondary-container/10 rounded-lg p-md flex items-center gap-md cursor-pointer transition-all">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-label-md font-medium">Đăng xuất</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-[280px] min-h-screen p-margin-mobile md:p-margin-desktop pt-[80px]">
+<!-- Header Actions -->
+<!-- 2-Column Bento Grid Layout -->
+<div class="flex justify-center w-full items-center flex-col min-h-[calc(100vh-108px-80px)]">
+<div class="bg-white p-xl rounded-xl shadow-sm border border-outline-variant w-full max-w-[650px]">
+<!-- Top Section: Avatar & Name -->
+<div class="flex flex-col items-center text-center mb-xl">
+<div class="w-[90px] h-[90px] rounded-full border-4 border-brand-bus-orange p-1 mb-md">
+<img alt="Driver" class="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpCR5btC16redBs8NF66yYceDNw7-NeLxeG8Eq4npVkcyIxvB6EtW_WKuw19oPygWXGFV3V1WEPaW8lXUXwi7qI3IxF-FBR1e7vJmThsCMdavvJt1AimVI4SoRHAjGdT3PLF0By9Xr3s5g-CW_HzdfS7DkgDkjjWB_2Zqpvbppwxsk89GDfpwYqA6m_GwCju33TrvtNdIPf33Aqy89vOgQ-Vz7hQXNmy2ixHPdzghwYtJVBHJQZRG_6A">
+</div>
+<h2 class="text-headline-lg font-bold text-brand-deep-blue" th:text="${currentUser != null ? currentUser.fullName() : 'Nguyễn Văn A'}">Nguyễn Văn A</h2>
+<span class="px-4 py-1 bg-brand-bus-orange/10 text-brand-bus-orange rounded-full text-label-md font-bold mt-2">Bằng lái Hạng E (Xe khách)</span><div class="grid grid-cols-3 gap-3 w-full mt-lg">
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col items-center gap-1">
+<span class="text-xl">🏆</span>
+<span class="text-[10px] text-secondary uppercase font-bold">Kinh nghiệm</span>
+<span class="text-label-md font-bold text-brand-deep-blue">8 Năm</span>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col items-center gap-1">
+<span class="text-xl">🛣️</span>
+<span class="text-[10px] text-secondary uppercase font-bold">Chuyến an toàn</span>
+<span class="text-label-md font-bold text-brand-deep-blue">1,250</span>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col items-center gap-1">
+<span class="text-xl">⭐</span>
+<span class="text-[10px] text-secondary uppercase font-bold">Đánh giá</span>
+<span class="text-label-md font-bold text-brand-deep-blue">4.9/5.0</span>
+</div>
+</div>
+</div>
+<!-- Bottom Section: Information Rows -->
+<div class="space-y-4"><!-- Phone Row -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">call</span>
+<span class="text-label-md text-secondary">Số điện thoại</span>
+</div>
+<span class="text-body-md font-bold text-brand-deep-blue" th:text="${currentUser != null ? currentUser.phoneNumber() : '0901234567'}">0901234567</span>
+</div>
+<!-- Email Row -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">mail</span>
+<span class="text-label-md text-secondary">Email liên hệ</span>
+</div>
+<span class="text-body-md font-bold text-brand-deep-blue text-right" th:text="${currentUser != null ? currentUser.email() : 'vana.nguyen@busticketbooking.vn'}">vana.nguyen@busticketbooking.vn</span>
+</div>
+<!-- Driver ID Row -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">badge</span>
+<span class="text-label-md text-secondary">Mã tài xế</span>
+</div>
+<span class="text-body-md font-bold text-brand-deep-blue">TX-2024-0892</span>
+</div>
+<!-- Status Row -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-brand-success">check_circle</span>
+<span class="text-label-md text-secondary">Trạng thái hoạt động</span>
+</div>
+<span class="text-brand-success font-bold text-label-md">Đang hoạt động</span>
+</div></div>
+</div>
+</div>
+<!-- Footer Info -->
+
+</main>
+<!-- Mobile Bottom Navigation (Shared Component Logic) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-[64px] bg-white border-t border-outline-variant flex justify-around items-center z-50">
+<a th:href="@{/driver/trips}" class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[10px]">Lịch trình</span>
+</a>
+<a th:href="@{/driver/trips}" class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined">route</span>
+<span class="text-[10px]">Tuyến đường</span>
+</a>
+<a href="#" class="flex flex-col items-center gap-1 text-secondary">
+<span class="material-symbols-outlined">notifications</span>
+<span class="text-[10px]">Thông báo</span>
+</a>
+<a th:href="@{/driver/profile}" class="flex flex-col items-center gap-1 text-brand-bus-orange">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+<span class="text-[10px] font-bold">Cá nhân</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for hover states and button active effects
+        document.querySelectorAll('button, .bento-card').forEach(el => {
+            el.addEventListener('mousedown', () => el.classList.add('scale-[0.98]'));
+            el.addEventListener('mouseup', () => el.classList.remove('scale-[0.98]'));
+            el.addEventListener('mouseleave', () => el.classList.remove('scale-[0.98]'));
+        });
+    </script>
+</body>
+</html>
