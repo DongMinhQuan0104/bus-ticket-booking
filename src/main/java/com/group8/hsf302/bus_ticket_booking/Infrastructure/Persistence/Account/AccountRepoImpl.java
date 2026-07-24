@@ -1,5 +1,6 @@
 package com.group8.hsf302.bus_ticket_booking.Infrastructure.Persistence.Account;
 
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Role;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Status;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.Account;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.AccountRepo;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -58,5 +60,10 @@ public class AccountRepoImpl implements AccountRepo {
     @Override
     public Page<Account> findByFullNameContaining(String name, Pageable pageable) {
         return accountJpaRepo.findByFullNameContainingIgnoreCase(name, pageable);
+    }
+
+    @Override
+    public List<Account> findByRole(Role role) {
+        return accountJpaRepo.findByRole(role);
     }
 }
