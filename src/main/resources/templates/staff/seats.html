@@ -103,6 +103,45 @@
         body { font-family: 'Inter', sans-serif; background-color: #F5F7FA; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1; }
+
+        /* Sơ đồ ghế chuẩn: 2 ghế bên trái, lối đi, 2 ghế bên phải. */
+        .seat-map-grid {
+            display: grid;
+            grid-template-columns:
+                minmax(56px, 72px)
+                minmax(56px, 72px)
+                44px
+                minmax(56px, 72px)
+                minmax(56px, 72px);
+            column-gap: 12px;
+            row-gap: 16px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .seat-map-grid > label {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .seat-map-grid > label:nth-child(4n + 1) { grid-column: 1; }
+        .seat-map-grid > label:nth-child(4n + 2) { grid-column: 2; }
+        .seat-map-grid > label:nth-child(4n + 3) { grid-column: 4; }
+        .seat-map-grid > label:nth-child(4n + 4) { grid-column: 5; }
+
+        @media (max-width: 480px) {
+            .seat-map-grid {
+                grid-template-columns:
+                    minmax(46px, 60px)
+                    minmax(46px, 60px)
+                    24px
+                    minmax(46px, 60px)
+                    minmax(46px, 60px);
+                column-gap: 8px;
+                row-gap: 12px;
+            }
+        }
     </style>
 </head>
 <body class="flex bg-surface text-on-surface">
@@ -230,9 +269,11 @@
 <div class="flex flex-col md:flex-row gap-4 items-end">
 <div class="flex-1 w-full">
 <label class="block font-label-sm text-label-sm text-on-surface mb-1">Điểm đón</label>
-<select class="w-full border-outline-variant rounded-lg p-3 font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" name="pickupOrder" required="">
-<option th:selected="${pickupOrder == 1}" value="1">Bến xe Hà Nội</option>
-<option th:selected="${pickupOrder == 2}" value="2">Bến xe Nước Ngầm</option>
+<select class="w-full border-outline-variant rounded-lg p-3 font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" id="pickupOrder" name="pickupOrder" required>
+<option th:each="station : ${routeStations}"
+        th:selected="${pickupOrder == station.stationOrder()}"
+        th:text="${station.stationName() + (station.address() != null ? ' — ' + station.address() : '')}"
+        th:value="${station.stationOrder()}">Điểm đón</option>
 </select>
 </div>
 <div class="hidden md:flex items-center justify-center pb-3 px-2 text-on-surface-variant">
@@ -240,9 +281,11 @@
 </div>
 <div class="flex-1 w-full">
 <label class="block font-label-sm text-label-sm text-on-surface mb-1">Điểm trả</label>
-<select class="w-full border-outline-variant rounded-lg p-3 font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" name="dropoffOrder" required="">
-<option th:selected="${dropoffOrder == 2}" value="2">Bến xe Đà Nẵng</option>
-<option th:selected="${dropoffOrder == 3}" value="3">Ngã 3 Túy Loan</option>
+<select class="w-full border-outline-variant rounded-lg p-3 font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none" id="dropoffOrder" name="dropoffOrder" required>
+<option th:each="station : ${routeStations}"
+        th:selected="${dropoffOrder == station.stationOrder()}"
+        th:text="${station.stationName() + (station.address() != null ? ' — ' + station.address() : '')}"
+        th:value="${station.stationOrder()}">Điểm trả</option>
 </select>
 </div>
 <button class="px-6 py-3 border border-primary text-primary rounded-lg hover:bg-primary-container font-body-md text-body-md font-semibold whitespace-nowrap" type="submit">
@@ -258,17 +301,19 @@
 <h4 class="font-headline-md text-headline-md text-on-surface mb-4">Chuyến xe đã chọn</h4>
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
 <div>
-<div class="font-headline-md text-headline-md text-on-surface font-bold mb-1" th:text="|Chuyến xe ${tripId}|">Hà Nội - Đà Nẵng</div>
+<div class="font-headline-md text-headline-md text-on-surface font-bold mb-1"
+     th:text="${trip.destinationFrom() + ' → ' + trip.destinationTo()}">Điểm đi → Điểm đến</div>
 <div class="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
-<span class="material-symbols-outlined text-sm">schedule</span> 24/07/2026 lúc 09:00
-                                    <span class="w-1 h-1 rounded-full bg-on-surface-variant"></span>
-<span class="material-symbols-outlined text-sm">directions_bus</span> Xe giường nằm 01 (29B-123.45)
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span th:text="${#temporals.format(trip.departureTime(), 'dd/MM/yyyy HH:mm')}">20/10/2026 08:00</span>
+<span class="w-1 h-1 rounded-full bg-on-surface-variant"></span>
+<span class="material-symbols-outlined text-sm">directions_bus</span>
+<span th:text="${(trip.busName() != null ? trip.busName() : 'Chưa có tên xe') + (trip.licensePlate() != null ? ' (' + trip.licensePlate() + ')' : '')}">Tên xe</span>
                                 </div>
 </div>
 <div class="flex items-center gap-4">
-<span class="bg-surface-container-low text-on-surface px-3 py-1.5 rounded-full font-label-sm text-label-sm border border-outline-variant">
-                                    13 ghế còn trống
-                                </span>
+<span class="bg-surface-container-low text-on-surface px-3 py-1.5 rounded-full font-label-sm text-label-sm border border-outline-variant"
+      th:text="${trip.availableSeatCount() + ' ghế còn trống'}">0 ghế còn trống</span>
 <a class="text-primary font-label-sm text-label-sm hover:underline" th:href="@{/staff/trips}">Đổi chuyến</a>
 </div>
 </div>
@@ -294,7 +339,7 @@
 <span class="material-symbols-outlined">directions_bus</span>
 <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">Đầu xe</span>
 </div>
-<div class="grid grid-cols-5 gap-y-4 gap-x-2 sm:gap-x-6 w-full max-w-sm"><label th:class="${seat.status().name() == 'AVAILABLE' ? 'h-12 border-2 border-[#16A34A] text-[#16A34A] rounded-lg font-body-md font-semibold hover:bg-green-50 transition-colors flex items-center justify-center cursor-pointer seat-choice' : (seat.status().name() == 'HELD' ? 'h-12 bg-amber-500 text-white rounded-lg font-body-md font-semibold cursor-not-allowed flex items-center justify-center' : 'h-12 bg-gray-400 text-white rounded-lg font-body-md font-semibold cursor-not-allowed flex items-center justify-center')}" th:each="seat : ${seats}">
+<div class="seat-map-grid max-w-md mx-auto"><label th:class="${seat.status().name() == 'AVAILABLE' ? 'h-12 border-2 border-[#16A34A] text-[#16A34A] rounded-lg font-body-md font-semibold hover:bg-green-50 transition-colors flex items-center justify-center cursor-pointer seat-choice' : (seat.status().name() == 'HELD' ? 'h-12 bg-amber-500 text-white rounded-lg font-body-md font-semibold cursor-not-allowed flex items-center justify-center' : 'h-12 bg-gray-400 text-white rounded-lg font-body-md font-semibold cursor-not-allowed flex items-center justify-center')}" th:each="seat : ${seats}">
 <input class="sr-only" name="selectedSeats" onchange="updateSelectedSeats()" th:disabled="${seat.status().name() != 'AVAILABLE'}" th:value="${seat.seatCode()}" type="checkbox"/>
 <span th:text="${seat.seatCode()}">A01</span>
 </label></div>
@@ -328,6 +373,28 @@
 </div>
 </main>
 <script>
+function syncStationOptions() {
+ const pickup = document.getElementById('pickupOrder');
+ const dropoff = document.getElementById('dropoffOrder');
+ if (!pickup || !dropoff) return;
+
+ const pickupValue = Number(pickup.value);
+ [...dropoff.options].forEach(option => {
+   option.disabled = Number(option.value) <= pickupValue;
+ });
+
+ if (Number(dropoff.value) <= pickupValue) {
+   const firstValid = [...dropoff.options].find(option => !option.disabled);
+   if (firstValid) dropoff.value = firstValid.value;
+ }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+ const pickup = document.getElementById('pickupOrder');
+ if (pickup) pickup.addEventListener('change', syncStationOptions);
+ syncStationOptions();
+});
+
 function updateSelectedSeats(){
  const selected=[...document.querySelectorAll('input[name="selectedSeats"]:checked')];
  document.querySelectorAll('.seat-choice').forEach(l=>{const i=l.querySelector('input'); if(i&&i.checked){l.classList.add('bg-primary','text-on-primary','border-primary');l.classList.remove('text-[#16A34A]','border-[#16A34A]');}else{l.classList.remove('bg-primary','text-on-primary','border-primary');l.classList.add('text-[#16A34A]','border-[#16A34A]');}});

@@ -8,11 +8,7 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.StaffCreateB
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.StaffRefundForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.StaffSupportRequestForm;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Request.StaffTripSearchForm;
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.StaffBookingViewModel;
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.StaffCheckInViewModel;
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.StaffSeatViewModel;
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.StaffSupportRequestViewModel;
-import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.StaffTripViewModel;
+import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +22,24 @@ public interface StaffService {
     List<StaffTripViewModel> searchTrips(
             StaffTripSearchForm form
     );
+
+
+    /**
+     * Lấy thông tin một chuyến để hiển thị trên màn hình chọn ghế.
+     */
+    StaffTripViewModel getTrip(
+            UUID tripId
+    );
+
+    /**
+     * Lấy các trạm của tuyến theo đúng thứ tự hành trình.
+     */
+    List<StaffRouteStationViewModel> getRouteStations(
+            UUID tripId
+    );
+
+
+
 
     /**
      * Xem trạng thái ghế của chuyến trên một chặng cụ thể.

@@ -62,20 +62,58 @@ public class StaffController {
     }
 
     @GetMapping("/trips/{tripId}/seats")
-    public String seats(@PathVariable UUID tripId,
-                        @RequestParam(required = false) Integer pickupOrder,
-                        @RequestParam(required = false) Integer dropoffOrder,
-                        HttpSession session,
-                        Model model) {
+    public String seats(
+            @PathVariable UUID tripId,
+            @RequestParam(required = false) Integer pickupOrder,
+            @RequestParam(required = false) Integer dropoffOrder,
+            HttpSession session,
+            Model model
+    ) {
         addCurrentStaff(session, model);
-        model.addAttribute("tripId", tripId);
-        model.addAttribute("pickupOrder", pickupOrder);
-        model.addAttribute("dropoffOrder", dropoffOrder);
 
-        if (pickupOrder != null && dropoffOrder != null) {
-            model.addAttribute("seats", staffService.getSeats(tripId, pickupOrder, dropoffOrder));
-            model.addAttribute("loaded", true);
-        }
+        StaffTripViewModel trip =
+                staffService.getTrip(tripId);
+
+        List<StaffRouteStationViewModel> routeStations =
+                staffService.getRouteStations(tripId);
+
+        int effectivePickupOrder =
+                pickupOrder != null
+                        ? pickupOrder
+                        : routeStations.get(0).stationOrder();
+
+        int effectiveDropoffOrder =
+                dropoffOrder != null
+                        ? dropoffOrder
+                        : routeStations
+                          .get(routeStations.size() - 1)
+                          .stationOrder();
+
+        model.addAttribute("tripId", tripId);
+        model.addAttribute("trip", trip);
+        model.addAttribute("routeStations", routeStations);
+
+        model.addAttribute(
+                "pickupOrder",
+                effectivePickupOrder
+        );
+
+        model.addAttribute(
+                "dropoffOrder",
+                effectiveDropoffOrder
+        );
+
+        model.addAttribute(
+                "seats",
+                staffService.getSeats(
+                        tripId,
+                        effectivePickupOrder,
+                        effectiveDropoffOrder
+                )
+        );
+
+        model.addAttribute("loaded", true);
+
         return "staff/seats";
     }
 

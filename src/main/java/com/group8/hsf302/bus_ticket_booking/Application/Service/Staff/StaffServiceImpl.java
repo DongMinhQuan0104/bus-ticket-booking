@@ -105,6 +105,71 @@ public class StaffServiceImpl implements StaffService {
                 .toList();
     }
 
+
+    @Override
+    @Transactional(readOnly = true)
+    public StaffTripViewModel getTrip(
+            UUID tripId
+    ) {
+        Trip trip = requireSellableTrip(tripId);
+
+        return toTripViewModel(trip);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<StaffRouteStationViewModel> getRouteStations(
+            UUID tripId
+    ) {
+        Trip trip = requireSellableTrip(tripId);
+
+        List<RouteStation> routeStations =
+                routeStationRepo.findByRouteId(
+                        trip.getRoute().getId()
+                );
+
+        if (routeStations == null || routeStations.isEmpty()) {
+            throw new StaffBusinessException(
+                    "Tuyến của chuyến xe chưa có điểm đón và điểm trả."
+            );
+        }
+
+        List<StaffRouteStationViewModel> result =
+                routeStations.stream()
+                        .filter(Objects::nonNull)
+                        .filter(routeStation ->
+                                routeStation.getStation() != null
+                        )
+                        .filter(routeStation ->
+                                routeStation.getStationOrder() != null
+                        )
+                        .sorted(
+                                Comparator.comparing(
+                                        RouteStation::getStationOrder
+                                )
+                        )
+                        .map(routeStation ->
+                                new StaffRouteStationViewModel(
+                                        routeStation.getStationOrder(),
+                                        routeStation.getStation().getName(),
+                                        routeStation.getStation().getAddress(),
+                                        routeStation.getPriceFromStart()
+                                )
+                        )
+                        .toList();
+
+        if (result.size() < 2) {
+            throw new StaffBusinessException(
+                    "Tuyến xe phải có ít nhất một điểm đón và một điểm trả."
+            );
+        }
+
+        return result;
+    }
+
+
+
+
     @Override
     @Transactional(readOnly = true)
     public List<StaffSeatViewModel> getSeats(
