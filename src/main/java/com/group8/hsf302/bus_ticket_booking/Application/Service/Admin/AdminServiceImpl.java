@@ -5,6 +5,7 @@ import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.*;
 import com.group8.hsf302.bus_ticket_booking.Application.Dto.Response.Paging.PagedResponse;
 import com.group8.hsf302.bus_ticket_booking.Application.Mapper.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Enum.Role;
+import com.group8.hsf302.bus_ticket_booking.Domain.Enum.TransactionStatus;
 import com.group8.hsf302.bus_ticket_booking.Domain.Exception.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Model.*;
 import com.group8.hsf302.bus_ticket_booking.Domain.Repository.*;
@@ -27,6 +28,8 @@ public class AdminServiceImpl implements AdminService{
     private final RouteRepo routeRepo;
     private final StationRepo stationRepo;
     private final TripRepo tripRepo;
+    private final TransactionRepo transactionRepo;
+    private final ReviewRepo reviewRepo;
     private final PasswordHasher passwordHasher;
     private final AccountMapper accountMapper;
     private final BusMapper busMapper;
@@ -34,12 +37,14 @@ public class AdminServiceImpl implements AdminService{
     private final StationMapper stationMapper;
     private final TripMapper tripMapper;
 
-    public AdminServiceImpl(AccountRepo accountRepo, BusRepo busRepo, RouteRepo routeRepo, StationRepo stationRepo, TripRepo tripRepo, PasswordHasher passwordHasher, AccountMapper accountMapper, BusMapper busMapper, RouteMapper routeMapper, StationMapper stationMapper, TripMapper tripMapper) {
+    public AdminServiceImpl(AccountRepo accountRepo, BusRepo busRepo, RouteRepo routeRepo, StationRepo stationRepo, TripRepo tripRepo, TransactionRepo transactionRepo, ReviewRepo reviewRepo, PasswordHasher passwordHasher, AccountMapper accountMapper, BusMapper busMapper, RouteMapper routeMapper, StationMapper stationMapper, TripMapper tripMapper) {
         this.accountRepo = accountRepo;
         this.busRepo = busRepo;
         this.routeRepo = routeRepo;
         this.stationRepo = stationRepo;
         this.tripRepo = tripRepo;
+        this.transactionRepo = transactionRepo;
+        this.reviewRepo = reviewRepo;
         this.passwordHasher = passwordHasher;
         this.accountMapper = accountMapper;
         this.busMapper = busMapper;
@@ -444,6 +449,101 @@ public class AdminServiceImpl implements AdminService{
     }
 
 
+
+    // ===================== DASHBOARD: CHUYEN DANG HOAT DONG =====================
+    @Override
+    @Transactional
+    public PagedResponse<TripViewModel> getActiveTrips(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Trip> tripPage = tripRepo.findActiveTrips(pageRequest);
+        List<TripViewModel> viewModels = tripPage.stream()
+                .map(tripMapper::toViewModel)
+                .toList();
+        return new PagedResponse<>(
+                viewModels, tripPage.getNumber(), tripPage.getSize(),
+                tripPage.getTotalElements(), tripPage.getTotalPages(), tripPage.isLast());
+    }
+
+    @Override
+    public long countActiveTrips() {
+        return tripRepo.countActiveTrips();
+    }
+
+    // ===================== DUYET HOAN TIEN =====================
+    @Override
+    @Transactional
+    public PagedResponse<RefundRequestViewModel> getPendingRefunds(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Transaction> txPage = transactionRepo.findByStatus(TransactionStatus.PENDING, pageRequest);
+        List<RefundRequestViewModel> viewModels = txPage.stream()
+                .map(this::toRefundRequestViewModel)
+                .toList();
+        return new PagedResponse<>(
+                viewModels, txPage.getNumber(), txPage.getSize(),
+                txPage.getTotalElements(), txPage.getTotalPages(), txPage.isLast());
+    }
+
+    @Override
+    public long countPendingRefunds() {
+        return transactionRepo.countByStatus(TransactionStatus.PENDING);
+    }
+
+    @Override
+    @Transactional
+    public boolean approveRefund(UUID transactionId) {
+        return transactionRepo.findById(transactionId).map(tx -> {
+            tx.setStatus(TransactionStatus.PAID);
+            transactionRepo.save(tx);
+            return true;
+        }).orElse(false);
+    }
+
+    private RefundRequestViewModel toRefundRequestViewModel(Transaction tx) {
+        Account customer = tx.getTo();
+        boolean pending = tx.getStatus() == TransactionStatus.PENDING;
+        return new RefundRequestViewModel(
+                tx.getId(),
+                customer != null ? customer.getFullName() : "(không rõ)",
+                customer != null ? customer.getEmail() : "",
+                tx.getAmount(),
+                tx.getCreatedAt(),
+                tx.getStatus() != null ? tx.getStatus().name() : "",
+                pending);
+    }
+
+    // ===================== FEEDBACK KHACH HANG =====================
+    @Override
+    @Transactional
+    public PagedResponse<ReviewViewModel> getAllReviews(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Review> reviewPage = reviewRepo.findAll(pageRequest);
+        List<ReviewViewModel> viewModels = reviewPage.stream()
+                .map(this::toReviewViewModel)
+                .toList();
+        return new PagedResponse<>(
+                viewModels, reviewPage.getNumber(), reviewPage.getSize(),
+                reviewPage.getTotalElements(), reviewPage.getTotalPages(), reviewPage.isLast());
+    }
+
+    @Override
+    public long countReviews() {
+        return reviewRepo.count();
+    }
+
+    private ReviewViewModel toReviewViewModel(Review review) {
+        Account customer = review.getAccount();
+        Trip trip = review.getTrip();
+        String tripName = trip != null
+                ? (trip.getDestinationFrom() + " → " + trip.getDestinationTo())
+                : "(không rõ)";
+        return new ReviewViewModel(
+                review.getId(),
+                review.getRating(),
+                review.getComment(),
+                customer != null ? customer.getFullName() : "(ẩn danh)",
+                tripName,
+                review.getCreatedAt());
+    }
 
     private Account findAccountById(UUID accountId) {
         return accountRepo.findById(accountId).orElseThrow(AccountNotFoundException::new);

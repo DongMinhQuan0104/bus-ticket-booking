@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Đánh giá của khách')}"></head>
+<body class="bg-surface-bright text-on-surface font-body-main text-body-main antialiased">
+<nav th:replace="~{admin/layout :: sidebar('reviews')}"></nav>
+<header th:replace="~{admin/layout :: topbar}"></header>
+
+<main class="ml-64 pt-16 min-h-screen">
+    <div class="max-w-[1200px] mx-auto px-12 py-12">
+        <div th:replace="~{admin/layout :: flash}"></div>
+
+        <div class="mb-8">
+            <h1 class="font-headline-md text-headline-md text-on-surface mb-2">Đánh giá của khách hàng</h1>
+            <p class="font-body-main text-body-main text-on-surface-variant">Phản hồi của khách sau khi hoàn thành chuyến đi.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div th:if="${reviews.content.isEmpty()}" class="col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant p-8 text-center text-on-surface-variant">
+                Chưa có đánh giá nào.
+            </div>
+            <div th:each="r : ${reviews.content}" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold"
+                             th:text="${r.customerName() != null and !r.customerName().isEmpty()} ? ${#strings.substring(r.customerName(),0,1)} : '?'">K</div>
+                        <div>
+                            <div class="font-title-sm text-title-sm text-on-surface" th:text="${r.customerName()}">Khách</div>
+                            <div class="text-body-sm text-on-surface-variant" th:text="${r.tripName()}">Tuyến</div>
+                        </div>
+                    </div>
+                    <span class="text-secondary-container text-lg" th:text="${'★'.repeat(r.rating() != null ? r.rating() : 0)}">★★★★★</span>
+                </div>
+                <p class="font-body-main text-on-surface mb-2" th:text="${r.comment()}">Nội dung đánh giá</p>
+                <div class="text-body-sm text-on-surface-variant text-right"
+                     th:text="${r.createdAt() != null} ? ${#temporals.format(r.createdAt(),'HH:mm dd/MM/yyyy')} : ''"></div>
+            </div>
+        </div>
+
+        <div th:if="${reviews.totalPages > 1}" class="flex items-center justify-between mt-6">
+            <span class="text-body-sm text-on-surface-variant"
+                  th:text="|Trang ${reviews.page + 1} / ${reviews.totalPages}|">Trang</span>
+            <div class="flex gap-2">
+                <a th:if="${reviews.page > 0}" th:href="@{/admin/reviews(page=${reviews.page - 1})}"
+                   class="px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-low">← Trước</a>
+                <a th:unless="${reviews.last}" th:href="@{/admin/reviews(page=${reviews.page + 1})}"
+                   class="px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-low">Sau →</a>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

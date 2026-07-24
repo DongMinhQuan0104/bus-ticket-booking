@@ -31,6 +31,11 @@ public interface TripRepo {
 
     Page<Trip> findByRouteNameContainingIgnoreCase(String name, Pageable pageable);
 
+    // Dashboard: cac chuyen "dang hoat dong" (SCHEDULED hoac RUNNING).
+    Page<Trip> findActiveTrips(Pageable pageable);
+
+    long countActiveTrips();
+
     void delete(Trip trip);
 
     // ===== Goi y thanh pho cho o tim kiem (E1) =====
